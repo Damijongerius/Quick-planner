@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Relation Explorer - The Digital Sanctuary</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#3949AB",
+                        "primary-container": "#E8EAF6",
+                        "on-primary": "#FFFFFF",
+                        "secondary": "#49636f",
+                        "tertiary": "#006b60",
+                        "background": "#f8f9fb",
+                        "surface": "#f8f9fb",
+                        "surface-container": "#eaeff2",
+                        "surface-container-low": "#f0f4f7",
+                        "surface-container-high": "#e3e9ed",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#2c3437",
+                        "on-surface-variant": "#596064",
+                        "outline": "#747c80",
+                        "outline-variant": "#acb3b7",
+                        "error": "#a8364b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+        }
+        .node-connection {
+            background-image: radial-gradient(circle at center, #acb3b7 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+<body class="bg-background font-body text-on-surface overflow-hidden">
+<div class="flex h-screen w-full">
+<!-- SideNavBar (Shared Component) -->
+<aside class="h-screen w-72 fixed left-0 top-0 z-40 bg-[#f8f9fb] flex flex-col p-8 space-y-8 font-manrope antialiased tracking-tight">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-center bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAsfx8DqY7z72u--s4I-Lq1EvZubYhxpxCkM4hVjTy2l8SdpYnR4Wc6fSZjNPCmYlkeD3mYCUjXm6XVBzDAw6pYTrscQGti2KbcfQzb-GoFgFIjZdcDyUEHB3bq_RT-4n_anUfzqH4XQX2LBucgZ-EyiXSmnNaFPQs4an5GHaGYjzHfLKM2bStwCxk5qbmcvhza67SNMFfeW2V-VbfJAHuz_TEE-fm11ZYNuPM-Gajo8POS6USmLyWUNSa0c6bKLhu2yTASz6e7WtHb");'></div>
+<div>
+<h1 class="text-sm font-bold text-on-surface">Sanctuary</h1>
+<p class="text-[10px] text-on-surface-variant font-medium">Strategic Planner</p>
+</div>
+</div>
+<nav class="flex flex-col space-y-2">
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-surface-variant font-medium hover:bg-surface-container-low transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">view_kanban</span>
+<span class="text-sm">Sprint Board</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-surface-variant font-medium hover:bg-surface-container-low transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="text-sm">Hierarchical Backlog</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-[#3949AB] font-bold border-r-2 border-[#3949AB] bg-surface-container-low" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">hub</span>
+<span class="text-sm">Relation Map</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-surface-variant font-medium hover:bg-surface-container-low transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">dashboard_customize</span>
+<span class="text-sm">Node Gallery</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-surface-variant font-medium hover:bg-surface-container-low transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-sm">User Profile</span>
+</a>
+</nav>
+<div class="mt-auto">
+<button class="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-3 rounded-xl font-bold text-sm shadow-sm scale-95 active:scale-100 transition-transform">
+<span class="material-symbols-outlined text-lg">add</span>
+                New Node
+            </button>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<div class="flex-1 flex flex-col ml-72">
+<!-- TopAppBar (Shared Component) -->
+<header class="sticky top-0 w-full z-30 bg-[#f8f9fb]/80 backdrop-blur-xl flex justify-between items-center px-12 py-6">
+<div class="flex items-center gap-4 flex-1 max-w-xl">
+<div class="flex w-full items-center bg-surface-container-low rounded-full px-4 py-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-xl">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full px-2 font-manrope font-semibold" placeholder="Find node..."/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<button class="px-4 py-2 text-[#3949AB] text-sm font-semibold hover:opacity-75 transition-opacity duration-300">Quick Sync</button>
+<button class="px-4 py-2 text-on-surface-variant text-sm font-semibold hover:text-[#3949AB] transition-opacity duration-300">Focus Mode</button>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-[#3949AB] transition-colors">help</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-[#3949AB] transition-colors">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-[#3949AB] transition-colors">settings</span>
+</div>
+</div>
+</header>
+<!-- Layout: Full Width Canvas -->
+<div class="flex-1 flex overflow-hidden">
+<!-- Canvas -->
+<main class="flex-1 relative bg-surface-container-low node-connection flex flex-col">
+<!-- Toolbar -->
+<div class="absolute top-6 left-6 z-10 flex gap-3">
+<div class="glass-panel rounded-full shadow-lg p-1 border border-white/40 flex">
+<button class="px-6 py-2 rounded-full bg-primary text-on-primary text-xs font-bold shadow-sm">Select</button>
+<button class="px-6 py-2 rounded-full text-on-surface-variant text-xs font-bold hover:bg-white/50">Connect</button>
+<button class="px-6 py-2 rounded-full text-on-surface-variant text-xs font-bold hover:bg-white/50">Inspect</button>
+</div>
+</div>
+<!-- Zoom Controls -->
+<div class="absolute bottom-6 right-6 z-10 flex flex-col gap-2">
+<button class="size-12 rounded-2xl glass-panel shadow-md border border-white/40 flex items-center justify-center text-on-surface hover:bg-white transition-all">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="size-12 rounded-2xl glass-panel shadow-md border border-white/40 flex items-center justify-center text-on-surface hover:bg-white transition-all">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<button class="size-12 rounded-2xl glass-panel shadow-md border border-white/40 flex items-center justify-center text-on-surface hover:bg-white transition-all">
+<span class="material-symbols-outlined">my_location</span>
+</button>
+</div>
+<!-- Visualization -->
+<div class="flex-1 relative">
+<svg class="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+<!-- Legendary to Epic -->
+<path d="M 500 150 L 300 300" fill="none" opacity="0.4" stroke="#3949AB" stroke-width="2"></path>
+<!-- Epic to Story -->
+<path d="M 300 300 L 700 300" fill="none" opacity="0.4" stroke="#3949AB" stroke-width="2"></path>
+<!-- Story to Task Nodes -->
+<path d="M 700 300 L 500 500" fill="none" opacity="0.3" stroke="#49636f" stroke-dasharray="4 4" stroke-width="1.5"></path>
+<path d="M 700 300 L 700 500" fill="none" opacity="0.3" stroke="#49636f" stroke-dasharray="4 4" stroke-width="1.5"></path>
+<path d="M 700 300 L 900 500" fill="none" opacity="0.3" stroke="#49636f" stroke-dasharray="4 4" stroke-width="1.5"></path>
+</svg>
+<!-- Node: Legendary -->
+<div class="absolute top-[100px] left-[420px]">
+<div class="w-40 p-4 rounded-xl bg-surface-container-lowest shadow-md border-l-4 border-primary">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-[10px] font-bold text-on-surface uppercase tracking-wider">Legendary</span>
+</div>
+</div>
+</div>
+<!-- Node: Epic -->
+<div class="absolute top-[280px] left-[220px]">
+<div class="w-40 p-4 rounded-xl bg-surface-container-lowest shadow-md border-l-4 border-primary/60">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary/60 text-sm" style="font-variation-settings: 'FILL' 1;">layers</span>
+<span class="text-[10px] font-bold text-on-surface uppercase tracking-wider">Epic</span>
+</div>
+</div>
+</div>
+<!-- Node: Story (Selected) -->
+<div class="absolute top-[280px] left-[620px]">
+<div class="w-40 p-4 rounded-xl bg-surface-container-lowest ring-2 ring-primary shadow-xl border-l-4 border-secondary">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
+<span class="text-[10px] font-bold text-on-surface uppercase tracking-wider">Story</span>
+</div>
+</div>
+</div>
+<!-- Node: Task -->
+<div class="absolute top-[480px] left-[420px]">
+<div class="w-36 p-3 rounded-xl bg-surface-container-lowest shadow-sm border-l-4 border-secondary opacity-90">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-xs">check_circle</span>
+<span class="text-[9px] font-bold text-on-surface uppercase tracking-wider">Task</span>
+</div>
+</div>
+</div>
+<!-- Node: Learning Task -->
+<div class="absolute top-[480px] left-[630px]">
+<div class="w-36 p-3 rounded-xl bg-surface-container-lowest shadow-sm border-l-4 border-tertiary opacity-90">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-xs">school</span>
+<span class="text-[9px] font-bold text-on-surface uppercase tracking-wider">Learning Task</span>
+</div>
+</div>
+</div>
+<!-- Node: Research Task -->
+<div class="absolute top-[480px] left-[840px]">
+<div class="w-36 p-3 rounded-xl bg-surface-container-lowest shadow-sm border-l-4 border-primary opacity-90">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xs">search</span>
+<span class="text-[9px] font-bold text-on-surface uppercase tracking-wider">Research Task</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</div>
+</body></html>

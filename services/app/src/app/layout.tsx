@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { Inter, Manrope } from 'next/font/google';
 import "./globals.css";
-import { Sidebar } from "@/components/Sidebar";
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope' });
 
 export const metadata: Metadata = {
-  title: "Quick Planner",
-  description: "Dynamic hierarchical planning app",
+  title: "Sanctuary Planner",
+  description: "Strategic Hierarchical Planning",
 };
 
 export default function RootLayout({
@@ -13,14 +16,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>
-        <div style={{ display: 'flex' }}>
-          <Sidebar />
-          <main style={{ marginLeft: '260px', width: 'calc(100% - 260px)', minHeight: '100vh', padding: '40px' }}>
-            {children}
-          </main>
-        </div>
+    <html lang="en" className={`${inter.variable} ${manrope.variable}`}>
+      <body className={inter.className}>
+        {children}
       </body>
     </html>
   );

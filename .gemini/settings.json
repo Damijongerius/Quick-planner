@@ -1,0 +1,17 @@
+{
+  "skills": {
+    "disabled": [
+      "Strict Code Hygiene & Linting",
+      "Simple Functions & Cofnitive Load",
+      "PaperMC Configuration Management",
+      "Project Folder Structure & Organization",
+      "Logging & Communication",
+      "Java & PaperMC Coding Conventions",
+      "Local Git Workflow & Commit Standards",
+      "Don't Repeat Yourself (DRY)",
+      "Asynchronous Operations",
+      "Anti-Nesting & Readability",
+      ""
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Calendar, Play, CheckCircle2, Trash2, Check } from "lucide-react";
+import { Plus, Calendar, Play, CheckCircle2, Trash2, Clock } from "lucide-react";
 import { createSprint, updateSprintStatus } from "@/lib/actions";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -15,10 +15,11 @@ interface Sprint {
 }
 
 interface SprintPageProps {
+  projectId: string;
   sprints: Sprint[];
 }
 
-export function SprintPage({ sprints }: SprintPageProps) {
+export function SprintPage({ projectId, sprints }: SprintPageProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -27,166 +28,175 @@ export function SprintPage({ sprints }: SprintPageProps) {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name) return;
-    await createSprint(name, startDate || undefined, endDate || undefined);
+    await createSprint(projectId, name, startDate || undefined, endDate || undefined);
     setIsCreating(false);
     setName("");
     setStartDate("");
     setEndDate("");
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
-      case 'ACTIVE': return '#10b981';
-      case 'COMPLETED': return '#3b82f6';
-      default: return '#6b7280';
+      case 'ACTIVE': return { color: 'var(--primary)', bg: 'rgba(70, 86, 184, 0.1)', icon: Play };
+      case 'COMPLETED': return { color: 'var(--tertiary)', bg: 'rgba(0, 107, 96, 0.1)', icon: CheckCircle2 };
+      default: return { color: 'var(--on-surface-variant)', bg: 'var(--surface-container)', icon: Clock };
     }
   };
 
   return (
-    <div style={{ maxWidth: '1000px' }}>
-      <header style={{ marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <h2 style={{ fontSize: '2rem', marginBottom: '8px' }}>Sprints</h2>
-          <p style={{ color: '#9ca3af' }}>Plan and manage your development cycles.</p>
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {!isCreating ? (
         <button 
           onClick={() => setIsCreating(true)}
-          className="button-premium"
-          style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+          className="card-sanctuary" 
+          style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              gap: '12px', 
+              padding: '24px', 
+              border: '2px dashed var(--outline-variant)',
+              background: 'transparent',
+              opacity: 0.7,
+              cursor: 'pointer'
+          }}
         >
-          <Plus size={18} /> New Sprint
+          <Plus size={20} />
+          <span style={{ fontWeight: 700, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Create New Strategic Cycle</span>
         </button>
-      </header>
-
-      <AnimatePresence>
-        {isCreating && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="glass"
-            style={{ padding: '32px', marginBottom: '40px', overflow: 'hidden' }}
-          >
+      ) : (
+        <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="card-sanctuary"
+            style={{ padding: '40px', border: '1px solid var(--primary)' }}
+        >
             <form onSubmit={handleCreate}>
-              <h3 style={{ marginBottom: '24px', fontSize: '1.25rem' }}>Create New Sprint</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px', marginBottom: '32px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '8px' }}>Sprint Name</label>
+              <h3 style={{ marginBottom: '32px', fontSize: '24px', fontWeight: 800 }}>Define Milestone</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px', marginBottom: '40px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label className="text-meta">Sprint Identity</label>
                   <input 
                     className="input-premium" 
-                    placeholder="e.g. Sprint 1 - Core MVP" 
+                    placeholder="e.g. Q3 Strategic Roadmap" 
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
+                    style={{ paddingLeft: '20px' }}
                   />
                 </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '8px' }}>Start Date</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label className="text-meta">Commencement</label>
                   <input 
                     type="date"
                     className="input-premium" 
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    style={{ colorScheme: 'dark' }}
+                    style={{ paddingLeft: '20px' }}
                   />
                 </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', marginBottom: '8px' }}>End Date</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label className="text-meta">Target Completion</label>
                   <input 
                     type="date"
                     className="input-premium" 
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    style={{ colorScheme: 'dark' }}
+                    style={{ paddingLeft: '20px' }}
                   />
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>
-                <button type="submit" className="button-premium">Create Sprint</button>
-                <button type="button" onClick={() => setIsCreating(false)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" className="button-premium">Initialize Sprint</button>
+                <button type="button" onClick={() => setIsCreating(false)} className="button-secondary" style={{ border: 'none' }}>Discard</button>
               </div>
             </form>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </motion.div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {sprints.map((sprint) => (
-          <div key={sprint.id} className="glass" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-              <div style={{ 
-                width: '48px', 
-                height: '48px', 
-                borderRadius: '12px', 
-                backgroundColor: `${getStatusColor(sprint.status)}20`, 
-                color: getStatusColor(sprint.status),
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <Calendar size={24} />
-              </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
-                  <h4 style={{ fontSize: '1.125rem', fontWeight: 600 }}>{sprint.name}</h4>
-                  <span style={{ 
-                    fontSize: '0.65rem', 
-                    padding: '2px 8px', 
-                    borderRadius: '99px', 
-                    backgroundColor: `${getStatusColor(sprint.status)}20`, 
-                    color: getStatusColor(sprint.status),
-                    fontWeight: 700,
-                    textTransform: 'uppercase'
-                  }}>
-                    {sprint.status}
-                  </span>
+        {sprints.map((sprint) => {
+          const config = getStatusConfig(sprint.status);
+          const Icon = config.icon;
+          
+          return (
+            <div key={sprint.id} className="card-sanctuary" style={{ padding: '32px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+                <div style={{ 
+                  width: '56px', 
+                  height: '56px', 
+                  borderRadius: '16px', 
+                  backgroundColor: config.bg, 
+                  color: config.color,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Icon size={28} />
                 </div>
-                <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-                  {sprint.startDate && new Date(sprint.startDate).toLocaleDateString()} 
-                  {sprint.endDate && ` - ${new Date(sprint.endDate).toLocaleDateString()}`}
-                  {!sprint.startDate && "No dates set"}
-                </p>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '4px' }}>
+                    <h4 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--on-surface)' }}>{sprint.name}</h4>
+                    <span style={{ 
+                      fontSize: '9px', 
+                      padding: '4px 12px', 
+                      borderRadius: '9999px', 
+                      backgroundColor: config.bg, 
+                      color: config.color,
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.1em'
+                    }}>
+                      {sprint.status}
+                    </span>
+                  </div>
+                  <p style={{ color: 'var(--on-surface-variant)', fontSize: '14px', fontWeight: 500 }}>
+                    {sprint.startDate && new Date(sprint.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} 
+                    {sprint.endDate && ` — ${new Date(sprint.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`}
+                    {!sprint.startDate && "Timeline not defined"}
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '48px' }}>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ display: 'block', fontSize: '24px', fontWeight: 800, color: 'var(--on-surface)', letterSpacing: '-0.025em' }}>{sprint._count?.nodes || 0}</span>
+                  <span className="text-meta" style={{ opacity: 0.5 }}>Nodes Linked</span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  {sprint.status === 'PLANNED' && (
+                    <button 
+                      onClick={() => updateSprintStatus(projectId, sprint.id, 'ACTIVE')}
+                      className="button-premium" 
+                      style={{ padding: '10px 24px', fontSize: '12px' }}
+                    >
+                      <Play size={16} fill="white" /> Activate
+                    </button>
+                  )}
+                  {sprint.status === 'ACTIVE' && (
+                    <button 
+                      onClick={() => updateSprintStatus(projectId, sprint.id, 'COMPLETED')}
+                      className="button-premium" 
+                      style={{ padding: '10px 24px', fontSize: '12px', backgroundColor: 'var(--tertiary)' }}
+                    >
+                      <CheckCircle2 size={16} fill="white" /> Finalize
+                    </button>
+                  )}
+                  <button className="button-secondary" style={{ padding: '10px', border: 'none', color: 'var(--error)' }}>
+                    <Trash2 size={20} />
+                  </button>
+                </div>
               </div>
             </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
-              <div style={{ textAlign: 'right' }}>
-                <span style={{ display: 'block', fontSize: '1.25rem', fontWeight: 700 }}>{sprint._count?.nodes || 0}</span>
-                <span style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase' }}>Items</span>
-              </div>
-
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {sprint.status === 'PLANNED' && (
-                  <button 
-                    onClick={() => updateSprintStatus(sprint.id, 'ACTIVE')}
-                    className="button-premium" 
-                    style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#10b981' }}
-                  >
-                    <Play size={16} /> Start
-                  </button>
-                )}
-                {sprint.status === 'ACTIVE' && (
-                  <button 
-                    onClick={() => updateSprintStatus(sprint.id, 'COMPLETED')}
-                    className="button-premium" 
-                    style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#3b82f6' }}
-                  >
-                    <CheckCircle2 size={16} /> Complete
-                  </button>
-                )}
-                <button style={{ padding: '8px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)', color: '#ef4444', background: 'none' }}>
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         {sprints.length === 0 && (
-          <div style={{ padding: '80px', textAlign: 'center', opacity: 0.3 }}>
-            <Calendar size={64} style={{ marginBottom: '24px' }} />
-            <p style={{ fontSize: '1.25rem' }}>No sprints found.</p>
-            <p>Create your first sprint to start planning.</p>
+          <div style={{ padding: '120px', textAlign: 'center', opacity: 0.3 }}>
+            <Calendar size={64} style={{ margin: '0 auto 24px' }} />
+            <p style={{ fontSize: '1.25rem', fontWeight: 700 }}>No strategic cycles initialized.</p>
+            <p style={{ fontSize: '0.875rem' }}>Start by defining your first milestone above.</p>
           </div>
         )}
       </div>

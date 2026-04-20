@@ -1,8 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { AlertCircle, Calendar, ChevronRight, ChevronLeft, Clock, Play, CheckCircle2 } from "lucide-react";
+import { 
+  AlertCircle, 
+  Calendar, 
+  ChevronRight, 
+  ChevronLeft, 
+  Clock, 
+  Play, 
+  CheckCircle2, 
+  MoreHorizontal,
+  FileText,
+  Check,
+  Layers
+} from "lucide-react";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { updateNodeStatus } from "@/lib/actions";
 import { IconRenderer } from "./IconPicker";
 
@@ -11,6 +24,7 @@ interface Node {
   title: string;
   status: string;
   content: any;
+  nodeTypeId: string;
   type: {
     id: string;
     name: string;
@@ -20,6 +34,7 @@ interface Node {
     fields: any[];
   };
   blockedBy?: { blockingNode: any }[];
+  parentLinks?: { parentNode: { title: string } }[];
 }
 
 interface ColumnProps {
@@ -27,200 +42,246 @@ interface ColumnProps {
   title: string;
   tasks: Node[];
   color: string;
-  icon: any;
-  onMove: (nodeId: string, direction: 'prev' | 'next') => void;
-  canMovePrev: boolean;
-  canMoveNext: boolean;
   onNodeClick: (id: string) => void;
 }
 
-function KanbanColumn({ id, title, tasks, color, icon: Icon, onMove, canMovePrev, canMoveNext, onNodeClick }: ColumnProps) {
+function KanbanColumn({ id, title, tasks, color, onNodeClick }: ColumnProps) {
   return (
-    <div className="glass" style={{ 
-      flex: 1, 
-      minWidth: '320px', 
-      height: '100%', 
-      display: 'flex', 
-      flexDirection: 'column',
-      backgroundColor: 'rgba(255,255,255,0.01)',
-      border: '1px solid rgba(255,255,255,0.03)',
-      borderRadius: '16px',
-      overflow: 'hidden'
-    }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', flex: 1, minWidth: '280px' }}>
       <header style={{ 
-        padding: '24px', 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        borderBottom: `2px solid ${color}`,
-        backgroundColor: 'rgba(255,255,255,0.02)'
+        padding: '0 8px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ padding: '8px', borderRadius: '8px', backgroundColor: `${color}15` }}>
-            <Icon size={18} color={color} />
-          </div>
-          <h3 style={{ fontSize: '0.875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</h3>
+          <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: color }}></div>
+          <h3 style={{ 
+            fontSize: '12px', 
+            fontWeight: 700, 
+            textTransform: 'uppercase', 
+            letterSpacing: '0.1em', 
+            color: 'var(--on-surface-variant)' 
+          }}>
+            {title}
+          </h3>
+          <span style={{ 
+            backgroundColor: 'var(--surface-container-highest)', 
+            padding: '2px 8px', 
+            borderRadius: '4px', 
+            fontSize: '10px', 
+            fontWeight: 700, 
+            color: 'var(--on-surface-variant)' 
+          }}>
+            {tasks.length}
+          </span>
         </div>
-        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', backgroundColor: 'rgba(255,255,255,0.05)', padding: '2px 10px', borderRadius: '12px' }}>
-          {tasks.length}
-        </span>
       </header>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {tasks.map((task) => (
-          <KanbanCard 
-            key={task.id} 
-            task={task} 
-            onMove={onMove}
-            canMovePrev={canMovePrev}
-            canMoveNext={canMoveNext}
-            onClick={() => onNodeClick(task.id)}
-          />
-        ))}
-        {tasks.length === 0 && (
-          <div style={{ padding: '60px 20px', textAlign: 'center', opacity: 0.2 }}>
-            <p style={{ fontSize: '0.75rem' }}>No tasks in this column</p>
+      <Droppable droppableId={id}>
+        {(provided, snapshot) => (
+          <div 
+            {...provided.droppableProps}
+            ref={provided.innerRef}
+            style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: '16px',
+              minHeight: '500px',
+              transition: 'background-color 0.2s',
+              backgroundColor: snapshot.isDraggingOver ? 'rgba(0,0,0,0.02)' : 'transparent',
+              borderRadius: '16px',
+              padding: '4px'
+            }}
+          >
+            {tasks.map((task, index) => (
+              <Draggable key={task.id} draggableId={task.id} index={index}>
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    style={{
+                      ...provided.draggableProps.style,
+                      opacity: snapshot.isDragging ? 0.8 : 1,
+                    }}
+                  >
+                    <KanbanCard 
+                      task={task} 
+                      onClick={() => onNodeClick(task.id)}
+                      isDragging={snapshot.isDragging}
+                    />
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+            {tasks.length === 0 && !snapshot.isDraggingOver && (
+              <div style={{ padding: '60px 20px', textAlign: 'center', opacity: 0.2 }}>
+                <p style={{ fontSize: '0.75rem' }}>No tasks in this column</p>
+              </div>
+            )}
           </div>
         )}
-      </div>
+      </Droppable>
     </div>
   );
 }
 
-function KanbanCard({ task, onMove, canMovePrev, canMoveNext, onClick }: { task: Node, onMove: (id: string, dir: 'prev' | 'next') => void, canMovePrev: boolean, canMoveNext: boolean, onClick: () => void }) {
-  const [isMoving, setIsMoving] = useState(false);
-  const isBlocked = (task.blockedBy?.length || 0) > 0;
-
-  const handleMove = async (e: React.MouseEvent, dir: 'prev' | 'next') => {
-    e.stopPropagation();
-    setIsMoving(true);
-    await onMove(task.id, dir);
-    setIsMoving(false);
-  };
-
-  const displayFields = (task.type?.boardConfig as any)?.cardFields || [];
-  const fieldsToShow = task.type.fields.filter(f => displayFields.includes(f.id));
+function KanbanCard({ task, onClick, isDragging }: { task: Node, onClick: () => void, isDragging?: boolean }) {
+  const isDone = task.status === 'DONE';
+  const isInProgress = task.status === 'IN_PROGRESS';
+  const parentNode = task.parentLinks?.[0]?.parentNode;
 
   return (
     <motion.div 
-      layout
-      className="glass"
-      whileHover={{ y: -4, boxShadow: '0 12px 24px rgba(0,0,0,0.3)' }}
+      whileHover={!isDragging ? { y: -4, boxShadow: 'var(--ambient-shadow)' } : {}}
       onClick={onClick}
       style={{ 
-        padding: '20px', 
+        padding: '20px 24px', 
         cursor: 'pointer', 
-        backgroundColor: 'rgba(255,255,255,0.03)',
-        position: 'relative',
-        border: isBlocked ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(255,255,255,0.05)',
-        opacity: isMoving ? 0.5 : 1
+        backgroundColor: isDone ? 'rgba(234, 239, 242, 0.5)' : 'var(--surface-container-lowest)',
+        borderRadius: '16px',
+        border: isDragging ? '2px solid var(--primary)' : '1px solid transparent',
+        transition: 'background-color 0.2s, box-shadow 0.2s',
+        boxShadow: isDragging ? 'var(--primary-shadow)' : (isDone ? 'none' : '0 1px 3px rgba(0,0,0,0.05)'),
+        opacity: isDone ? 0.8 : 1,
+        borderLeft: !isDragging && isInProgress ? `4px solid ${task.type.color}` : '1px solid transparent',
+        position: 'relative'
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <IconRenderer name={task.type?.icon} color={task.type?.color} size={14} />
-          <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{task.type?.name}</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div style={{ color: task.type.color }}>
+                <IconRenderer name={task.type.icon} size={14} />
+            </div>
+            <span style={{ 
+                fontSize: '9px',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                color: task.type.color
+            }}>
+                {task.type.name}
+            </span>
         </div>
-        {isBlocked && (
-          <div title="Blocked by dependencies" style={{ color: '#ef4444' }}>
-            <AlertCircle size={14} />
-          </div>
+        
+        {isDone ? (
+            <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: 'var(--tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                <Check size={12} strokeWidth={3} />
+            </div>
+        ) : (
+            <div style={{ width: '20px', height: '20px', borderRadius: '50%', overflow: 'hidden', backgroundColor: 'var(--surface-container-high)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <IconRenderer name="User" size={12} />
+            </div>
         )}
       </div>
 
-      <h4 style={{ fontSize: '0.95rem', fontWeight: 500, marginBottom: fieldsToShow.length > 0 ? '16px' : '24px', lineHeight: 1.5, color: '#e5e7eb' }}>{task.title}</h4>
-
-      {/* Placeholders / Custom Fields */}
-      {fieldsToShow.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
-          {fieldsToShow.map(field => (
-            <div key={field.id} style={{ fontSize: '0.65rem', color: '#9ca3af', backgroundColor: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '6px' }}>
-              <strong>{field.name}: </strong> {task.content?.[field.id] || '---'}
-            </div>
-          ))}
-        </div>
+      {parentNode && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', opacity: 0.6 }}>
+            <Layers size={10} />
+            <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--on-surface-variant)' }}>{parentNode.title}</span>
+          </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {canMovePrev && (
-            <button 
-              onClick={(e) => handleMove(e, 'prev')}
-              style={{ 
-                background: 'rgba(255,255,255,0.05)', 
-                border: 'none', 
-                color: '#9ca3af', 
-                borderRadius: '8px', 
-                padding: '6px',
-                cursor: 'pointer'
-              }}
-            >
-              <ChevronLeft size={14} />
-            </button>
-          )}
-          {canMoveNext && (
-            <button 
-              disabled={isBlocked && task.status === 'IN_PROGRESS'}
-              onClick={(e) => handleMove(e, 'next')}
-              style={{ 
-                background: isBlocked && task.status === 'IN_PROGRESS' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)', 
-                border: 'none', 
-                color: isBlocked && task.status === 'IN_PROGRESS' ? '#ef4444' : '#3b82f6', 
-                borderRadius: '8px', 
-                padding: '6px',
-                cursor: isBlocked && task.status === 'IN_PROGRESS' ? 'not-allowed' : 'pointer'
-              }}
-            >
-              <ChevronRight size={14} />
-            </button>
-          )}
-        </div>
-        <span style={{ fontSize: '0.65rem', color: '#4b5563', fontWeight: 600 }}>#{task.id.slice(-4).toUpperCase()}</span>
+      <h4 style={{ 
+        fontSize: '14px', 
+        fontWeight: 700, 
+        lineHeight: 1.4, 
+        color: isDone ? 'var(--on-surface-variant)' : 'var(--on-surface)',
+        textDecoration: isDone ? 'line-through' : 'none',
+        marginBottom: '12px'
+      }}>
+        {task.title}
+      </h4>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', color: 'rgba(89, 96, 100, 0.6)', fontSize: '11px', fontWeight: 500 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Clock size={14} />
+              <span>{isDone ? 'Finished' : (isInProgress ? 'Active' : 'Queued')}</span>
+          </div>
       </div>
     </motion.div>
   );
 }
 
-export function KanbanBoard({ initialSprint, initialNodes, columns, onRefresh, onNodeClick }: { initialSprint: any, initialNodes: any[], columns: any[], onRefresh: () => void, onNodeClick: (id: string) => void }) {
+export function KanbanBoard({ 
+    projectId, 
+    initialSprint, 
+    initialNodes, 
+    nodeTypes,
+    onRefresh, 
+    onNodeClick 
+}: { 
+    projectId: string, 
+    initialSprint: any, 
+    initialNodes: any[], 
+    nodeTypes: any[],
+    onRefresh: () => void, 
+    onNodeClick: (id: string) => void 
+}) {
+  const [nodes, setNodes] = useState(initialNodes);
+
+  // Sync state when props change
+  useEffect(() => {
+      setNodes(initialNodes);
+  }, [initialNodes]);
+
   if (!initialSprint) {
     return (
       <div style={{ height: '400px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.5 }}>
         <Calendar size={48} style={{ marginBottom: '24px' }} />
         <h3 style={{ fontSize: '1.25rem', marginBottom: '8px' }}>No Active Sprint</h3>
-        <p style={{ fontSize: '0.875rem' }}>Go to the Sprints page to activate one.</p>
+        <p style={{ fontSize: '0.875rem' }}>Select or create a strategic cycle in Workspace Settings.</p>
       </div>
     );
   }
 
-  const handleMove = async (nodeId: string, direction: 'prev' | 'next') => {
-    const node = initialNodes.find(n => n.id === nodeId);
-    if (!node) return;
+  const handleDragEnd = async (result: DropResult) => {
+    const { destination, source, draggableId } = result;
 
-    const currentIndex = columns.findIndex(c => c.id === node.status);
-    const targetIndex = direction === 'prev' ? currentIndex - 1 : currentIndex + 1;
-    
-    if (targetIndex >= 0 && targetIndex < columns.length) {
-      await updateNodeStatus(nodeId, columns[targetIndex].id);
-      onRefresh();
+    if (!destination) return;
+    if (destination.droppableId === source.droppableId && destination.index === source.index) return;
+
+    // Optimistic UI update
+    const updatedNodes = Array.from(nodes);
+    const nodeIndex = updatedNodes.findIndex(n => n.id === draggableId);
+    if (nodeIndex !== -1) {
+        updatedNodes[nodeIndex].status = destination.droppableId;
+        setNodes(updatedNodes);
+    }
+
+    // Persist to database
+    try {
+        await updateNodeStatus(projectId, draggableId, destination.droppableId);
+        onRefresh(); // Trigger parent refresh to sync status propagation etc
+    } catch (error) {
+        console.error("Failed to update status", error);
+        setNodes(initialNodes); // Revert on error
     }
   };
 
+  const displayColumns = [
+      { id: 'TODO', title: 'To Do', color: 'var(--on-surface-variant)' },
+      { id: 'IN_PROGRESS', title: 'In Progress', color: 'var(--primary)' },
+      { id: 'REVIEW', title: 'Review', color: 'var(--error)' },
+      { id: 'DONE', title: 'Done', color: 'var(--tertiary)' }
+  ];
+
   return (
-    <div style={{ display: 'flex', gap: '24px', height: '100%', overflowX: 'auto', paddingBottom: '24px' }}>
-      {columns.map((col, index) => (
-        <KanbanColumn 
-          key={col.id} 
-          id={col.id} 
-          title={col.title} 
-          color={col.color} 
-          icon={col.icon || Clock}
-          canMovePrev={index > 0}
-          canMoveNext={index < columns.length - 1}
-          onMove={handleMove}
-          onNodeClick={onNodeClick}
-          tasks={initialNodes.filter((t: any) => t.status === col.id)} 
-        />
-      ))}
-    </div>
+    <DragDropContext onDragEnd={handleDragEnd}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '32px', alignItems: 'start' }}>
+          {displayColumns.map((col) => (
+            <KanbanColumn 
+              key={col.id} 
+              id={col.id} 
+              title={col.title} 
+              color={col.color} 
+              onNodeClick={onNodeClick}
+              tasks={nodes.filter((t: any) => t.status === col.id)} 
+            />
+          ))}
+        </div>
+    </DragDropContext>
   );
 }

@@ -9,10 +9,11 @@ import { FieldEditor } from "./FieldEditor";
 import { BoardConfigEditor } from "./BoardConfigEditor";
 
 interface NodeTypeSettingsProps {
+  projectId: string;
   initialNodeTypes: any[];
 }
 
-export function NodeTypeSettings({ initialNodeTypes }: NodeTypeSettingsProps) {
+export function NodeTypeSettings({ projectId, initialNodeTypes }: NodeTypeSettingsProps) {
   const [activeNodeType, setActiveNodeType] = useState<any>(null);
   const [isFieldEditorOpen, setIsFieldEditorOpen] = useState(false);
   const [isBoardEditorOpen, setIsBoardEditorOpen] = useState(false);
@@ -29,7 +30,7 @@ export function NodeTypeSettings({ initialNodeTypes }: NodeTypeSettingsProps) {
     formData.append("name", newName);
     formData.append("color", newColor);
     formData.append("icon", newIcon);
-    await createNodeType(formData);
+    await createNodeType(projectId, formData);
     setNewName("");
     setIsCreating(false);
   };
@@ -38,7 +39,7 @@ export function NodeTypeSettings({ initialNodeTypes }: NodeTypeSettingsProps) {
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px', marginBottom: '48px' }}>
         {initialNodeTypes.map((type) => (
-          <div key={type.id} className="glass" style={{ padding: '24px', position: 'relative', overflow: 'hidden' }}>
+          <div key={type.id} className="card-sanctuary" style={{ padding: '24px', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', backgroundColor: type.color }} />
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
@@ -47,13 +48,13 @@ export function NodeTypeSettings({ initialNodeTypes }: NodeTypeSettingsProps) {
                   <IconRenderer name={type.icon} color={type.color} size={24} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{type.name}</h3>
-                  <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>ID: {type.id.slice(-6)}</p>
+                  <h3 className="text-editorial" style={{ fontSize: '1.25rem', fontWeight: 600 }}>{type.name}</h3>
+                  <p className="text-meta" style={{ fontSize: '0.75rem' }}>ID: {type.id.slice(-6)}</p>
                 </div>
               </div>
               <button 
-                onClick={() => deleteNodeType(type.id)}
-                style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', opacity: 0.5 }}
+                onClick={() => deleteNodeType(projectId, type.id)}
+                style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer', opacity: 0.5 }}
                 onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
                 onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
               >
@@ -62,14 +63,14 @@ export function NodeTypeSettings({ initialNodeTypes }: NodeTypeSettingsProps) {
             </div>
             
             <div style={{ marginBottom: '24px' }}>
-              <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '0.05em' }}>Fields</p>
+              <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--on-surface-variant)', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '0.05em' }}>Fields</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {type.fields.map((field: any) => (
-                  <span key={field.id} style={{ fontSize: '0.7rem', padding: '4px 10px', borderRadius: '6px', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)', color: '#9ca3af' }}>
+                  <span key={field.id} style={{ fontSize: '0.7rem', padding: '4px 10px', borderRadius: '6px', backgroundColor: 'var(--surface-container)', color: 'var(--on-surface-variant)' }}>
                     {field.name}
                   </span>
                 ))}
-                {type.fields.length === 0 && <span style={{ fontSize: '0.75rem', color: '#4b5563' }}>No fields defined</span>}
+                {type.fields.length === 0 && <span style={{ fontSize: '0.75rem', color: 'var(--on-surface-variant)' }}>No fields defined</span>}
               </div>
             </div>
 
@@ -80,7 +81,7 @@ export function NodeTypeSettings({ initialNodeTypes }: NodeTypeSettingsProps) {
                   setIsBoardEditorOpen(true);
                 }}
                 className="button-premium" 
-                style={{ flex: 1, fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderColor: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6' }}
+                style={{ flex: 1, fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'var(--surface-container)', color: 'var(--primary)', boxShadow: 'none' }}
               >
                 <LayoutGrid size={16} /> Board Config
               </button>
@@ -90,7 +91,7 @@ export function NodeTypeSettings({ initialNodeTypes }: NodeTypeSettingsProps) {
                   setIsFieldEditorOpen(true);
                 }}
                 className="button-premium" 
-                style={{ flex: 1, fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                style={{ flex: 1, fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'var(--surface-container)', color: 'var(--on-surface)', boxShadow: 'none' }}
               >
                 <Braces size={16} /> Edit Fields
               </button>
@@ -101,7 +102,7 @@ export function NodeTypeSettings({ initialNodeTypes }: NodeTypeSettingsProps) {
         {!isCreating ? (
           <div 
             onClick={() => setIsCreating(true)}
-            className="glass" 
+            className="card-sanctuary" 
             style={{ 
               padding: '40px', 
               display: 'flex', 
@@ -109,32 +110,32 @@ export function NodeTypeSettings({ initialNodeTypes }: NodeTypeSettingsProps) {
               alignItems: 'center', 
               justifyContent: 'center', 
               gap: '16px', 
-              borderStyle: 'dashed',
-              borderColor: 'rgba(255,255,255,0.1)',
+              border: '2px dashed var(--outline-variant)',
+              background: 'transparent',
               cursor: 'pointer',
               opacity: 0.7,
               transition: 'all 0.3s'
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.opacity = '1';
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
+              e.currentTarget.style.boxShadow = 'var(--ambient-shadow)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.opacity = '0.7';
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+              e.currentTarget.style.boxShadow = 'none';
             }}
           >
-            <div style={{ padding: '12px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.05)' }}>
-              <Plus size={32} color="#9ca3af" />
+            <div style={{ padding: '12px', borderRadius: '50%', backgroundColor: 'var(--surface-container)' }}>
+              <Plus size={32} color="var(--on-surface-variant)" />
             </div>
-            <p style={{ fontWeight: 500, color: '#9ca3af' }}>Create New Node Type</p>
+            <p className="text-editorial" style={{ fontWeight: 500, color: 'var(--on-surface-variant)' }}>Create New Node Type</p>
           </div>
         ) : (
-          <div className="glass" style={{ padding: '32px' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '24px' }}>New Node Type</h3>
+          <div className="card-sanctuary" style={{ padding: '32px' }}>
+            <h3 className="text-editorial" style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '24px' }}>New Node Type</h3>
             <form onSubmit={handleCreate}>
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '8px', color: '#9ca3af' }}>Name</label>
+                <label className="text-meta" style={{ display: 'block', fontSize: '0.875rem', marginBottom: '8px' }}>Name</label>
                 <input 
                   autoFocus
                   className="input-premium" 
@@ -146,7 +147,7 @@ export function NodeTypeSettings({ initialNodeTypes }: NodeTypeSettingsProps) {
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '8px', color: '#9ca3af' }}>Icon</label>
+                <label className="text-meta" style={{ display: 'block', fontSize: '0.875rem', marginBottom: '8px' }}>Icon</label>
                 <IconPicker 
                   currentIcon={newIcon} 
                   onSelect={setNewIcon} 
@@ -155,7 +156,7 @@ export function NodeTypeSettings({ initialNodeTypes }: NodeTypeSettingsProps) {
               </div>
 
               <div style={{ marginBottom: '32px' }}>
-                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '12px', color: '#9ca3af' }}>Color Palette</label>
+                <label className="text-meta" style={{ display: 'block', fontSize: '0.875rem', marginBottom: '12px' }}>Color Palette</label>
                 <PremiumColorPicker 
                   currentColor={newColor} 
                   onSelect={setNewColor} 
@@ -167,7 +168,7 @@ export function NodeTypeSettings({ initialNodeTypes }: NodeTypeSettingsProps) {
                 <button 
                   type="button" 
                   onClick={() => setIsCreating(false)}
-                  style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#9ca3af', padding: '0 16px', cursor: 'pointer' }}
+                  style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', padding: '0 16px', cursor: 'pointer' }}
                 >
                   Cancel
                 </button>
@@ -178,6 +179,7 @@ export function NodeTypeSettings({ initialNodeTypes }: NodeTypeSettingsProps) {
       </div>
 
       <FieldEditor 
+        projectId={projectId}
         nodeType={activeNodeType} 
         isOpen={isFieldEditorOpen} 
         onClose={() => {
@@ -187,6 +189,7 @@ export function NodeTypeSettings({ initialNodeTypes }: NodeTypeSettingsProps) {
       />
 
       <BoardConfigEditor 
+        projectId={projectId}
         nodeType={activeNodeType}
         isOpen={isBoardEditorOpen}
         onClose={() => {

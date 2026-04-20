@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sanctuary | Sprint Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-surface-variant": "#596064",
+                        "error-container": "#f97386",
+                        "primary-dim": "#3949ab",
+                        "tertiary-dim": "#005e54",
+                        "surface-bright": "#f8f9fb",
+                        "surface-container-low": "#f0f4f7",
+                        "primary": "#4656b8",
+                        "outline": "#747c80",
+                        "tertiary-fixed": "#8df5e4",
+                        "on-tertiary-fixed": "#004840",
+                        "secondary-dim": "#3d5762",
+                        "on-surface": "#2c3437",
+                        "surface-container": "#eaeff2",
+                        "surface-tint": "#4656b8",
+                        "on-error-container": "#6e0523",
+                        "tertiary-container": "#8df5e4",
+                        "secondary-fixed": "#cbe7f5",
+                        "on-tertiary": "#e2fff8",
+                        "on-tertiary-container": "#005c53",
+                        "error-dim": "#6b0221",
+                        "surface-container-highest": "#dce4e8",
+                        "on-primary": "#faf8ff",
+                        "surface": "#f8f9fb",
+                        "on-secondary-fixed-variant": "#455f6b",
+                        "primary-fixed-dim": "#7989ee",
+                        "primary-container": "#8696fd",
+                        "on-secondary-fixed": "#29434e",
+                        "surface-container-high": "#e3e9ed",
+                        "outline-variant": "#acb3b7",
+                        "surface-dim": "#d4dbdf",
+                        "on-secondary": "#f2faff",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-primary": "#8696fd",
+                        "on-tertiary-fixed-variant": "#00675c",
+                        "secondary-fixed-dim": "#bdd9e6",
+                        "on-primary-fixed": "#000000",
+                        "secondary-container": "#cbe7f5",
+                        "tertiary-fixed-dim": "#7fe6d5",
+                        "inverse-surface": "#0b0f10",
+                        "on-primary-container": "#00116a",
+                        "surface-variant": "#dce4e8",
+                        "secondary": "#49636f",
+                        "on-secondary-container": "#3c5561",
+                        "inverse-on-surface": "#9a9d9f",
+                        "on-primary-fixed-variant": "#011882",
+                        "tertiary": "#006b60",
+                        "on-background": "#2c3437",
+                        "primary-fixed": "#8696fd",
+                        "on-error": "#fff7f7",
+                        "background": "#f8f9fb",
+                        "error": "#a8364b"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .headline { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #dce4e8; border-radius: 10px; }
+        
+        /* Interactive Toggle Styles */
+        .view-section { transition: all 0.3s ease-in-out; }
+        .hidden-view { display: none; opacity: 0; pointer-events: none; }
+        .active-view { display: block; opacity: 1; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- SideNavBar Shell -->
+<aside class="h-screen w-72 fixed left-0 top-0 z-40 bg-[#f8f9fb] dark:bg-[#1a1c1e] font-manrope antialiased tracking-tight flex flex-col p-8 space-y-8">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center text-on-primary shadow-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">castle</span>
+</div>
+<div>
+<h1 class="text-2xl font-extrabold text-[#2c3437] dark:text-[#eaeff2] tracking-tighter">Sanctuary</h1>
+<p class="text-[10px] uppercase tracking-[0.2em] font-bold text-on-surface-variant/60">Strategic Planner</p>
+</div>
+</div>
+<button class="w-full py-4 bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold rounded-full flex items-center justify-center gap-2 scale-95 active:scale-100 transition-transform shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">add</span>
+<span>New Node</span>
+</button>
+<nav class="flex-1 space-y-2">
+<!-- Sprint Board is Active -->
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl transition-colors duration-200 text-[#3949AB] dark:text-[#8696fd] font-bold border-r-2 border-[#3949AB] bg-surface-container-low" href="#">
+<span class="material-symbols-outlined">view_kanban</span>
+<span>Sprint Board</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl transition-colors duration-200 text-[#596064] dark:text-[#acb3b7] font-medium hover:bg-[#eaeff2] dark:hover:bg-[#2c3437]" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span>Hierarchical Backlog</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl transition-colors duration-200 text-[#596064] dark:text-[#acb3b7] font-medium hover:bg-[#eaeff2] dark:hover:bg-[#2c3437]" href="#">
+<span class="material-symbols-outlined">hub</span>
+<span>Relation Map</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl transition-colors duration-200 text-[#596064] dark:text-[#acb3b7] font-medium hover:bg-[#eaeff2] dark:hover:bg-[#2c3437]" href="#">
+<span class="material-symbols-outlined">dashboard_customize</span>
+<span>Node Gallery</span>
+</a>
+</nav>
+<div class="pt-8 border-t border-outline-variant/10">
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl transition-colors duration-200 text-[#596064] dark:text-[#acb3b7] font-medium hover:bg-[#eaeff2] dark:hover:bg-[#2c3437]" href="#">
+<img alt="User Profile Avatar" class="w-8 h-8 rounded-full bg-surface-container-highest" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnn68lvqdkC2yFpGDJ4ewX6pezFIYF0WixL02zucMAI8noK0he2ccfEg3N8VztJS2MT0D5gyzovxjCQlyoHzMhLR5inF15lBEn6oyUSWWRRmswPKlQwNt-nGhnHPB9nEUYK23OiRpnqjBUKAn2fDIZ7NU9JoambNsnGlY0l5vldbRVuBlgOZ-rko_k0Cr4q-uI5tvM1CqT4iA3oG0Jcd9LOMsr5xL9JL7dULwTW1CpxQmeSQ7FouzCLlIPnzm4ol6KatU6QSVSIxN3"/>
+<span>User Profile</span>
+</a>
+</div>
+</aside>
+<!-- TopAppBar Shell -->
+<header class="sticky top-0 w-full z-30 bg-[#f8f9fb]/80 dark:bg-[#1a1c1e]/80 backdrop-blur-xl flex justify-between items-center px-12 py-6 ml-72 font-manrope text-sm font-semibold">
+<div class="flex items-center bg-surface-container-low px-4 py-2.5 rounded-full w-96 transition-opacity duration-300">
+<span class="material-symbols-outlined text-on-surface-variant mr-3">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-on-surface-variant/50" placeholder="Search across nodes..." type="text"/>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-8 text-[#596064] dark:text-[#acb3b7]">
+<span class="hover:text-[#3949AB] dark:hover:text-[#8696fd] cursor-pointer material-symbols-outlined">notifications</span>
+<span class="hover:text-[#3949AB] dark:hover:text-[#8696fd] cursor-pointer material-symbols-outlined">settings</span>
+<span class="hover:text-[#3949AB] dark:hover:text-[#8696fd] cursor-pointer material-symbols-outlined">help</span>
+</div>
+<div class="h-6 w-[1px] bg-outline-variant/20"></div>
+<button class="px-5 py-2 text-[#596064] hover:text-primary transition-colors">Focus Mode</button>
+<button class="px-5 py-2 bg-surface-container-high text-primary rounded-full hover:bg-surface-container-highest transition-colors">Quick Sync</button>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="ml-72 p-12 min-h-screen">
+<!-- Dashboard Header -->
+<div class="flex justify-between items-end mb-12">
+<div class="space-y-1">
+<div class="flex items-center gap-2 text-primary font-bold tracking-widest text-[10px] uppercase">
+<span>Q3 Strategic Roadmap</span>
+<span class="w-4 h-[1px] bg-primary/30"></span>
+<span>Sprint 14</span>
+</div>
+<h2 class="text-4xl font-extrabold tracking-tight text-on-surface">Sprint Board</h2>
+</div>
+<!-- Global View Toggle -->
+<div class="bg-surface-container p-1 rounded-full flex" id="main-view-toggle">
+<button class="px-6 py-2 rounded-full bg-surface-container-lowest text-primary shadow-sm font-bold flex items-center gap-2 transition-all duration-200" id="btn-board" onclick="toggleView('board')">
+<span class="material-symbols-outlined text-[20px]">view_kanban</span>
+                    Board View
+                </button>
+<button class="px-6 py-2 rounded-full text-on-surface-variant font-medium flex items-center gap-2 hover:text-on-surface transition-all duration-200" id="btn-timeline" onclick="toggleView('timeline')">
+<span class="material-symbols-outlined text-[20px]">timeline</span>
+                    Gantt View
+                </button>
+</div>
+</div>
+<!-- Board View Content -->
+<div class="view-section active-view" id="board-view">
+<!-- Bento Kanban Grid -->
+<div class="grid grid-cols-4 gap-8 items-start">
+<!-- Column: To Do -->
+<div class="space-y-6">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-outline"></div>
+<h3 class="font-bold text-on-surface-variant uppercase tracking-wider text-xs">To Do</h3>
+<span class="bg-surface-container-highest px-2 py-0.5 rounded text-[10px] font-bold text-on-surface-variant">4</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40 cursor-pointer">more_horiz</span>
+</div>
+<div class="space-y-4">
+<!-- Task Card -->
+<div class="group bg-surface-container-lowest p-6 rounded-xl hover:shadow-xl hover:shadow-on-surface/5 transition-all cursor-grab active:cursor-grabbing border border-transparent hover:border-outline-variant/10">
+<div class="flex justify-between items-start mb-4">
+<span class="px-3 py-1 bg-primary-container/20 text-on-primary-container text-[10px] font-extrabold rounded-full uppercase tracking-tighter">Design System</span>
+<img alt="Assignee" class="w-6 h-6 rounded-full ring-2 ring-surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpWmthMuCBusW10NTuZnM-5I9D36h8-NJnG3x3TlgG-vtXB_HeRQ0-jLHF7lyiTIf_1UCFwTX2EthQotJHePAYyQJ0CG6Bsxl-oIifRm0VH6HEZa4Rury_ekLrysMuWFls2RYi9MaqwQMqtMdoPey_v-5J-oc584Zcag2drrGWYcwylPzWlMT6rIf39jC_t71elvIAkDnhxnHJYDsoQd_buX0qsQFFrelhgw_ySu1r3zzIukWr6767KyNhwtdt3Y_gSkC94tAyTO9K"/>
+</div>
+<h4 class="font-bold text-on-surface leading-snug mb-2 group-hover:text-primary transition-colors">Refine tonal layering tokens for Dark Mode accessibility</h4>
+<div class="flex items-center gap-4 text-on-surface-variant/60 text-[11px] font-medium">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">notes</span>
+<span>3</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+<span>Sep 12</span>
+</div>
+</div>
+</div>
+<div class="group bg-surface-container-lowest p-6 rounded-xl hover:shadow-xl hover:shadow-on-surface/5 transition-all cursor-grab border border-transparent">
+<div class="flex justify-between items-start mb-4">
+<span class="px-3 py-1 bg-secondary-container/30 text-on-secondary-container text-[10px] font-extrabold rounded-full uppercase tracking-tighter">API Dev</span>
+<img alt="Assignee" class="w-6 h-6 rounded-full ring-2 ring-surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9C98ntrUuPts8j0AuLgpGtsNI36IOV9iXFQtsWKTqIf51AFdeyHByXIhVpOZzskX7aucw-yYwlFZ0tDyz5b_8Ho1EdfkU_esFosk_7nj3CXBy_kvxkmO_bqib5N2RXJIwXOIbk0XCp-X5ebT5cVzdo_jdjQhJmhKblzoZkjrM6rR5nzZRD5_PUPOqsLThDSr0C5tRz23vlRs7TNv2zBLE_xgMzEZ0OemorMzDca3KVTGcK2DFBV0iZ0WDTdpc9mJqV2_kvvWzvq-f"/>
+</div>
+<h4 class="font-bold text-on-surface leading-snug mb-2 group-hover:text-primary transition-colors">Websocket integration for real-time node updates</h4>
+<div class="flex items-center gap-4 text-on-surface-variant/60 text-[11px] font-medium">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">attach_file</span>
+<span>1</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: In Progress -->
+<div class="space-y-6">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<h3 class="font-bold text-on-surface uppercase tracking-wider text-xs">In Progress</h3>
+<span class="bg-primary/10 px-2 py-0.5 rounded text-[10px] font-bold text-primary">2</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40">more_horiz</span>
+</div>
+<div class="space-y-4">
+<div class="bg-surface-container-lowest p-6 rounded-xl border-l-4 border-primary shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<span class="px-3 py-1 bg-tertiary-container/30 text-on-tertiary-container text-[10px] font-extrabold rounded-full uppercase tracking-tighter">Architecture</span>
+<div class="flex -space-x-2">
+<img alt="Assignee" class="w-6 h-6 rounded-full ring-2 ring-surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHjFioena6j2Ppi6p75QCGKK5UcQ3ERUN2SfhjRKFDy34gIutaFBQgSWnIPNY3JScMqiSnEY_Hxw26qzhaWKycX4JT6XkB_R7liED9-Ccu2XgfR_XuAQtCPCOufvMxeRSRgCL0W__HC7e7EXwfFngwoW-LI375SewDoAxgyL2334iSaOl_6AfJzwoF4bBgnc_OXTf97GJVGtUJOlP_5whrkBlrwpM_io8UHJx87hqdn_c8QXplZnwl77RFJwyGZ9wNK50ws5ZbL7q-"/>
+<img alt="Assignee" class="w-6 h-6 rounded-full ring-2 ring-surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBf9UH5hXEOc1pPZ_BB2-FPv_vIQ5blFounvRB7A2CiL09e6snbXMKAfvYlpT_DW7F1h-y4Gl7Rnt1zm-lviO9h6csRmd6sGZLsD_z4ergJWvvSZOfpZVf72NYE6hFL0N7oC236E65GalDu5CfkaNqacNCYMNnE6m3M6ZAMStJDQo6Tz_sf1-Tdilt0Kj9a1eqjBFFGzh0bciOEg_ACS5XkJSi1rFR-nEcJ8SN7DQ0-JPeEHdWAEHy0kMCC38-uvOZNBFeZY2GsaNH0"/>
+</div>
+</div>
+<h4 class="font-bold text-on-surface leading-snug mb-4">Gantt view logic for Epic dependencies</h4>
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden mb-4">
+<div class="h-full w-[65%] bg-gradient-to-r from-primary to-primary-container rounded-full"></div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant/60 text-[10px] font-bold uppercase tracking-widest">
+<span>In Development</span>
+<span>65%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: Review -->
+<div class="space-y-6">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-error"></div>
+<h3 class="font-bold text-on-surface-variant uppercase tracking-wider text-xs">Review</h3>
+<span class="bg-surface-container-highest px-2 py-0.5 rounded text-[10px] font-bold text-on-surface-variant">1</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40">more_horiz</span>
+</div>
+<div class="space-y-4">
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-dashed border-outline-variant/30">
+<div class="flex justify-between items-start mb-4">
+<span class="px-3 py-1 bg-primary-container/10 text-primary text-[10px] font-extrabold rounded-full uppercase tracking-tighter">Design System</span>
+<img alt="Assignee" class="w-6 h-6 rounded-full ring-2 ring-surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWGQcGr0ary6iAu6OFTGFmf_RGYEISaSGI-doqgFYSkQfawgHuIuWq2zOAptZkApDl_WcA-qKBVh5Xuxp-EhM8PIMGdcJHbgKRQTAaPBNe3JfFz4ikauf7rp-YuIkAdSAy3SH_CkVdM-ik3y2bepn5YHHyT89OKTSyrMSsOfKKrVYic1p1Q1GQmjNclgogRluX6ELUAgd_DKZpFm0WktuET_lkvT8CPK_mOjOu0yR-sxk8M07xJzmucv3x--fUftmk6Y7C0RShfhjj"/>
+</div>
+<h4 class="font-bold text-on-surface leading-snug mb-2">Color Palette Audit for WCAG 2.1 compliance</h4>
+<div class="flex items-center gap-2 text-error text-[11px] font-semibold bg-error/5 px-2 py-1 rounded">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+<span>Awaiting QA Approval</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: Done -->
+<div class="space-y-6">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-tertiary"></div>
+<h3 class="font-bold text-on-surface-variant uppercase tracking-wider text-xs">Done</h3>
+<span class="bg-tertiary/10 px-2 py-0.5 rounded text-[10px] font-bold text-tertiary">12</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40">more_horiz</span>
+</div>
+<div class="space-y-4">
+<div class="bg-surface-container-low/50 p-6 rounded-xl group opacity-80">
+<div class="flex justify-between items-start mb-4">
+<span class="px-3 py-1 bg-surface-container-highest text-on-surface-variant text-[10px] font-extrabold rounded-full uppercase tracking-tighter">Onboarding</span>
+<div class="w-6 h-6 rounded-full bg-tertiary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-tertiary text-[14px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</div>
+<h4 class="font-bold text-on-surface-variant leading-snug line-through mb-2">Draft user persona interview scripts</h4>
+<span class="text-[10px] font-bold text-tertiary bg-tertiary/10 px-2 py-0.5 rounded">COMPLETED AUG 28</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Gantt View Content (Full Screen Variant) -->
+<div class="view-section hidden-view" id="timeline-view">
+<div class="bg-surface-container rounded-3xl p-10 border border-outline-variant/10 shadow-sm">
+<div class="flex items-center justify-between mb-10">
+<div class="flex items-center gap-6">
+<div class="p-3 bg-surface-container-lowest rounded-2xl shadow-sm">
+<span class="material-symbols-outlined text-primary text-[32px]">auto_awesome</span>
+</div>
+<div>
+<h3 class="text-2xl font-extrabold text-on-surface tracking-tight">Active Epic: Sanctuary UI Overhaul</h3>
+<p class="text-on-surface-variant font-medium">Sprint 12 – Sprint 16 Roadmap • 72% Total Progress</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="flex bg-surface-container-low p-1 rounded-lg">
+<button class="px-4 py-1.5 text-[11px] font-bold bg-surface-container-lowest rounded-md shadow-sm">Weekly</button>
+<button class="px-4 py-1.5 text-[11px] font-medium text-on-surface-variant">Monthly</button>
+</div>
+<div class="flex gap-2">
+<button class="p-3 rounded-full hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined">zoom_in</span>
+</button>
+<button class="p-3 rounded-full hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined">fullscreen</span>
+</button>
+</div>
+</div>
+</div>
+<div class="space-y-8 overflow-hidden">
+<!-- Timeline Headers -->
+<div class="grid grid-cols-12 border-b border-outline-variant/10 pb-4">
+<div class="col-span-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/40">Initiative</div>
+<div class="col-span-9 grid grid-cols-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/40 text-center">
+<span>Week 1</span>
+<span>Week 2</span>
+<span>Week 3</span>
+<span>Week 4</span>
+</div>
+</div>
+<!-- Gantt Rows -->
+<div class="space-y-6">
+<!-- Row 1 -->
+<div class="grid grid-cols-12 items-center">
+<div class="col-span-3 pr-4">
+<span class="text-sm font-bold text-on-surface">Visual Tokens Logic</span>
+<p class="text-[10px] text-on-surface-variant">4 Tasks Remaining</p>
+</div>
+<div class="col-span-9 relative h-8 flex items-center">
+<div class="absolute inset-0 grid grid-cols-4 pointer-events-none">
+<div class="border-l border-outline-variant/5"></div>
+<div class="border-l border-outline-variant/5"></div>
+<div class="border-l border-outline-variant/5"></div>
+<div class="border-l border-outline-variant/5"></div>
+</div>
+<div class="ml-[5%] w-[45%] h-6 bg-gradient-to-r from-primary to-primary-container rounded-full shadow-lg shadow-primary/10 flex items-center px-3">
+<span class="text-[9px] font-bold text-white uppercase tracking-tighter">In Progress</span>
+</div>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="grid grid-cols-12 items-center">
+<div class="col-span-3 pr-4">
+<span class="text-sm font-bold text-on-surface">Node Relation Engine</span>
+<p class="text-[10px] text-on-surface-variant">Fully Completed</p>
+</div>
+<div class="col-span-9 relative h-8 flex items-center">
+<div class="absolute inset-0 grid grid-cols-4 pointer-events-none">
+<div class="border-l border-outline-variant/5 h-full"></div>
+<div class="border-l border-outline-variant/5 h-full"></div>
+<div class="border-l border-outline-variant/5 h-full"></div>
+<div class="border-l border-outline-variant/5 h-full"></div>
+</div>
+<div class="w-[30%] h-6 bg-tertiary rounded-full flex items-center px-3">
+<span class="material-symbols-outlined text-[12px] text-on-tertiary mr-1" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-[9px] font-bold text-on-tertiary uppercase tracking-tighter">Done</span>
+</div>
+</div>
+</div>
+<!-- Row 3 -->
+<div class="grid grid-cols-12 items-center">
+<div class="col-span-3 pr-4">
+<span class="text-sm font-bold text-on-surface">Mobile Shell Refactor</span>
+<p class="text-[10px] text-on-surface-variant">Starts Week 3</p>
+</div>
+<div class="col-span-9 relative h-8 flex items-center">
+<div class="absolute inset-0 grid grid-cols-4 pointer-events-none">
+<div class="border-l border-outline-variant/5"></div>
+<div class="border-l border-outline-variant/5"></div>
+<div class="border-l border-outline-variant/5"></div>
+<div class="border-l border-outline-variant/5"></div>
+</div>
+<div class="ml-[50%] w-[40%] h-6 bg-surface-container-highest rounded-full border border-dashed border-outline-variant flex items-center px-3">
+<span class="text-[9px] font-bold text-on-surface-variant uppercase tracking-tighter">Scheduled</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Epic Gantt Preview (Small Inline Section - Contextual for Board View) -->
+<section class="mt-16 bg-surface-container rounded-3xl p-10 view-section active-view" id="mini-gantt">
+<div class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">auto_awesome</span>
+<h3 class="text-xl font-extrabold text-on-surface tracking-tight">Active Epic: Sanctuary UI Overhaul</h3>
+</div>
+<button class="text-primary text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:underline" onclick="toggleView('timeline')">
+                    View Full Roadmap <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<div class="space-y-4">
+<div class="h-10 bg-surface-container-highest/30 rounded-xl relative flex items-center px-4 overflow-hidden">
+<span class="text-[10px] font-bold text-on-surface-variant z-10">Visual Tokens</span>
+<div class="absolute left-32 w-[40%] h-5 bg-primary/20 rounded-full border border-primary/30"></div>
+</div>
+<div class="h-10 bg-surface-container-highest/30 rounded-xl relative flex items-center px-4 overflow-hidden">
+<span class="text-[10px] font-bold text-on-surface-variant z-10">Relation Engine</span>
+<div class="absolute left-4 w-[25%] h-5 bg-tertiary/20 rounded-full border border-tertiary/30"></div>
+</div>
+</div>
+</section>
+</main>
+<!-- FAB for Global Action -->
+<button class="fixed bottom-10 right-10 w-16 h-16 bg-gradient-to-br from-primary to-primary-container rounded-full text-on-primary shadow-2xl flex items-center justify-center group scale-100 hover:scale-110 active:scale-95 transition-transform z-50">
+<span class="material-symbols-outlined text-[32px]">bolt</span>
+</button>
+<script>
+        function toggleView(view) {
+            const boardView = document.getElementById('board-view');
+            const timelineView = document.getElementById('timeline-view');
+            const miniGantt = document.getElementById('mini-gantt');
+            const btnBoard = document.getElementById('btn-board');
+            const btnTimeline = document.getElementById('btn-timeline');
+
+            if (view === 'board') {
+                // Show Board
+                boardView.classList.remove('hidden-view');
+                boardView.classList.add('active-view');
+                miniGantt.classList.remove('hidden-view');
+                miniGantt.classList.add('active-view');
+                
+                // Hide Timeline
+                timelineView.classList.add('hidden-view');
+                timelineView.classList.remove('active-view');
+
+                // Update Buttons
+                btnBoard.classList.add('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'font-bold');
+                btnBoard.classList.remove('text-on-surface-variant', 'font-medium');
+                
+                btnTimeline.classList.remove('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'font-bold');
+                btnTimeline.classList.add('text-on-surface-variant', 'font-medium');
+            } else {
+                // Hide Board
+                boardView.classList.add('hidden-view');
+                boardView.classList.remove('active-view');
+                miniGantt.classList.add('hidden-view');
+                miniGantt.classList.remove('active-view');
+
+                // Show Timeline
+                timelineView.classList.remove('hidden-view');
+                timelineView.classList.add('active-view');
+
+                // Update Buttons
+                btnTimeline.classList.add('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'font-bold');
+                btnTimeline.classList.remove('text-on-surface-variant', 'font-medium');
+                
+                btnBoard.classList.remove('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'font-bold');
+                btnBoard.classList.add('text-on-surface-variant', 'font-medium');
+            }
+        }
+    </script>
+</body></html>

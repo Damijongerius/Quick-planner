@@ -1,21 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   ChevronRight, 
-  ChevronDown, 
   Plus, 
-  Copy, 
-  Archive, 
-  Trash2, 
-  Calendar,
-  ArchiveRestore
+  Edit2,
+  GripVertical,
+  Loader2
 } from "lucide-react";
-import { createNode, duplicateNode, archiveNode, deleteNode } from "@/lib/actions";
+import { createNode, getNodeChildren } from "@/lib/actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { IconRenderer } from "./IconPicker";
 
 interface BacklogTreeProps {
+  projectId: string;
   node: any;
   nodeTypes: any[];
   onSelect: (node: any) => void;
@@ -23,177 +21,191 @@ interface BacklogTreeProps {
   depth?: number;
 }
 
-export function BacklogTree({ node, nodeTypes, onSelect, selectedNodeId, depth = 0 }: BacklogTreeProps) {
+export function BacklogTree({ projectId, node, nodeTypes, onSelect, selectedNodeId, depth = 0 }: BacklogTreeProps) {
   const [isOpen, setIsOpen] = useState(depth < 1);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newNodeTitle, setNewNodeTitle] = useState("");
   const [selectedType, setSelectedType] = useState<any>(null);
-  const [isActionsVisible, setIsActionsVisible] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  
+  const [children, setChildren] = useState<any[]>([]);
+  const [isLoadingChildren, setIsLoadingChildren] = useState(false);
 
   const isSelected = selectedNodeId === node.id;
   const nodeType = nodeTypes.find(t => t.id === node.nodeTypeId) || node.type;
   
   const allowedChildren = nodeType?.allowedChildren?.map((ac: any) => ac.childNodeTypeType) || [];
+  
+  // Use links if they are already pre-fetched (first 2 levels usually)
+  const initialChildren = node.childLinks?.map((l: any) => l.childNode) || [];
 
-  // Get the first field's value for preview
-  const firstField = nodeType?.fields?.[0]?.name;
-  const fieldValue = firstField ? node.content?.[firstField] : null;
+  useEffect(() => {
+    if (initialChildren.length > 0 && children.length === 0) {
+        setChildren(initialChildren);
+    }
+  }, [node.id]);
+
+  const loadChildren = async () => {
+    setIsLoadingChildren(true);
+    try {
+        const data = await getNodeChildren(projectId, node.id);
+        setChildren(data);
+    } catch (error) {
+        console.error("Failed to load children", error);
+    } finally {
+        setIsLoadingChildren(false);
+    }
+  };
+
+  const toggleOpen = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newOpenState = !isOpen;
+    setIsOpen(newOpenState);
+    if (newOpenState && children.length === 0) {
+        loadChildren();
+    }
+  };
+
+  // Calculate real progress based on children
+  const calculateProgress = (): number => {
+    const targetNodes = children.length > 0 ? children : initialChildren;
+    if (targetNodes.length === 0) {
+      return node.status === 'DONE' ? 100 : 0;
+    }
+    
+    const totalProgress = targetNodes.reduce((acc: number, child: any) => {
+      return acc + (child.status === 'DONE' ? 100 : (child.status === 'IN_PROGRESS' ? 50 : 0));
+    }, 0);
+    
+    return Math.round(totalProgress / targetNodes.length);
+  };
+
+  const progress = calculateProgress();
+
+  // Check for priority in custom fields (case insensitive)
+  const getPriority = () => {
+    if (!node.content) return null;
+    const priorityKey = Object.keys(node.content).find(k => k.toLowerCase() === 'priority');
+    return priorityKey ? node.content[priorityKey] : null;
+  };
+
+  const priority = getPriority();
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newNodeTitle || !selectedType) return;
-    await createNode(node.id, selectedType.id, newNodeTitle);
+    await createNode(projectId, node.id, selectedType.id, newNodeTitle);
     setIsCreating(false);
     setNewNodeTitle("");
     setSelectedType(null);
     setIsOpen(true);
-  };
-
-  const handleArchive = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    await archiveNode(node.id, !node.isArchived);
-  };
-
-  const handleDuplicate = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    await duplicateNode(node.id);
-  };
-
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (confirm("Are you sure you want to delete this node and all its children?")) {
-      await deleteNode(node.id);
-    }
+    // Refresh children after creation
+    loadChildren();
   };
 
   return (
-    <div style={{ marginLeft: depth > 0 ? '20px' : 0 }}>
+    <div style={{ width: '100%' }}>
       {/* Node Row */}
       <div 
-        className={`backlog-item ${isSelected ? 'selected' : ''}`}
-        onMouseEnter={() => setIsActionsVisible(true)}
-        onMouseLeave={() => setIsActionsVisible(false)}
+        className={`backlog-row ${isSelected ? 'selected' : ''}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={() => onSelect(node)}
         style={{ 
           display: 'flex', 
           alignItems: 'center', 
-          padding: '10px 16px', 
-          marginBottom: '2px',
-          borderRadius: '10px',
+          justifyContent: 'space-between',
+          padding: depth === 0 ? '16px 24px' : `12px 24px 12px ${depth * 40 + 24}px`,
+          borderBottom: '1px solid var(--outline-variant)',
           cursor: 'pointer',
-          backgroundColor: isSelected ? 'rgba(255,255,255,0.05)' : 'transparent',
-          border: isSelected ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent',
-          transition: 'all 0.2s',
-          position: 'relative',
-          opacity: node.isArchived ? 0.4 : 1
-        }}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(node);
+          transition: 'background-color 0.2s',
+          backgroundColor: isSelected ? 'var(--surface-container-low)' : 'transparent',
+          opacity: node.isArchived ? 0.5 : 1
         }}
       >
-        {/* COL 1: Main info */}
-        <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, minWidth: 0 }}>
           <div 
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsOpen(!isOpen);
+            onClick={toggleOpen}
+            style={{ 
+              color: 'var(--on-surface-variant)', 
+              transition: 'transform 0.2s',
+              transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+              display: (children.length > 0 || initialChildren.length > 0 || isHovered) ? 'block' : 'none',
+              width: '16px'
             }}
-            style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', marginRight: '4px' }}
           >
-            {node.childLinks?.length > 0 && (
-              isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />
+            {isLoadingChildren ? <Loader2 size={14} className="animate-spin" /> : <ChevronRight size={16} />}
+          </div>
+          
+          <div style={{ color: nodeType?.color || 'var(--primary)', display: 'flex', alignItems: 'center' }}>
+            {depth === 0 ? (
+                <IconRenderer name={nodeType?.icon || 'Folder'} size={20} color={nodeType?.color || 'var(--primary)'} />
+            ) : (
+                <IconRenderer name={nodeType?.icon || 'Circle'} size={16} color={nodeType?.color || 'var(--primary)'} />
             )}
           </div>
 
-          <div style={{ marginRight: '12px', color: nodeType?.color || '#3b82f6', display: 'flex', alignItems: 'center' }}>
-            <IconRenderer name={nodeType?.icon || 'Circle'} size={18} />
+          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <span style={{ 
+              fontSize: depth === 0 ? '14px' : '14px', 
+              fontWeight: depth === 0 ? 700 : 600,
+              color: 'var(--on-surface)',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}>
+              {node.title}
+            </span>
+            {depth === 0 && (
+                <span className="text-meta" style={{ fontSize: '9px', marginTop: '2px', opacity: 0.7 }}>
+                  {nodeType?.name || 'Node'}
+                </span>
+            )}
           </div>
 
-          <span style={{ 
-            fontSize: '0.9rem', 
-            fontWeight: 500, 
-            color: isSelected ? '#fff' : '#d1d5db',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            marginRight: '12px'
-          }}>
-            {node.title}
-          </span>
+          {priority && (
+            <span style={{ 
+                fontSize: '9px', 
+                fontWeight: 800, 
+                padding: '2px 8px', 
+                borderRadius: '4px', 
+                backgroundColor: priority.toString().toLowerCase() === 'high' ? 'rgba(168, 54, 75, 0.1)' : 'rgba(0, 107, 96, 0.1)', 
+                color: priority.toString().toLowerCase() === 'high' ? 'var(--error)' : 'var(--tertiary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
+            }}>
+                {priority}
+            </span>
+          )}
         </div>
 
-        {/* COL 2: Field Preview */}
-        {fieldValue && (
-          <div style={{ 
-            fontSize: '0.75rem', 
-            color: '#6b7280', 
-            marginRight: '24px', 
-            backgroundColor: 'rgba(255,255,255,0.03)', 
-            padding: '2px 8px', 
-            borderRadius: '6px',
-            maxWidth: '120px',
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            textOverflow: 'ellipsis'
-          }}>
-            {fieldValue.toString()}
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+          {(children.length > 0 || initialChildren.length > 0) && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--on-surface-variant)', fontSize: '12px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--primary)' }}></div>
+                    <span>{children.length || initialChildren.length} Items</span>
+                </div>
+                <div style={{ width: '96px', height: '6px', backgroundColor: 'var(--surface-container-highest)', borderRadius: '9999px' }}>
+                    <div style={{ width: `${progress}%`, height: '100%', backgroundColor: 'var(--primary)', borderRadius: '9999px', transition: 'width 0.5s ease-out' }}></div>
+                </div>
+            </div>
+          )}
 
-        {/* COL 3 & 4: Meta & Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {/* Date Stamp */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#4b5563', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>
-            <Calendar size={12} />
-            {new Date(node.updatedAt).toLocaleDateString()}
-          </div>
-
-          {/* Action Group */}
-          <div 
-            style={{ 
-              display: 'flex', 
-              gap: '2px', 
-              opacity: isActionsVisible || isSelected ? 1 : 0,
-              transition: 'opacity 0.2s',
-              backgroundColor: 'rgba(0,0,0,0.2)',
-              padding: '2px',
-              borderRadius: '8px'
-            }}
-          >
-             <button 
-               title="Archive"
-               onClick={handleArchive}
-               style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '6px', borderRadius: '6px' }}
-             >
-               {node.isArchived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
-             </button>
-             <button 
-               title="Duplicate"
-               onClick={handleDuplicate}
-               style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '6px', borderRadius: '6px' }}
-             >
-               <Copy size={14} />
-             </button>
+          <div style={{ display: 'flex', gap: '4px', opacity: isHovered ? 1 : 0, transition: 'opacity 0.2s' }}>
              {allowedChildren.length > 0 && (
-               <button 
-                 title="Add Child"
-                 onClick={(e) => {
-                   e.stopPropagation();
-                   setShowAddMenu(!showAddMenu);
-                   setIsCreating(false);
-                 }}
-                 style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '6px', borderRadius: '6px' }}
-               >
-                 <Plus size={14} />
-               </button>
+                 <button 
+                    className="button-secondary" 
+                    title="Add Child"
+                    style={{ border: 'none', padding: '4px' }}
+                    onClick={(e) => { e.stopPropagation(); setShowAddMenu(!showAddMenu); }}
+                 >
+                    <Plus size={16} />
+                 </button>
              )}
-             <button 
-               title="Delete"
-               onClick={handleDelete}
-               style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '6px', borderRadius: '6px' }}
-             >
-               <Trash2 size={14} />
+             <button className="button-secondary" title="Reorder" style={{ border: 'none', padding: '4px' }}>
+                <GripVertical size={16} />
              </button>
           </div>
         </div>
@@ -206,11 +218,11 @@ export function BacklogTree({ node, nodeTypes, onSelect, selectedNodeId, depth =
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            style={{ marginLeft: '44px', marginBottom: '8px', zIndex: 10, position: 'relative' }}
+            style={{ marginLeft: `${depth * 40 + 64}px`, marginTop: '8px', marginBottom: '8px', zIndex: 10, position: 'relative' }}
           >
-            <div className="glass" style={{ padding: '10px', width: '220px', backgroundColor: 'rgba(15, 15, 20, 0.95)' }}>
-              <p style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '8px', textTransform: 'uppercase' }}>Add Child</p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            <div className="glass" style={{ padding: '16px', width: '280px' }}>
+              <p className="text-meta" style={{ marginBottom: '12px' }}>Add Strategic Component</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {allowedChildren.map((type: any) => (
                   <button 
                     key={type.id}
@@ -219,17 +231,10 @@ export function BacklogTree({ node, nodeTypes, onSelect, selectedNodeId, depth =
                       setIsCreating(true);
                       setShowAddMenu(false);
                     }}
-                    style={{ 
-                      fontSize: '0.65rem', 
-                      padding: '4px 8px', 
-                      borderRadius: '6px', 
-                      backgroundColor: `${type.color}20`, 
-                      color: type.color,
-                      border: `1px solid ${type.color}40`,
-                      cursor: 'pointer'
-                    }}
+                    className="button-secondary"
+                    style={{ fontSize: '10px', color: type.color, borderColor: `${type.color}40`, fontWeight: 700 }}
                   >
-                    {type.name}
+                    {type.name.toUpperCase()}
                   </button>
                 ))}
               </div>
@@ -241,24 +246,24 @@ export function BacklogTree({ node, nodeTypes, onSelect, selectedNodeId, depth =
           <motion.div 
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
-            style={{ marginLeft: '44px', marginBottom: '12px' }}
+            style={{ marginLeft: `${depth * 40 + 64}px`, marginTop: '12px', marginBottom: '12px' }}
           >
-            <form onSubmit={handleCreate} className="glass" style={{ padding: '8px', display: 'flex', gap: '8px', border: `1px solid ${selectedType?.color}40` }}>
+            <form onSubmit={handleCreate} className="glass" style={{ padding: '12px', display: 'flex', gap: '8px', border: `1px solid ${selectedType?.color}40` }}>
               <input 
                 autoFocus
                 className="input-premium"
-                style={{ padding: '4px 8px', fontSize: '0.8rem' }}
+                style={{ padding: '8px 16px', fontSize: '13px', borderRadius: '8px' }}
                 placeholder={`Name your ${selectedType?.name}...`}
                 value={newNodeTitle}
                 onChange={(e) => setNewNodeTitle(e.target.value)}
               />
-              <button type="submit" className="button-premium" style={{ padding: '4px 10px', fontSize: '0.7rem', backgroundColor: selectedType?.color }}>
+              <button type="submit" className="button-premium" style={{ padding: '8px 16px', fontSize: '12px', backgroundColor: selectedType?.color }}>
                 Add
               </button>
               <button 
                 type="button" 
                 onClick={() => setIsCreating(false)}
-                style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.7rem', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', color: 'var(--error)', fontSize: '12px', cursor: 'pointer' }}
               >
                 Cancel
               </button>
@@ -267,13 +272,14 @@ export function BacklogTree({ node, nodeTypes, onSelect, selectedNodeId, depth =
         )}
       </AnimatePresence>
 
-      {/* Children */}
+      {/* Children Container */}
       {isOpen && (
-        <div style={{ borderLeft: '1px solid rgba(255,255,255,0.03)', marginLeft: '11px' }}>
-          {node.childLinks?.map((link: any) => (
+        <div className="children-container">
+          {(children.length > 0 ? children : initialChildren).map((child: any) => (
             <BacklogTree 
-              key={link.id} 
-              node={link.childNode} 
+              key={child.id} 
+              projectId={projectId}
+              node={child} 
               nodeTypes={nodeTypes} 
               onSelect={onSelect}
               selectedNodeId={selectedNodeId}

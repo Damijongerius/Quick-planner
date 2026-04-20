@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sanctuary | Hierarchical Backlog</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-surface-variant": "#596064",
+                    "error-container": "#f97386",
+                    "primary-dim": "#3949ab",
+                    "tertiary-dim": "#005e54",
+                    "surface-bright": "#f8f9fb",
+                    "surface-container-low": "#f0f4f7",
+                    "primary": "#4656b8",
+                    "outline": "#747c80",
+                    "tertiary-fixed": "#8df5e4",
+                    "on-tertiary-fixed": "#004840",
+                    "secondary-dim": "#3d5762",
+                    "on-surface": "#2c3437",
+                    "surface-container": "#eaeff2",
+                    "surface-tint": "#4656b8",
+                    "on-error-container": "#6e0523",
+                    "tertiary-container": "#8df5e4",
+                    "secondary-fixed": "#cbe7f5",
+                    "on-tertiary": "#e2fff8",
+                    "on-tertiary-container": "#005c53",
+                    "error-dim": "#6b0221",
+                    "surface-container-highest": "#dce4e8",
+                    "on-primary": "#faf8ff",
+                    "surface": "#f8f9fb",
+                    "on-secondary-fixed-variant": "#455f6b",
+                    "primary-fixed-dim": "#7989ee",
+                    "primary-container": "#8696fd",
+                    "on-secondary-fixed": "#29434e",
+                    "surface-container-high": "#e3e9ed",
+                    "outline-variant": "#acb3b7",
+                    "surface-dim": "#d4dbdf",
+                    "on-secondary": "#f2faff",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-primary": "#8696fd",
+                    "on-tertiary-fixed-variant": "#00675c",
+                    "secondary-fixed-dim": "#bdd9e6",
+                    "on-primary-fixed": "#000000",
+                    "secondary-container": "#cbe7f5",
+                    "tertiary-fixed-dim": "#7fe6d5",
+                    "inverse-surface": "#0b0f10",
+                    "on-primary-container": "#00116a",
+                    "surface-variant": "#dce4e8",
+                    "secondary": "#49636f",
+                    "on-secondary-container": "#3c5561",
+                    "inverse-on-surface": "#9a9d9f",
+                    "on-primary-fixed-variant": "#011882",
+                    "tertiary": "#006b60",
+                    "on-background": "#2c3437",
+                    "primary-fixed": "#8696fd",
+                    "on-error": "#fff7f7",
+                    "background": "#f8f9fb",
+                    "error": "#a8364b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .headline { font-family: 'Manrope', sans-serif; }
+        .collapse-content {
+            display: none;
+        }
+        .collapse-open .collapse-content {
+            display: block;
+        }
+        .rotate-icon {
+            transition: transform 0.2s ease;
+        }
+        .collapse-open .rotate-icon {
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased">
+<!-- SideNavBar Component -->
+<nav class="h-screen w-72 fixed left-0 top-0 z-40 bg-[#f8f9fb] dark:bg-[#1a1c1e] font-manrope antialiased tracking-tight flex flex-col p-8 space-y-8">
+<div class="flex items-center space-x-3 mb-4">
+<div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary" data-icon="shrine" style="font-variation-settings: 'FILL' 1;">shrine</span>
+</div>
+<div>
+<h1 class="text-2xl font-extrabold text-[#2c3437] dark:text-[#eaeff2] tracking-tighter">Sanctuary</h1>
+<p class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold">Strategic Planner</p>
+</div>
+</div>
+<button class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary py-3.5 rounded-full font-bold flex items-center justify-center space-x-2 shadow-lg shadow-primary/20 scale-95 active:scale-100 transition-transform">
+<span class="material-symbols-outlined text-lg" data-icon="add">add</span>
+<span>New Node</span>
+</button>
+<div class="flex-1 space-y-2 mt-4">
+<a class="flex items-center space-x-4 px-4 py-3 rounded-xl transition-colors duration-200 hover:bg-[#eaeff2] dark:hover:bg-[#2c3437] text-[#596064] dark:text-[#acb3b7] font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="view_kanban">view_kanban</span>
+<span>Sprint Board</span>
+</a>
+<a class="flex items-center space-x-4 px-4 py-3 rounded-xl transition-colors duration-200 text-[#3949AB] dark:text-[#8696fd] font-bold border-r-2 border-[#3949AB] bg-[#eaeff2] dark:bg-[#2c3437]" href="#">
+<span class="material-symbols-outlined" data-icon="account_tree" style="font-variation-settings: 'FILL' 1;">account_tree</span>
+<span>Hierarchical Backlog</span>
+</a>
+<a class="flex items-center space-x-4 px-4 py-3 rounded-xl transition-colors duration-200 hover:bg-[#eaeff2] dark:hover:bg-[#2c3437] text-[#596064] dark:text-[#acb3b7] font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="hub">hub</span>
+<span>Relation Map</span>
+</a>
+<a class="flex items-center space-x-4 px-4 py-3 rounded-xl transition-colors duration-200 hover:bg-[#eaeff2] dark:hover:bg-[#2c3437] text-[#596064] dark:text-[#acb3b7] font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard_customize">dashboard_customize</span>
+<span>Node Gallery</span>
+</a>
+</div>
+<div class="pt-8 border-t border-outline-variant/15">
+<a class="flex items-center space-x-4 px-4 py-3 rounded-xl transition-colors duration-200 hover:bg-[#eaeff2] dark:hover:bg-[#2c3437] text-[#596064] dark:text-[#acb3b7] font-medium" href="#">
+<div class="w-8 h-8 rounded-full overflow-hidden">
+<img alt="User Profile Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIh8DQQXUGFVXaxyzsqI7kwthEMQbxxGEKsLiNIhiuqQ73nPo9xlhfbo9ATvByxN6S8IJODkBjlRt0T_qgJE2OYz1ikvQhx_ucCAWVl-RpP2vyX8yw30YYICm9_LAIk89CN9XpAUnrG8CpyKdJaDhbbA5wi3hYg6GuZw0Ypr8KgZ9iAgwpoy0yiA5eTQaSEj6nmgtu1THQ5jTAE9hnenop8gmNb426VXhMdhYvM-uTCVeACk7lBRYO7_X1rTPvyJCEHMpUQWdEnthR"/>
+</div>
+<span>User Profile</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Shell -->
+<main class="ml-72 min-h-screen">
+<!-- TopAppBar Component -->
+<header class="sticky top-0 w-full z-30 bg-[#f8f9fb]/80 dark:bg-[#1a1c1e]/80 backdrop-blur-xl flex justify-between items-center px-12 py-4">
+<div class="flex items-center space-x-6 w-1/3">
+<div class="relative w-full group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full py-2 pl-12 pr-4 text-sm focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-on-surface-variant/50" placeholder="Search backlog..." type="text"/>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<button class="text-on-surface-variant hover:text-[#3949AB] transition-opacity duration-300 font-semibold text-sm">Focus Mode</button>
+<div class="h-4 w-px bg-outline-variant/20 mx-2"></div>
+<div class="flex items-center space-x-1">
+<button class="p-2 text-on-surface-variant hover:text-[#3949AB] transition-colors"><span class="material-symbols-outlined" data-icon="notifications">notifications</span></button>
+<button class="p-2 text-on-surface-variant hover:text-[#3949AB] transition-colors"><span class="material-symbols-outlined" data-icon="settings">settings</span></button>
+</div>
+<button class="ml-4 px-6 py-2 bg-primary text-on-primary rounded-full font-bold text-sm hover:opacity-90 transition-opacity">Quick Sync</button>
+</div>
+</header>
+<!-- Canvas Content -->
+<div class="px-12 py-8 max-w-6xl mx-auto">
+<!-- Page Header Area -->
+<div class="mb-8 flex justify-between items-start">
+<div>
+<h2 class="text-3xl font-extrabold tracking-tight text-on-surface mb-1">Backlog</h2>
+<p class="text-on-surface-variant text-sm">A simplified, hierarchical view of your strategic objectives and tasks.</p>
+</div>
+<div class="flex space-x-2">
+<button class="flex items-center space-x-2 px-4 py-2 bg-surface-container-lowest text-on-surface rounded-full text-xs font-semibold shadow-sm border border-outline-variant/10 hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-base" data-icon="filter_list">filter_list</span>
+<span>Filter</span>
+</button>
+<button class="flex items-center space-x-2 px-4 py-2 bg-surface-container-lowest text-on-surface rounded-full text-xs font-semibold shadow-sm border border-outline-variant/10 hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-base" data-icon="unfold_more">unfold_more</span>
+<span>Expand All</span>
+</button>
+</div>
+</div>
+<!-- Simplified Hierarchical List -->
+<div class="space-y-px bg-surface-container-lowest rounded-2xl border border-outline-variant/10 overflow-hidden shadow-sm">
+<!-- Root Item 1 -->
+<div class="group border-b border-outline-variant/5 collapse-open" id="root-1">
+<div class="flex items-center justify-between px-6 py-4 hover:bg-surface-container-low/50 cursor-pointer transition-colors" onclick="this.parentElement.classList.toggle('collapse-open')">
+<div class="flex items-center space-x-4">
+<span class="material-symbols-outlined text-on-surface-variant rotate-icon" data-icon="chevron_right">chevron_right</span>
+<span class="material-symbols-outlined text-primary text-xl" data-icon="folder" style="font-variation-settings: 'FILL' 1;">folder</span>
+<div class="flex flex-col">
+<h3 class="text-sm font-bold text-on-surface">2024 Product Vision</h3>
+<span class="text-[10px] text-on-surface-variant/70 uppercase font-bold tracking-wider">Strategic Pillar</span>
+</div>
+</div>
+<div class="flex items-center space-x-6 text-xs">
+<div class="flex items-center space-x-2 text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span>12 Tasks</span>
+</div>
+<div class="w-24 h-1.5 bg-surface-container-highest rounded-full">
+<div class="h-full bg-primary rounded-full" style="width: 65%;"></div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40" data-icon="more_horiz">more_horiz</span>
+</div>
+</div>
+<!-- Root 1 Content -->
+<div class="collapse-content bg-surface/30">
+<!-- Level 2 Node A -->
+<div class="border-t border-outline-variant/5 collapse-open" id="node-a">
+<div class="flex items-center justify-between pl-14 pr-6 py-3 hover:bg-surface-container-low cursor-pointer transition-colors" onclick="event.stopPropagation(); this.parentElement.classList.toggle('collapse-open')">
+<div class="flex items-center space-x-3">
+<span class="material-symbols-outlined text-on-surface-variant/60 rotate-icon text-sm" data-icon="chevron_right">chevron_right</span>
+<span class="text-sm font-semibold text-on-surface">Scalable Design Tokens</span>
+<span class="px-2 py-0.5 bg-tertiary/10 text-tertiary text-[9px] font-bold rounded">HIGH PRIORITY</span>
+</div>
+<div class="flex items-center space-x-4">
+<span class="text-[11px] font-medium text-on-surface-variant">75% Complete</span>
+<span class="material-symbols-outlined text-on-surface-variant/40 text-base" data-icon="drag_indicator">drag_indicator</span>
+</div>
+</div>
+<div class="collapse-content border-t border-outline-variant/5">
+<!-- Level 3 Tasks -->
+<div class="pl-20 pr-6 py-2 flex items-center justify-between hover:bg-surface-container-low/30 group/task border-b border-outline-variant/5 last:border-0">
+<div class="flex items-center space-x-3">
+<input checked="" class="w-4 h-4 rounded-sm border-outline-variant text-primary focus:ring-0" type="checkbox"/>
+<span class="text-sm text-on-surface/80">Audit existing legacy color palettes</span>
+</div>
+<div class="flex items-center space-x-3 opacity-0 group-hover/task:opacity-100 transition-opacity">
+<span class="text-[10px] text-on-surface-variant font-bold">Q3 DELIVERABLE</span>
+<button class="p-1 hover:bg-surface-container-highest rounded"><span class="material-symbols-outlined text-sm" data-icon="edit">edit</span></button>
+</div>
+</div>
+<div class="pl-20 pr-6 py-2 flex items-center justify-between hover:bg-surface-container-low/30 group/task border-b border-outline-variant/5 last:border-0">
+<div class="flex items-center space-x-3">
+<input class="w-4 h-4 rounded-sm border-outline-variant text-primary focus:ring-0" type="checkbox"/>
+<span class="text-sm text-on-surface/80">Map Tailwind config to Figma tokens</span>
+</div>
+<div class="flex items-center space-x-3 opacity-0 group-hover/task:opacity-100 transition-opacity">
+<span class="text-[10px] text-error font-bold">OVERDUE</span>
+<button class="p-1 hover:bg-surface-container-highest rounded"><span class="material-symbols-outlined text-sm" data-icon="edit">edit</span></button>
+</div>
+</div>
+</div>
+</div>
+<!-- Level 2 Node B (Collapsed) -->
+<div class="border-t border-outline-variant/5" id="node-b">
+<div class="flex items-center justify-between pl-14 pr-6 py-3 hover:bg-surface-container-low cursor-pointer transition-colors" onclick="event.stopPropagation(); this.parentElement.classList.toggle('collapse-open')">
+<div class="flex items-center space-x-3">
+<span class="material-symbols-outlined text-on-surface-variant/60 rotate-icon text-sm" data-icon="chevron_right">chevron_right</span>
+<span class="text-sm font-semibold text-on-surface">Onboarding Revamp</span>
+<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container text-[9px] font-bold rounded uppercase">In Review</span>
+</div>
+<div class="flex items-center space-x-4">
+<span class="text-[11px] font-medium text-on-surface-variant">3 Sub-tasks</span>
+<span class="material-symbols-outlined text-on-surface-variant/40 text-base" data-icon="drag_indicator">drag_indicator</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Root Item 2 (Collapsed) -->
+<div class="group border-b border-outline-variant/5" id="root-2">
+<div class="flex items-center justify-between px-6 py-4 hover:bg-surface-container-low/50 cursor-pointer transition-colors" onclick="this.parentElement.classList.toggle('collapse-open')">
+<div class="flex items-center space-x-4">
+<span class="material-symbols-outlined text-on-surface-variant rotate-icon" data-icon="chevron_right">chevron_right</span>
+<span class="material-symbols-outlined text-on-surface-variant/40 text-xl" data-icon="folder_zip">folder_zip</span>
+<div class="flex flex-col">
+<h3 class="text-sm font-bold text-on-surface">Infrastructure Hardening</h3>
+<span class="text-[10px] text-on-surface-variant/70 uppercase font-bold tracking-wider">System Node</span>
+</div>
+</div>
+<div class="flex items-center space-x-6 text-xs">
+<div class="flex items-center space-x-2 text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-outline-variant"></span>
+<span>8 Tasks</span>
+</div>
+<div class="w-24 h-1.5 bg-surface-container-highest rounded-full">
+<div class="h-full bg-outline-variant rounded-full" style="width: 0%;"></div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40" data-icon="more_horiz">more_horiz</span>
+</div>
+</div>
+</div>
+<!-- Root Item 3 -->
+<div class="group" id="root-3">
+<div class="flex items-center justify-between px-6 py-4 hover:bg-surface-container-low/50 cursor-pointer transition-colors" onclick="this.parentElement.classList.toggle('collapse-open')">
+<div class="flex items-center space-x-4">
+<span class="material-symbols-outlined text-on-surface-variant rotate-icon" data-icon="chevron_right">chevron_right</span>
+<span class="material-symbols-outlined text-tertiary text-xl" data-icon="folder" style="font-variation-settings: 'FILL' 1;">folder</span>
+<div class="flex flex-col">
+<h3 class="text-sm font-bold text-on-surface">Marketing Automation</h3>
+<span class="text-[10px] text-on-surface-variant/70 uppercase font-bold tracking-wider">Growth</span>
+</div>
+</div>
+<div class="flex items-center space-x-6 text-xs">
+<div class="flex items-center space-x-2 text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span>5 Tasks</span>
+</div>
+<div class="w-24 h-1.5 bg-surface-container-highest rounded-full">
+<div class="h-full bg-tertiary rounded-full" style="width: 40%;"></div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40" data-icon="more_horiz">more_horiz</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Info Bar -->
+<div class="mt-8 flex justify-center">
+<div class="bg-surface-container-high/40 backdrop-blur px-6 py-3 rounded-full border border-outline-variant/10 flex items-center space-x-6 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
+<div class="flex items-center space-x-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span>12 Active</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>4 Done</span>
+</div>
+<div class="w-px h-3 bg-outline-variant/30"></div>
+<button class="hover:text-primary transition-colors flex items-center space-x-1">
+<span class="material-symbols-outlined text-base" data-icon="download">download</span>
+<span>Export</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<script>
+    // Simple toggle functionality for demonstration
+    // Note: The HTML uses inline onclick but this script could manage more complex state
+    document.querySelectorAll('.cursor-pointer').forEach(el => {
+        el.addEventListener('click', function(e) {
+            // Logic handled by onclick in HTML for immediate feedback in static context
+        });
+    });
+</script>
+</body></html>
