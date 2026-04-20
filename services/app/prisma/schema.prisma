@@ -1,0 +1,165 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// NextAuth Models
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  
+  // Custom Data
+  nodeTypes     NodeType[]
+  nodes         Node[]
+  sprints       Sprint[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Planner Configuration Models
+model NodeType {
+  id          String   @id @default(cuid())
+  name        String
+  userId      String
+  color       String?  @default("#3b82f6") // Default blue
+  icon        String?  @default("Target")
+  boardConfig Json?    // { preferredView, ganttSettings, swimlaneSettings }
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fields      FieldDefinition[]
+  
+  // Relations where this is the parent or child
+  allowedChildren  AllowedRelation[] @relation("ParentType")
+  allowedParents   AllowedRelation[] @relation("ChildType")
+  
+  nodes            Node[]
+}
+
+model FieldDefinition {
+  id          String   @id @default(cuid())
+  nodeTypeId  String
+  name        String
+  type        String   // TEXT, NUMBER, DATE, CHECKBOX
+  required    Boolean  @default(false)
+  
+  nodeType    NodeType @relation(fields: [nodeTypeId], references: [id], onDelete: Cascade)
+}
+
+model AllowedRelation {
+  id                 String   @id @default(cuid())
+  parentNodeTypeId   String
+  childNodeTypeId    String
+  
+  parentNodeType     NodeType @relation("ParentType", fields: [parentNodeTypeId], references: [id], onDelete: Cascade)
+  childNodeTypeType  NodeType @relation("ChildType", fields: [childNodeTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([parentNodeTypeId, childNodeTypeId])
+}
+
+// Sprint Tracking
+model Sprint {
+  id          String   @id @default(cuid())
+  name        String
+  startDate   DateTime?
+  endDate     DateTime?
+  status      String   @default("PLANNED") // PLANNED, ACTIVE, COMPLETED
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nodes       Node[]
+}
+
+// Planner Instance Models
+model Node {
+  id          String   @id @default(cuid())
+  nodeTypeId  String
+  userId      String
+  title       String
+  content     Json?    // Stores the values for custom fields
+  status      String   @default("TODO") // TODO, IN_PROGRESS, DONE
+  isArchived  Boolean  @default(false)
+  sprintId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        NodeType @relation(fields: [nodeTypeId], references: [id])
+  sprint      Sprint?  @relation(fields: [sprintId], references: [id], onDelete: SetNull)
+  
+  parentLinks NodeLink[] @relation("ChildNode")
+  childLinks  NodeLink[] @relation("ParentNode")
+
+  // Dependencies
+  blockedBy   NodeDependency[] @relation("BlockedNode")
+  blocking    NodeDependency[] @relation("BlockingNode")
+}
+
+model NodeLink {
+  id           String   @id @default(cuid())
+  parentNodeId String
+  childNodeId  String
+  
+  parentNode   Node     @relation("ParentNode", fields: [parentNodeId], references: [id], onDelete: Cascade)
+  childNode    Node     @relation("ChildNode", fields: [childNodeId], references: [id], onDelete: Cascade)
+
+  @@unique([parentNodeId, childNodeId])
+}
+
+model NodeDependency {
+  id               String @id @default(cuid())
+  blockedNodeId    String
+  blockingNodeId   String
+
+  blockedNode      Node   @relation("BlockedNode", fields: [blockedNodeId], references: [id], onDelete: Cascade)
+  blockingNode     Node   @relation("BlockingNode", fields: [blockingNodeId], references: [id], onDelete: Cascade)
+
+  @@unique([blockedNodeId, blockingNodeId])
+}
