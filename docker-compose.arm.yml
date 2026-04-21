@@ -1,0 +1,34 @@
+services:
+  app:
+    build:
+      context: ./services/app
+      dockerfile: Dockerfile
+    platform: linux/arm64
+    container_name: quick-planner-app-arm64
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/quickplanner?schema=public
+      - AUTH_SECRET=secret
+      - AUTH_URL=http://localhost:3000
+      - AUTH_TRUST_HOST=true
+    depends_on:
+      - db
+    restart: always
+
+  db:
+    image: postgres:16-alpine
+    platform: linux/arm64
+    container_name: quick-planner-db-arm64
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=quickplanner
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_arm64:/var/lib/postgresql/data
+
+volumes:
+  postgres_data_arm64:
