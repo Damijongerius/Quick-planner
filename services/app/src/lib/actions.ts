@@ -66,7 +66,7 @@ async function propagateStatusUpwards(projectId: string, nodeId: string, newStat
                 where: { parentNodeId: parent.id },
                 include: { childNode: true }
             });
-            const allDone = siblings.every(s => s.childNode.status === 'DONE');
+            const allDone = siblings.every((s: any) => s.childNode.status === 'DONE');
             if (allDone && parent.status !== 'DONE') {
                 await prisma.node.update({
                     where: { id: parent.id },
@@ -373,7 +373,7 @@ export async function getNodeChildren(projectId: string, nodeId: string) {
       }
     }
   });
-  const children = node?.childLinks.map(l => l.childNode) || [];
+  const children = node?.childLinks.map((l: any) => l.childNode) || [];
   return serializeData(children);
 }
 

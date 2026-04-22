@@ -20,7 +20,7 @@ export default async function ProjectsPage() {
       </header>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '32px' }}>
-        {projects.map((project) => (
+        {projects.map((project: any) => (
           <Link 
             key={project.id} 
             href={`/project/${project.id}/board`}

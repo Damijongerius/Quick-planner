@@ -1,18 +1,11 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useState } from "react";
 import { motion } from "framer-motion";
 
 export default function SignInPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await signIn("credentials", {
-      email,
-      password,
+  const handleGoogleSignIn = async () => {
+    await signIn("google", {
       callbackUrl: "/projects",
     });
   };
@@ -30,37 +23,9 @@ export default function SignInPage() {
         </h1>
         <p style={{ textAlign: 'center', color: '#9ca3af', marginBottom: '32px' }}>Welcome back. Organize your vision.</p>
         
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '8px', color: '#9ca3af' }}>Email Address</label>
-            <input 
-              type="email" 
-              className="input-premium" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required 
-            />
-          </div>
-          <div style={{ marginBottom: '32px' }}>
-            <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '8px', color: '#9ca3af' }}>Password</label>
-            <input 
-              type="password" 
-              className="input-premium" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required 
-            />
-          </div>
-          <button type="submit" className="button-premium" style={{ width: '100%', padding: '14px' }}>
-            Sign In
-          </button>
-        </form>
-        
-        <p style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.875rem', color: '#4b5563' }}>
-          New here? Just enter your details to create an account.
-        </p>
+        <button onClick={handleGoogleSignIn} className="button-premium" style={{ width: '100%', padding: '14px' }}>
+          Sign In with Google
+        </button>
       </motion.div>
     </div>
   );
