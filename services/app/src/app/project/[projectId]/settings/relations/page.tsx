@@ -20,7 +20,7 @@ export default async function RelationsPage({ params }: { params: Promise<{ proj
       <section style={{ marginTop: '64px' }}>
         <h3 style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(89, 96, 100, 0.4)', marginBottom: '24px' }}>Active Governance Rules</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
-          {relations.map(rel => (
+          {relations.map((rel: any) => (
             <div key={rel.id} className="card-sanctuary" style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: rel.parentNodeType.color || 'var(--primary)' }}>{rel.parentNodeType.name}</span>
