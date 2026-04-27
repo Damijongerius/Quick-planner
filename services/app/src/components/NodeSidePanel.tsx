@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Trash2, Calendar, Hash, Type, CheckCircle2, Info, Clock, Check, Layers, Zap, Link, Trash, MoreHorizontal, ArrowRight, User, FileText, Archive, Plus, Edit2 } from "lucide-react";
+import { X, Trash2, Calendar, Hash, Type, CheckCircle2, Info, Clock, Check, Layers, Zap, Link, Trash, MoreHorizontal, ArrowRight, User, FileText, Archive, Plus, Edit2, ArchiveRestore } from "lucide-react";
 import { updateNode, deleteNode, assignNodeToSprint, updateNodeStatus, addDependency, removeDependency, getHistoryForNode, archiveNode } from "@/lib/actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { IconRenderer } from "./IconPicker";
@@ -121,7 +121,7 @@ export function NodeSidePanel({ projectId, node, isOpen, onClose, sprints, allNo
   };
 
   const handleArchive = async () => {
-      await archiveNode(projectId, node.id, true);
+      await archiveNode(projectId, node.id, !node.isArchived);
       onClose();
   };
 
@@ -161,7 +161,19 @@ export function NodeSidePanel({ projectId, node, isOpen, onClose, sprints, allNo
             <IconRenderer name={node.type?.icon} size={18} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span className="text-meta">{node.type?.name}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="text-meta">{node.type?.name}</span>
+                {node.isArchived && (
+                    <span style={{ 
+                        fontSize: '9px', 
+                        fontWeight: 900, 
+                        color: 'var(--primary)', 
+                        backgroundColor: 'rgba(70, 86, 184, 0.1)', 
+                        padding: '2px 6px', 
+                        borderRadius: '4px' 
+                    }}>ARCHIVED</span>
+                )}
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {savingStatus === 'saving' && <span style={{ fontSize: '10px', color: 'var(--primary)', fontWeight: 700 }}>AUTOSAVING...</span>}
                 {savingStatus === 'saved' && <span style={{ fontSize: '10px', color: 'var(--tertiary)', fontWeight: 700 }}>CHANGES SAVED</span>}
@@ -503,7 +515,8 @@ export function NodeSidePanel({ projectId, node, isOpen, onClose, sprints, allNo
             borderRadius: '9999px'
           }}
         >
-          <Archive size={16} /> Archive Node
+          {node.isArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
+          {node.isArchived ? "Restore Node" : "Archive Node"}
         </button>
       </footer>
     </div>

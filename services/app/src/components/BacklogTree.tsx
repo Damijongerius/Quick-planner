@@ -6,9 +6,11 @@ import {
   Plus, 
   Edit2,
   GripVertical,
-  Loader2
+  Loader2,
+  Archive,
+  ArchiveRestore
 } from "lucide-react";
-import { createNode, getNodeChildren } from "@/lib/actions";
+import { createNode, getNodeChildren, archiveNode } from "@/lib/actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { IconRenderer } from "./IconPicker";
 
@@ -19,9 +21,10 @@ interface BacklogTreeProps {
   onSelect: (node: any) => void;
   selectedNodeId?: string;
   depth?: number;
+  hideCompleted?: boolean;
 }
 
-export function BacklogTree({ projectId, node, nodeTypes, onSelect, selectedNodeId, depth = 0 }: BacklogTreeProps) {
+export function BacklogTree({ projectId, node, nodeTypes, onSelect, selectedNodeId, depth = 0, hideCompleted = false }: BacklogTreeProps) {
   const [isOpen, setIsOpen] = useState(depth < 1);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -103,6 +106,10 @@ export function BacklogTree({ projectId, node, nodeTypes, onSelect, selectedNode
     // Refresh children after creation
     loadChildren();
   };
+
+  if (hideCompleted && node.status === 'DONE') {
+    return null;
+  }
 
   return (
     <div style={{ width: '100%' }}>
@@ -204,6 +211,14 @@ export function BacklogTree({ projectId, node, nodeTypes, onSelect, selectedNode
                     <Plus size={16} />
                  </button>
              )}
+             <button 
+                className="button-secondary" 
+                title={node.isArchived ? "Restore" : "Archive"} 
+                style={{ border: 'none', padding: '4px', color: node.isArchived ? 'var(--tertiary)' : 'var(--on-surface-variant)' }}
+                onClick={(e) => { e.stopPropagation(); archiveNode(projectId, node.id, !node.isArchived); }}
+             >
+                {node.isArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
+             </button>
              <button className="button-secondary" title="Reorder" style={{ border: 'none', padding: '4px' }}>
                 <GripVertical size={16} />
              </button>
@@ -284,6 +299,7 @@ export function BacklogTree({ projectId, node, nodeTypes, onSelect, selectedNode
               onSelect={onSelect}
               selectedNodeId={selectedNodeId}
               depth={depth + 1}
+              hideCompleted={hideCompleted}
             />
           ))}
         </div>

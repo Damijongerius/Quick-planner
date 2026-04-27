@@ -76,6 +76,20 @@ export function Sidebar({ project }: SidebarProps) {
           </div>
           <span>User Profile</span>
         </Link>
+        <div style={{ 
+            marginTop: '16px', 
+            padding: '0 12px',
+            fontSize: '9px', 
+            fontWeight: 800, 
+            color: 'var(--on-surface-variant)', 
+            opacity: 0.4,
+            letterSpacing: '0.05em',
+            display: 'flex',
+            justifyContent: 'space-between'
+        }}>
+            <span>VERSION 0.2.1</span>
+            <span>STABLE</span>
+        </div>
       </div>
     </aside>
   );

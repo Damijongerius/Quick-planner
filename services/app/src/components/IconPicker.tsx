@@ -8,7 +8,14 @@ const ICON_LIST = [
   "Target", "Zap", "Star", "BookOpen", "Bookmark", "Briefcase", "CheckSquare", 
   "Circle", "Clipboard", "Code", "Flag", "Folder", "Inbox", "Layers", "Layout", 
   "List", "MessageSquare", "Milestone", "Package", "PieChart", "Search", "Settings", 
-  "Shield", "Tag", "Trophy", "User", "GanttChartSquare", "KanbanSquare"
+  "Shield", "Tag", "Trophy", "User", "GanttChartSquare", "KanbanSquare",
+  "Bug", "AlertCircle", "AlertTriangle", "Clock", "Calendar", "Check", "Bell",
+  "Rocket", "Lightbulb", "Flame", "Hammer", "Wrench", "Compass", "Key", 
+  "ShieldAlert", "Cpu", "Network", "Globe", "MapPin", "Eye", "FileText", 
+  "Files", "Database", "Cloud", "Sun", "Moon", "CloudLightning", "Coffee",
+  "Github", "Play", "Repeat", "Volume2", "Mic", "Camera", "Headphones",
+  "Mail", "Phone", "Smartphone", "Monitor", "Link", "Share", "RefreshCw",
+  "ArrowUpRight", "TrendingUp", "TrendingDown", "Activity", "Heart", "Smile"
 ];
 
 interface IconPickerProps {
