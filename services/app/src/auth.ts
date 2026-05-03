@@ -2,14 +2,18 @@ import NextAuth from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import prisma from "@/lib/db"
 import Credentials from "next-auth/providers/credentials"
+import Google from "next-auth/providers/google"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      allowDangerousEmailAccountLinking: true, // Needed for forced migration via email matching
+    }),
     Credentials({
-      // For this "Quick" app, we'll use a simplified credentials provider
-      // In a real app, you'd verify passwords with bcrypt
-      name: "Credentials",
+      name: "Legacy Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
@@ -17,20 +21,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
         
-        // Find or create user for this quick demo
-        let user = await prisma.user.findUnique({
+        const user = await prisma.user.findUnique({
           where: { email: credentials.email as string },
+          include: { accounts: true }
         })
 
+        // 1. If user doesn't exist, they MUST use Google (New User)
         if (!user) {
-          user = await prisma.user.create({
-            data: {
-              email: credentials.email as string,
-              name: (credentials.email as string).split('@')[0],
-            },
-          })
+          throw new Error("USER_NOT_FOUND");
         }
 
+        // 2. If user already has a Google account, force them to use it
+        if (user.accounts.some(acc => acc.provider === 'google')) {
+            throw new Error("MIGRATED_TO_GOOGLE");
+        }
+
+        // 3. For existing legacy users, allow login so they can link Google
+        // In a production app, you would verify the password here.
+        // Since the current schema doesn't have a password field, we allow
+        // the existing user to identify themselves by email to start migration.
         return user
       },
     }),
@@ -39,9 +48,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: "jwt",
   },
   callbacks: {
+    async jwt({ token, user, account }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
     async session({ session, token }) {
-      if (token.sub && session.user) {
-        session.user.id = token.sub
+      if (token.id && session.user) {
+        session.user.id = token.id as string;
+        
+        // Check if user has a Google account linked
+        const userWithAccounts = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          include: { accounts: true }
+        });
+        
+        (session.user as any).isMigrated = userWithAccounts?.accounts.some(acc => acc.provider === 'google') || false;
       }
       return session
     },
@@ -60,5 +83,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   pages: {
     signIn: "/auth/signin",
+    error: "/auth/error",
   },
 })

@@ -121,7 +121,7 @@ export function BacklogTree({ projectId, node, nodeTypes, onSelect, selectedNode
         onClick={() => onSelect(node)}
         style={{ 
           display: 'flex', 
-          alignItems: 'center', 
+          alignItems: 'flex-start', 
           justifyContent: 'space-between',
           padding: depth === 0 ? '16px 24px' : `12px 24px 12px ${depth * 40 + 24}px`,
           borderBottom: '1px solid var(--outline-variant)',
@@ -131,7 +131,7 @@ export function BacklogTree({ projectId, node, nodeTypes, onSelect, selectedNode
           opacity: node.isArchived ? 0.5 : 1
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', flex: 1, minWidth: 0 }}>
           <div 
             onClick={toggleOpen}
             style={{ 
@@ -139,13 +139,14 @@ export function BacklogTree({ projectId, node, nodeTypes, onSelect, selectedNode
               transition: 'transform 0.2s',
               transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
               display: (children.length > 0 || initialChildren.length > 0 || isHovered) ? 'block' : 'none',
-              width: '16px'
+              width: '16px',
+              marginTop: '4px'
             }}
           >
             {isLoadingChildren ? <Loader2 size={14} className="animate-spin" /> : <ChevronRight size={16} />}
           </div>
           
-          <div style={{ color: nodeType?.color || 'var(--primary)', display: 'flex', alignItems: 'center' }}>
+          <div style={{ color: nodeType?.color || 'var(--primary)', display: 'flex', alignItems: 'center', marginTop: depth === 0 ? '0' : '3px' }}>
             {depth === 0 ? (
                 <IconRenderer name={nodeType?.icon || 'Folder'} size={20} color={nodeType?.color || 'var(--primary)'} />
             ) : (
@@ -153,14 +154,14 @@ export function BacklogTree({ projectId, node, nodeTypes, onSelect, selectedNode
             )}
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
             <span style={{ 
               fontSize: depth === 0 ? '14px' : '14px', 
               fontWeight: depth === 0 ? 700 : 600,
               color: 'var(--on-surface)',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              lineHeight: '1.4'
             }}>
               {node.title}
             </span>
@@ -169,6 +170,28 @@ export function BacklogTree({ projectId, node, nodeTypes, onSelect, selectedNode
                   {nodeType?.name || 'Node'}
                 </span>
             )}
+
+            {/* Custom Fields Preview */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+              {Object.entries(node.content || {}).map(([key, value]) => {
+                  if (!value || key.toLowerCase() === 'priority') return null;
+                  return (
+                      <div key={key} style={{ 
+                        fontSize: '10px', 
+                        color: 'var(--on-surface-variant)', 
+                        backgroundColor: 'var(--surface-container-high)', 
+                        padding: '2px 8px', 
+                        borderRadius: '4px',
+                        display: 'flex',
+                        gap: '4px',
+                        border: '1px solid var(--outline-variant)'
+                      }}>
+                          <span style={{ fontWeight: 800, opacity: 0.5 }}>{key.toUpperCase()}</span>
+                          <span style={{ fontWeight: 600 }}>{String(value)}</span>
+                      </div>
+                  )
+              })}
+            </div>
           </div>
 
           {priority && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, Save } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -11,6 +11,38 @@ interface NodeEditorProps {
 
 export function NodeEditor({ node, onClose }: NodeEditorProps) {
   const [data, setData] = useState(node.content || {});
+  
+  const AutoGrowingTextarea = ({ value, onChange, placeholder, style }: any) => {
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    useEffect(() => {
+      if (textareaRef.current) {
+        textareaRef.current.style.height = '0px';
+        const scrollHeight = textareaRef.current.scrollHeight;
+        textareaRef.current.style.height = scrollHeight + 'px';
+      }
+    }, [value]);
+
+    return (
+      <textarea
+        ref={textareaRef}
+        className="input-premium"
+        style={{ 
+          ...style, 
+          padding: '12px 16px', 
+          borderRadius: '12px', 
+          minHeight: '40px',
+          resize: 'none',
+          overflow: 'hidden',
+          lineHeight: '1.5',
+          paddingLeft: '16px' // NodeEditor doesn't have the icon space as large usually
+        }}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+      />
+    );
+  };
 
   const handleChange = (name: string, value: any) => {
     setData((prev: any) => ({ ...prev, [name]: value }));
@@ -51,10 +83,10 @@ export function NodeEditor({ node, onClose }: NodeEditorProps) {
             </label>
             
             {field.type === 'TEXT' && (
-              <input 
-                className="input-premium" 
+              <AutoGrowingTextarea 
                 value={data[field.name] || ''} 
-                onChange={(e) => handleChange(field.name, e.target.value)}
+                onChange={(e: any) => handleChange(field.name, e.target.value)}
+                placeholder={`Enter ${field.name.toLowerCase()}...`}
               />
             )}
             

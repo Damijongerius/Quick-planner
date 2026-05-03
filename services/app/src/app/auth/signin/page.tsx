@@ -1,67 +1,91 @@
 "use client";
 
-import { signIn } from "next-auth/react";
-import { useState } from "react";
-import { motion } from "framer-motion";
+"use client";
 
-export default function SignInPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { AuthLogo } from "@/components/auth/AuthLogo";
+import { AuthErrorBanner } from "@/components/auth/AuthErrorBanner";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
+import { LegacyMigrationForm } from "@/components/auth/LegacyMigrationForm";
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await signIn("credentials", {
-      email,
-      password,
-      callbackUrl: "/projects",
-    });
-  };
+function SignInContent() {
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', width: '100vw', position: 'fixed', top: 0, left: 0, background: '#0a0a0c', zIndex: 2000 }}>
+    <div style={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      minHeight: '100vh', 
+      width: '100vw', 
+      background: 'var(--surface)',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      {/* Abstract Background Decoration */}
+      <div style={{ 
+        position: 'absolute', 
+        top: '-10%', 
+        right: '-10%', 
+        width: '600px', 
+        height: '600px', 
+        background: 'radial-gradient(circle, rgba(70, 86, 184, 0.05) 0%, rgba(255,255,255,0) 70%)',
+        zIndex: 0 
+      }} />
+      <div style={{ 
+        position: 'absolute', 
+        bottom: '-10%', 
+        left: '-10%', 
+        width: '600px', 
+        height: '600px', 
+        background: 'radial-gradient(circle, rgba(147, 51, 234, 0.05) 0%, rgba(255,255,255,0) 70%)',
+        zIndex: 0 
+      }} />
+
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
         className="glass"
-        style={{ padding: '48px', width: '400px' }}
+        style={{ 
+          padding: '64px', 
+          width: '500px', 
+          textAlign: 'center',
+          position: 'relative',
+          zIndex: 1,
+          backgroundColor: 'rgba(255, 255, 255, 0.7)',
+          border: '1px solid var(--outline-variant)',
+          borderRadius: '32px'
+        }}
       >
-        <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '8px', textAlign: 'center', background: 'linear-gradient(to right, #3b82f6, #9333ea)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Quick Planner
-        </h1>
-        <p style={{ textAlign: 'center', color: '#9ca3af', marginBottom: '32px' }}>Welcome back. Organize your vision.</p>
+        <AuthLogo />
+
+        <AnimatePresence>
+          {error && <AuthErrorBanner error={error} />}
+        </AnimatePresence>
         
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '8px', color: '#9ca3af' }}>Email Address</label>
-            <input 
-              type="email" 
-              className="input-premium" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required 
-            />
-          </div>
-          <div style={{ marginBottom: '32px' }}>
-            <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '8px', color: '#9ca3af' }}>Password</label>
-            <input 
-              type="password" 
-              className="input-premium" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required 
-            />
-          </div>
-          <button type="submit" className="button-premium" style={{ width: '100%', padding: '14px' }}>
-            Sign In
-          </button>
-        </form>
+        <div style={{ marginBottom: '48px' }}>
+            <h2 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--on-surface)', marginBottom: '12px' }}>
+                Welcome Back
+            </h2>
+            <p className="text-secondary">
+                The next evolution of strategic coordination.
+            </p>
+        </div>
         
-        <p style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.875rem', color: '#4b5563' }}>
-          New here? Just enter your details to create an account.
-        </p>
+        <GoogleSignInButton />
+        <LegacyMigrationForm />
       </motion.div>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignInContent />
+    </Suspense>
   );
 }

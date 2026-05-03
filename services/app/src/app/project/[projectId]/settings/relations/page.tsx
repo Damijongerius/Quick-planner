@@ -9,7 +9,7 @@ export default async function RelationsPage({ params }: { params: Promise<{ proj
   return (
     <div className="canvas-content">
       <div style={{ marginBottom: '48px' }}>
-        <h2 style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-0.025em', marginBottom: '4px' }}>Relation Map</h2>
+        <h2 style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-0.025em', marginBottom: '4px' }}>Node Relations</h2>
         <p style={{ color: 'var(--on-surface-variant)', fontSize: '14px' }}>
           Define how your strategic nodes connect and flow. Drag from the bottom handle to the top handle.
         </p>

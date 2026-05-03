@@ -11,9 +11,23 @@ interface GanttChartProps {
 }
 
 export function GanttChart({ projectId, nodes, sprints, currentSprintId }: GanttChartProps) {
-  // 1. Determine Total Date Range based on ALL sprints for this project
+  // 1. Determine Total Date Range based on ALL sprints AND nodes for this project
   const { startDate, endDate, days } = useMemo(() => {
-    if (sprints.length === 0) {
+    const allDates: number[] = [];
+    
+    // Collect from sprints
+    sprints.forEach(s => {
+        if (s.startDate) allDates.push(new Date(s.startDate).getTime());
+        if (s.endDate) allDates.push(new Date(s.endDate).getTime());
+    });
+
+    // Collect from nodes
+    nodes.forEach(n => {
+        if (n.startDate) allDates.push(new Date(n.startDate).getTime());
+        if (n.endDate) allDates.push(new Date(n.endDate).getTime());
+    });
+
+    if (allDates.length === 0) {
         const d = new Date();
         d.setHours(0,0,0,0);
         const end = new Date(d);
@@ -21,29 +35,20 @@ export function GanttChart({ projectId, nodes, sprints, currentSprintId }: Gantt
         return { startDate: d, endDate: end, days: generateDays(d, end) };
     }
 
-    const sorted = [...sprints].filter(s => s.startDate).sort((a, b) => 
-        new Date(a.startDate!).getTime() - new Date(b.startDate!).getTime()
-    );
-
-    if (sorted.length === 0) {
-        const d = new Date();
-        const end = new Date(d);
-        end.setDate(end.getDate() + 14);
-        return { startDate: d, endDate: end, days: generateDays(d, end) };
-    }
-
-    const start = new Date(sorted[0].startDate!);
-    start.setHours(0,0,0,0);
+    const minDate = new Date(Math.min(...allDates));
+    minDate.setHours(0,0,0,0);
     
-    const endDates = sprints.filter(s => s.endDate).map(s => new Date(s.endDate!).getTime());
-    let end = endDates.length > 0 ? new Date(Math.max(...endDates)) : new Date(start);
-    if (end.getTime() <= start.getTime()) {
-        end = new Date(start);
-        end.setDate(end.getDate() + 14);
-    }
+    // Buffer the start by 2 days
+    minDate.setDate(minDate.getDate() - 2);
+
+    const maxDate = new Date(Math.max(...allDates));
+    maxDate.setHours(0,0,0,0);
     
-    return { startDate: start, endDate: end, days: generateDays(start, end) };
-  }, [sprints]);
+    // Buffer the end by 7 days
+    maxDate.setDate(maxDate.getDate() + 7);
+
+    return { startDate: minDate, endDate: maxDate, days: generateDays(minDate, maxDate) };
+  }, [sprints, nodes]);
 
   function generateDays(start: Date, end: Date) {
     const list = [];

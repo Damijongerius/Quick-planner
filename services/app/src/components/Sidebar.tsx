@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
+import { UserMenu } from "@/components/UserMenu";
+
 interface SidebarProps {
   project: {
     id: string;
@@ -70,12 +72,7 @@ export function Sidebar({ project }: SidebarProps) {
       </nav>
 
       <div className="sidebar-footer">
-        <Link href="/profile" className={`nav-item ${pathname === '/profile' ? 'active' : ''}`}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', backgroundColor: 'var(--surface-container-high)' }}>
-            <User size={20} style={{ margin: '6px' }} />
-          </div>
-          <span>User Profile</span>
-        </Link>
+        <UserMenu />
         <div style={{ 
             marginTop: '16px', 
             padding: '0 12px',

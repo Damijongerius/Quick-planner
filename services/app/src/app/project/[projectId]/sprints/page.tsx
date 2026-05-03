@@ -8,7 +8,7 @@ export default async function Sprints({ params }: { params: Promise<{ projectId:
   return (
     <div className="canvas-content">
       <div style={{ marginBottom: '48px' }}>
-        <h2 style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-0.025em', marginBottom: '4px' }}>Strategic Cycles</h2>
+        <h2 style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-0.025em', marginBottom: '4px' }}>Sprints</h2>
         <p style={{ color: 'var(--on-surface-variant)', fontSize: '14px' }}>
           Orchestrate your development cycles and roadmap milestones.
         </p>

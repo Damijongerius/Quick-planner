@@ -27,6 +27,37 @@ export function NodeSidePanel({ projectId, node, isOpen, onClose, sprints, allNo
   const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [history, setHistory] = useState<any[]>([]);
   
+  const AutoGrowingTextarea = ({ value, onChange, placeholder, style }: any) => {
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    useEffect(() => {
+      if (textareaRef.current) {
+        textareaRef.current.style.height = '0px';
+        const scrollHeight = textareaRef.current.scrollHeight;
+        textareaRef.current.style.height = scrollHeight + 'px';
+      }
+    }, [value]);
+
+    return (
+      <textarea
+        ref={textareaRef}
+        className="input-premium"
+        style={{ 
+          ...style, 
+          padding: '12px 20px', 
+          borderRadius: '16px', 
+          minHeight: '44px',
+          resize: 'none',
+          overflow: 'hidden',
+          lineHeight: '1.5'
+        }}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+      />
+    );
+  };
+  
   const isInitialMount = useRef(true);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -389,11 +420,10 @@ export function NodeSidePanel({ projectId, node, isOpen, onClose, sprints, allNo
                       </label>
                       
                       {field.type === 'TEXT' && (
-                        <input 
-                          className="input-premium"
-                          style={{ paddingLeft: '20px' }}
+                        <AutoGrowingTextarea 
                           value={content[field.name] || ""}
-                          onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                          onChange={(e: any) => handleFieldChange(field.name, e.target.value)}
+                          placeholder={`Enter ${field.name.toLowerCase()}...`}
                         />
                       )}
                       

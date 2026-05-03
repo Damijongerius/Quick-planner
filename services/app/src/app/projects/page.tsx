@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Plus, Briefcase, Calendar, ChevronRight, LayoutGrid } from "lucide-react";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { UserMenu } from "@/components/UserMenu";
 
 export default async function ProjectsPage() {
   const session = await auth();
@@ -11,12 +12,17 @@ export default async function ProjectsPage() {
   const projects = await getProjects();
 
   return (
-    <div className="canvas-content" style={{ maxWidth: '1000px', margin: '0 auto', paddingTop: '80px' }}>
-      <header style={{ marginBottom: '64px', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '48px', fontWeight: 800, letterSpacing: '-0.05em', marginBottom: '16px' }}>Your Sanctuary</h1>
-        <p style={{ color: 'var(--on-surface-variant)', fontSize: '18px', fontWeight: 500 }}>
-          Select a strategic workspace to continue.
-        </p>
+    <div className="canvas-content" style={{ maxWidth: '1000px', margin: '0 auto', paddingTop: '40px' }}>
+      <header style={{ marginBottom: '64px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+            <h1 style={{ fontSize: '48px', fontWeight: 800, letterSpacing: '-0.05em', marginBottom: '16px' }}>Your Sanctuary</h1>
+            <p style={{ color: 'var(--on-surface-variant)', fontSize: '18px', fontWeight: 500 }}>
+            Select a strategic workspace to continue.
+            </p>
+        </div>
+        <div style={{ minWidth: '250px' }}>
+            <UserMenu />
+        </div>
       </header>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '32px' }}>

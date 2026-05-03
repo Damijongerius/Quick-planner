@@ -61,12 +61,16 @@ export function BoardView({
     }
 
     // 2. Sprint filtering
+    const isSprintEligible = node.type?.isSprintEligible;
     const nodeSprintId = node.sprintId;
     const parentSprintId = node.parentLinks?.[0]?.parentNode?.sprintId;
     
+    // In GANTT mode, we show everything that isn't sprint-eligible (Strategic Pillars) 
+    // PLUS items that match the current sprint.
     const matchesSprint = !selectedSprintId || 
                           nodeSprintId === selectedSprintId || 
-                          parentSprintId === selectedSprintId;
+                          parentSprintId === selectedSprintId ||
+                          (viewMode === 'GANTT' && !isSprintEligible);
 
     // 3. Multi-type filtering
     const matchesType = selectedNodeTypeIds.length === 0 || selectedNodeTypeIds.includes(node.nodeTypeId);

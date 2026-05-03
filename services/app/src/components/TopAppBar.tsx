@@ -25,10 +25,10 @@ export function TopAppBar({ projectId }: TopAppBarProps) {
   }, []);
 
   const settingsItems = [
-    { name: "Strategic Cycles", href: `/project/${projectId}/sprints`, icon: Calendar, desc: "Manage milestones and dates" },
+    { name: "Sprints", href: `/project/${projectId}/sprints`, icon: Calendar, desc: "Manage milestones and dates" },
     { name: "Audit Log", href: `/project/${projectId}/history`, icon: Clock, desc: "Track all strategic changes" },
-    { name: "Relation Map", href: `/project/${projectId}/settings/relations`, icon: Trees, desc: "Define connection rules" },
-    { name: "Node Governance", href: `/project/${projectId}/settings/nodes`, icon: LayoutGrid, desc: "Configure types and fields" },
+    { name: "Node Relations", href: `/project/${projectId}/settings/relations`, icon: Trees, desc: "Define connection rules" },
+    { name: "Nodes", href: `/project/${projectId}/settings/nodes`, icon: LayoutGrid, desc: "Configure types and fields" },
   ];
 
   return (

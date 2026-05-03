@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { PlusCircle, Archive, ArchiveRestore, Download, Plus } from "lucide-react";
 import { createNode, getRootNodes } from "@/lib/actions";
 import { BacklogTree } from "./BacklogTree";
@@ -22,12 +23,25 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
   const [showArchived, setShowArchived] = useState(false);
   const [hideCompleted, setHideCompleted] = useState(true);
   const [showInitMenu, setShowInitMenu] = useState(false);
+  const searchParams = useSearchParams();
 
   const childTypeIds = new Set(nodeTypes.flatMap(t => t.allowedChildren?.map((ac: any) => ac.childNodeTypeId) || []));
   const rootTypes = nodeTypes.filter(t => !childTypeIds.has(t.id));
   
   // If no specific root types found (circular or none defined), allow all
   const availableRootTypes = rootTypes.length > 0 ? rootTypes : nodeTypes;
+
+  // Handle deep linking from AI or other sources
+  useEffect(() => {
+    const nodeId = searchParams.get('nodeId');
+    if (nodeId && allNodes.length > 0) {
+      const node = allNodes.find(n => n.id === nodeId);
+      if (node) {
+        setSelectedNode(node);
+        setIsPanelOpen(true);
+      }
+    }
+  }, [searchParams, allNodes]);
 
   // Sync with initialNodes if they change from server
   useEffect(() => {
