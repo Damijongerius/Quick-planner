@@ -32,26 +32,18 @@ export function IconPicker({ currentIcon, onSelect, color = "#3b82f6" }: IconPic
   );
 
   return (
-    <div className="glass" style={{ padding: '16px', maxWidth: '320px' }}>
-      <div style={{ position: 'relative', marginBottom: '16px' }}>
+    <div className="glass p-md max-w-[320px]">
+      <div className="relative mb-md">
         <input 
-          className="input-premium"
-          style={{ paddingLeft: '32px', fontSize: '0.875rem' }}
+          className="input-premium pl-xl text-sm"
           placeholder="Search icons..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
+        <Search size={16} className="absolute left-[10px] top-1/2 -translate-y-1/2 text-on-surface-variant" />
       </div>
 
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(6, 1fr)', 
-        gap: '8px', 
-        maxHeight: '200px', 
-        overflowY: 'auto',
-        paddingRight: '4px'
-      }}>
+      <div className="icon-picker-grid">
         {filteredIcons.map(iconName => {
           const Icon = (Icons as any)[iconName] || Icons.HelpCircle;
           const isActive = currentIcon === iconName;
@@ -62,19 +54,8 @@ export function IconPicker({ currentIcon, onSelect, color = "#3b82f6" }: IconPic
               type="button"
               onClick={() => onSelect(iconName)}
               title={iconName}
-              style={{
-                aspectRatio: '1',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '8px',
-                border: '1px solid',
-                borderColor: isActive ? color : 'rgba(255,255,255,0.05)',
-                backgroundColor: isActive ? `${color}20` : 'rgba(255,255,255,0.02)',
-                color: isActive ? color : '#9ca3af',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
+              className={`icon-picker-button ${isActive ? 'active' : ''}`}
+              style={{ '--node-color': color } as any}
             >
               <Icon size={18} />
             </button>

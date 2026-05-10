@@ -26,67 +26,21 @@ export function BoardView({
   const [viewMode, setViewMode] = useState("KANBAN");
   const [selectedSprintId, setSelectedSprintId] = useState<string | null>(initialActiveSprintId || null);
   const [selectedNodeTypeIds, setSelectedNodeTypeIds] = useState<string[]>([]);
-  
-  // Local state for nodes to support dragging and panel updates
   const [nodes, setNodes] = useState(initialNodes);
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   useEffect(() => {
-      setNodes(initialNodes);
+    setNodes(initialNodes);
   }, [initialNodes]);
 
-  const refreshData = async () => {
-      const updatedNodes = await getAllNodes(projectId);
-      setNodes(updatedNodes);
-  };
-
-  const handleNodeClick = (nodeId: string) => {
-      const node = nodes.find(n => n.id === nodeId);
-      if (node) {
-          setSelectedNode(node);
-          setIsPanelOpen(true);
-      }
-  };
-
-  const activeSprint = initialSprints.find(s => s.id === selectedSprintId) || initialSprints[0];
-
-  // Filter nodes for the current board
-  const filteredNodes = nodes.filter(node => {
-    // 1. Check Visibility based on Node Governance (BoardConfig)
-    const boardConfig = node.type?.boardConfig;
-    if (boardConfig?.preferredView) {
-        if (viewMode === 'KANBAN' && boardConfig.preferredView === 'GANTT') return false;
-        if (viewMode === 'GANTT' && boardConfig.preferredView === 'KANBAN') return false;
-    }
-
-    // 2. Sprint filtering
-    const isSprintEligible = node.type?.isSprintEligible;
-    const nodeSprintId = node.sprintId;
-    const parentSprintId = node.parentLinks?.[0]?.parentNode?.sprintId;
-    
-    // In GANTT mode, we show everything that isn't sprint-eligible (Strategic Pillars) 
-    // PLUS items that match the current sprint.
-    const matchesSprint = !selectedSprintId || 
-                          nodeSprintId === selectedSprintId || 
-                          parentSprintId === selectedSprintId ||
-                          (viewMode === 'GANTT' && !isSprintEligible);
-
-    // 3. Multi-type filtering
-    const matchesType = selectedNodeTypeIds.length === 0 || selectedNodeTypeIds.includes(node.nodeTypeId);
-    
-    return matchesSprint && matchesType && !node.isArchived;
-  });
-
-  // Sort nodes based on the order of Node Types in Governance/RelationMap
-  const sortedNodes = [...filteredNodes].sort((a, b) => {
-    const indexA = initialNodeTypes.findIndex(t => t.id === a.nodeTypeId);
-    const indexB = initialNodeTypes.findIndex(t => t.id === b.nodeTypeId);
-    return indexA - indexB;
-  });
+  // The Story: High-level intentions
+  const activeSprint = getActiveSprint(initialSprints, selectedSprintId);
+  const filteredNodes = getFilteredNodes(nodes, viewMode, selectedSprintId, selectedNodeTypeIds);
+  const sortedNodes = getSortedNodes(filteredNodes, initialNodeTypes);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+    <div className="flex flex-col w-full">
       <BoardHeader 
         sprints={initialSprints}
         nodeTypes={initialNodeTypes}
@@ -94,26 +48,20 @@ export function BoardView({
         selectedNodeTypeIds={selectedNodeTypeIds}
         viewMode={viewMode}
         onSprintChange={setSelectedSprintId}
-        onNodeTypeToggle={(id) => {
-            if (id === 'all') {
-                setSelectedNodeTypeIds([]);
-                return;
-            }
-            setSelectedNodeTypeIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
-        }}
+        onNodeTypeToggle={(id) => handleNodeTypeToggle(id, setSelectedNodeTypeIds)}
         onViewModeChange={setViewMode}
       />
 
-      <div style={{ display: 'flex', gap: '24px', width: '100%' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="board-main-layout">
+        <div className="board-content-area">
             {viewMode === 'KANBAN' && (
               <KanbanBoard 
                 projectId={projectId}
                 initialSprint={activeSprint}
                 initialNodes={sortedNodes}
                 nodeTypes={initialNodeTypes}
-                onRefresh={refreshData} 
-                onNodeClick={handleNodeClick} 
+                onRefresh={() => handleDataRefresh(projectId, setNodes)} 
+                onNodeClick={(id) => handleNodeSelection(id, nodes, setSelectedNode, setIsPanelOpen)} 
               />
             )}
             {viewMode === 'GANTT' && (
@@ -126,7 +74,6 @@ export function BoardView({
             )}
         </div>
 
-        {/* Side Panel Integration */}
         <AnimatePresence mode="wait">
           {isPanelOpen && (
             <motion.div 
@@ -135,16 +82,13 @@ export function BoardView({
               animate={{ width: '450px', opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 120 }}
-              style={{ overflow: 'hidden', flexShrink: 0, position: 'sticky', top: '100px', height: 'calc(100vh - 140px)' }}
+              className="board-side-panel-container"
             >
               <NodeSidePanel 
                 projectId={projectId}
                 node={selectedNode} 
                 isOpen={isPanelOpen} 
-                onClose={() => {
-                    setIsPanelOpen(false);
-                    refreshData(); // Refresh board after panel closed to get any changes
-                }} 
+                onClose={() => handlePanelClose(setIsPanelOpen, () => handleDataRefresh(projectId, setNodes))} 
                 sprints={initialSprints}
                 allNodes={nodes}
               />
@@ -154,4 +98,71 @@ export function BoardView({
       </div>
     </div>
   );
+}
+
+// --- Implementation Details (The Prose) ---
+
+async function handleDataRefresh(projectId: string, setNodes: Function) {
+  const updatedNodes = await getAllNodes(projectId);
+  setNodes(updatedNodes);
+}
+
+function handleNodeSelection(nodeId: string, nodes: any[], setSelectedNode: Function, setIsPanelOpen: Function) {
+  const node = findNodeById(nodes, nodeId);
+  if (node) {
+    setSelectedNode(node);
+    setIsPanelOpen(true);
+  }
+}
+
+function handleNodeTypeToggle(id: string, setSelectedNodeTypeIds: Function) {
+  if (id === 'all') {
+    setSelectedNodeTypeIds([]);
+    return;
+  }
+  setSelectedNodeTypeIds((prev: string[]) => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+}
+
+function handlePanelClose(setIsPanelOpen: Function, refreshCallback: Function) {
+  setIsPanelOpen(false);
+  refreshCallback();
+}
+
+function getActiveSprint(sprints: any[], selectedSprintId: string | null) {
+  return sprints.find(s => s.id === selectedSprintId) || sprints[0];
+}
+
+function getFilteredNodes(nodes: any[], viewMode: string, selectedSprintId: string | null, selectedNodeTypeIds: string[]) {
+  return nodes.filter(node => {
+    const boardConfig = node.type?.boardConfig;
+    if (boardConfig?.preferredView) {
+        if (viewMode === 'KANBAN' && boardConfig.preferredView === 'GANTT') return false;
+        if (viewMode === 'GANTT' && boardConfig.preferredView === 'KANBAN') return false;
+    }
+
+    const isSprintEligible = node.type?.isSprintEligible;
+    const nodeSprintId = node.sprintId;
+    const parentSprintId = node.parentLinks?.[0]?.parentNode?.sprintId;
+    
+    const matchesSprint = !selectedSprintId || 
+                          nodeSprintId === selectedSprintId || 
+                          parentSprintId === selectedSprintId ||
+                          (viewMode === 'GANTT' && !isSprintEligible);
+
+    const matchesType = selectedNodeTypeIds.length === 0 || selectedNodeTypeIds.includes(node.nodeTypeId);
+    
+    return matchesSprint && matchesType && !node.isArchived;
+  });
+}
+
+function getSortedNodes(nodes: any[], nodeTypes: any[]) {
+  return [...nodes].sort((a, b) => {
+    const indexA = nodeTypes.findIndex(t => t.id === a.nodeTypeId);
+    const indexB = nodeTypes.findIndex(t => t.id === b.nodeTypeId);
+    return indexA - indexB;
+  });
+}
+
+function findNodeById(nodes: any[], id: string) {
+  return nodes.find(n => n.id === id);
 }

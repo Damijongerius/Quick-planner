@@ -2,8 +2,12 @@
 
 import { useState } from "react";
 import { Plus, Calendar, Play, CheckCircle2, Trash2, Clock } from "lucide-react";
-import { createSprint, updateSprintStatus } from "@/lib/actions";
+import { createSprint, updateSprintStatus, deleteSprint } from "@/lib/actions";
 import { motion, AnimatePresence } from "framer-motion";
+import { AIImportModal } from "./ai/AIImportModal";
+import { FileJson } from "lucide-react";
+import { Button } from "./ui/Button";
+import { FormField } from "./ui/FormField";
 
 interface Sprint {
   id: string;
@@ -17,13 +21,15 @@ interface Sprint {
 interface SprintPageProps {
   projectId: string;
   sprints: Sprint[];
+  nodeTypes?: any[];
 }
 
-export function SprintPage({ projectId, sprints }: SprintPageProps) {
+export function SprintPage({ projectId, sprints, nodeTypes = [] }: SprintPageProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,148 +50,144 @@ export function SprintPage({ projectId, sprints }: SprintPageProps) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="flex flex-col gap-xl">
+      <div className="flex justify-between items-center mb-sm">
+        <div>
+          <h2 className="text-editorial text-2xl font-bold">Strategic Cycles</h2>
+          <p className="text-meta text-xs mt-xs">Milestones and Sprint planning</p>
+        </div>
+        <Button
+          onClick={() => setIsAIModalOpen(true)}
+          size="sm"
+          icon={<FileJson size={18} />}
+        >
+          AI PLANNER
+        </Button>
+      </div>
+
+      <AIImportModal
+        projectId={projectId}
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+        mode="SPRINT"
+        context={{
+          sprints: sprints.map((s: any) => ({ name: s.name, status: s.status, startDate: s.startDate, endDate: s.endDate })),
+          allNodeTypes: nodeTypes
+        }}
+      />
       {!isCreating ? (
-        <button 
+        <button
           onClick={() => setIsCreating(true)}
-          className="card-sanctuary" 
-          style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              gap: '12px', 
-              padding: '24px', 
-              border: '2px dashed var(--outline-variant)',
-              background: 'transparent',
-              opacity: 0.7,
-              cursor: 'pointer'
-          }}
+          className="card-sanctuary sprint-create-button"
         >
           <Plus size={20} />
-          <span style={{ fontWeight: 700, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Create New Strategic Cycle</span>
+          <span className="text-meta text-sm">Create New Strategic Cycle</span>
         </button>
       ) : (
-        <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="card-sanctuary"
-            style={{ padding: '40px', border: '1px solid var(--primary)' }}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card-sanctuary p-xl border-primary"
         >
-            <form onSubmit={handleCreate}>
-              <h3 style={{ marginBottom: '32px', fontSize: '24px', fontWeight: 800 }}>Define Milestone</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px', marginBottom: '40px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label className="text-meta">Sprint Identity</label>
-                  <input 
-                    className="input-premium" 
-                    placeholder="e.g. Q3 Strategic Roadmap" 
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    style={{ paddingLeft: '20px' }}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label className="text-meta">Commencement</label>
-                  <input 
-                    type="date"
-                    className="input-premium" 
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    style={{ paddingLeft: '20px' }}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label className="text-meta">Target Completion</label>
-                  <input 
-                    type="date"
-                    className="input-premium" 
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    style={{ paddingLeft: '20px' }}
-                  />
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <button type="submit" className="button-premium">Initialize Sprint</button>
-                <button type="button" onClick={() => setIsCreating(false)} className="button-secondary" style={{ border: 'none' }}>Discard</button>
-              </div>
-            </form>
+          <form onSubmit={handleCreate}>
+            <h3 className="mb-xl text-3xl font-bold">Define Milestone</h3>
+            <div className="grid grid-cols-3 gap-xl mb-xl">
+              <FormField label="Sprint Identity">
+                <input
+                  className="input-premium p-md"
+                  placeholder="e.g. Q3 Strategic Roadmap"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </FormField>
+              <FormField label="Commencement">
+                <input
+                  type="date"
+                  className="input-premium p-md"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+              </FormField>
+              <FormField label="Target Completion">
+                <input
+                  type="date"
+                  className="input-premium p-md"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+              </FormField>
+            </div>
+            <div className="flex gap-md">
+              <Button type="submit">Initialize Sprint</Button>
+              <Button type="button" variant="ghost" onClick={() => setIsCreating(false)}>Discard</Button>
+            </div>
+          </form>
         </motion.div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div className="flex flex-col gap-md">
         {sprints.map((sprint) => {
           const config = getStatusConfig(sprint.status);
           const Icon = config.icon;
-          
+
           return (
-            <div key={sprint.id} className="card-sanctuary" style={{ padding: '32px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
-                <div style={{ 
-                  width: '56px', 
-                  height: '56px', 
-                  borderRadius: '16px', 
-                  backgroundColor: config.bg, 
-                  color: config.color,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
+            <div key={sprint.id} className="card-sanctuary sprint-card">
+              <div className="flex items-center gap-xl">
+                <div className="sprint-icon-box" style={{ backgroundColor: config.bg, color: config.color }}>
                   <Icon size={28} />
                 </div>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '4px' }}>
-                    <h4 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--on-surface)' }}>{sprint.name}</h4>
-                    <span style={{ 
-                      fontSize: '9px', 
-                      padding: '4px 12px', 
-                      borderRadius: '9999px', 
-                      backgroundColor: config.bg, 
-                      color: config.color,
-                      fontWeight: 800,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.1em'
-                    }}>
+                  <div className="flex items-center gap-md mb-xs">
+                    <h4 className="sprint-name">{sprint.name}</h4>
+                    <span className="badge-pill" style={{ backgroundColor: config.bg, color: config.color }}>
                       {sprint.status}
                     </span>
                   </div>
-                  <p style={{ color: 'var(--on-surface-variant)', fontSize: '14px', fontWeight: 500 }}>
-                    {sprint.startDate && new Date(sprint.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} 
+                  <p className="sprint-dates">
+                    {sprint.startDate && new Date(sprint.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                     {sprint.endDate && ` — ${new Date(sprint.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`}
                     {!sprint.startDate && "Timeline not defined"}
                   </p>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '48px' }}>
-                <div style={{ textAlign: 'right' }}>
-                  <span style={{ display: 'block', fontSize: '24px', fontWeight: 800, color: 'var(--on-surface)', letterSpacing: '-0.025em' }}>{sprint._count?.nodes || 0}</span>
-                  <span className="text-meta" style={{ opacity: 0.5 }}>Nodes Linked</span>
+              <div className="flex items-center gap-2xl">
+                <div className="text-right">
+                  <span className="sprint-node-count">{sprint._count?.nodes || 0}</span>
+                  <span className="text-meta opacity-50">Nodes Linked</span>
                 </div>
 
-                <div style={{ display: 'flex', gap: '12px' }}>
+                <div className="flex gap-md">
                   {sprint.status === 'PLANNED' && (
-                    <button 
+                    <Button
                       onClick={() => updateSprintStatus(projectId, sprint.id, 'ACTIVE')}
-                      className="button-premium" 
-                      style={{ padding: '10px 24px', fontSize: '12px' }}
+                      size="sm"
+                      icon={<Play size={16} fill="white" />}
                     >
-                      <Play size={16} fill="white" /> Activate
-                    </button>
+                      Activate
+                    </Button>
                   )}
                   {sprint.status === 'ACTIVE' && (
-                    <button 
+                    <Button
                       onClick={() => updateSprintStatus(projectId, sprint.id, 'COMPLETED')}
-                      className="button-premium" 
-                      style={{ padding: '10px 24px', fontSize: '12px', backgroundColor: 'var(--tertiary)' }}
+                      size="sm"
+                      variant="success"
+                      icon={<CheckCircle2 size={16} fill="white" />}
                     >
-                      <CheckCircle2 size={16} fill="white" /> Finalize
-                    </button>
+                      Finalize
+                    </Button>
                   )}
-                  <button className="button-secondary" style={{ padding: '10px', border: 'none', color: 'var(--error)' }}>
-                    <Trash2 size={20} />
-                  </button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => {
+                      if (confirm('Are you sure you want to delete this sprint? Linked nodes will be returned to the backlog.')) {
+                        deleteSprint(projectId, sprint.id);
+                      }
+                    }}
+                    icon={<Trash2 size={20} />}
+                  />
                 </div>
               </div>
             </div>
@@ -193,10 +195,10 @@ export function SprintPage({ projectId, sprints }: SprintPageProps) {
         })}
 
         {sprints.length === 0 && (
-          <div style={{ padding: '120px', textAlign: 'center', opacity: 0.3 }}>
-            <Calendar size={64} style={{ margin: '0 auto 24px' }} />
-            <p style={{ fontSize: '1.25rem', fontWeight: 700 }}>No strategic cycles initialized.</p>
-            <p style={{ fontSize: '0.875rem' }}>Start by defining your first milestone above.</p>
+          <div className="sprint-empty-state">
+            <Calendar size={64} className="sprint-empty-icon" />
+            <p className="sprint-empty-title">No strategic cycles initialized.</p>
+            <p className="sprint-empty-desc">Start by defining your first milestone above.</p>
           </div>
         )}
       </div>

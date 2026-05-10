@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, LayoutGrid, Calendar, ListTodo, Save, CheckCircle2 } from "lucide-react";
+import { LayoutGrid, Calendar, Save } from "lucide-react";
 import { updateNodeTypeBoardConfig } from "@/lib/actions";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { Modal } from "./ui/Modal";
+import { FormField } from "./ui/FormField";
+import { Button } from "./ui/Button";
 
 interface BoardConfigEditorProps {
   projectId: string;
@@ -24,15 +27,10 @@ export function BoardConfigEditor({ projectId, nodeType, isOpen, onClose }: Boar
     }
   }, [nodeType]);
 
-  if (!isOpen || !nodeType) return null;
-
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await updateNodeTypeBoardConfig(projectId, nodeType.id, {
-        preferredView,
-        isSprintEligible
-      });
+      await updateNodeTypeBoardConfig(projectId, nodeType.id, { preferredView, isSprintEligible });
       onClose();
     } catch (error) {
       console.error("Failed to save board config", error);
@@ -42,147 +40,69 @@ export function BoardConfigEditor({ projectId, nodeType, isOpen, onClose }: Boar
   };
 
   return (
-    <div 
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 100,
-        backgroundColor: 'rgba(44, 52, 55, 0.4)',
-        backdropFilter: 'blur(12px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px'
-      }}
-      onClick={onClose}
+    <Modal 
+        isOpen={isOpen} 
+        onClose={onClose} 
+        title="Governance Logic" 
+        subtitle={`Behavioral rules for ${nodeType?.name}`}
+        footer={
+            <div className="flex gap-md">
+                <Button onClick={handleSave} loading={isSaving} className="flex-1" icon={<Save size={18} />}>
+                    Apply Governance
+                </Button>
+                <Button variant="ghost" onClick={onClose}>Discard</Button>
+            </div>
+        }
     >
-      <motion.div 
-        initial={{ scale: 0.95, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        className="card-sanctuary"
-        style={{
-          width: '100%',
-          maxWidth: '520px',
-          padding: 0,
-          backgroundColor: 'var(--surface-container-lowest)',
-          overflow: 'hidden',
-          borderRadius: '32px',
-          boxShadow: 'var(--ambient-shadow)'
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '32px 40px', borderBottom: '1px solid var(--outline-variant)' }}>
-          <div>
-            <h3 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--on-surface)' }}>Governance Logic</h3>
-            <p style={{ color: 'var(--on-surface-variant)', fontSize: '14px', fontWeight: 500 }}>Behavioral rules for {nodeType.name}</p>
-          </div>
-          <button onClick={onClose} className="button-secondary" style={{ padding: '8px', border: 'none' }}>
-            <X size={20} />
-          </button>
-        </header>
-
-        <div style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          
-          {/* Visibility Section */}
-          <div>
-            <label className="text-meta" style={{ display: 'block', marginBottom: '16px' }}>Board Integration</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <button 
+        <div className="flex flex-col gap-xl">
+          <FormField label="Board Integration" description="Control how nodes of this type appear on project boards.">
+            <div className="grid grid-cols-2 gap-md">
+                <Button 
                     onClick={() => setPreferredView("KANBAN")}
-                    className="button-secondary"
-                    style={{ 
-                        flexDirection: 'column', 
-                        height: '100px', 
-                        gap: '8px',
-                        borderColor: preferredView === 'KANBAN' ? 'var(--primary)' : 'var(--outline-variant)',
-                        backgroundColor: preferredView === 'KANBAN' ? 'var(--surface-container-low)' : 'transparent',
-                        color: preferredView === 'KANBAN' ? 'var(--primary)' : 'var(--on-surface-variant)'
-                    }}
+                    variant={preferredView === 'KANBAN' ? 'primary' : 'secondary'}
+                    className="flex-col h-24 gap-sm"
                 >
                     <LayoutGrid size={24} />
-                    <div style={{ textAlign: 'center' }}>
-                        <span style={{ display: 'block', fontWeight: preferredView === 'KANBAN' ? 800 : 600 }}>Kanban Only</span>
-                        <span style={{ fontSize: '10px', opacity: 0.6 }}>Hidden on Gantt</span>
+                    <div className="text-center">
+                        <span className="block font-bold">Kanban Only</span>
+                        <span className="text-meta opacity-60">Hidden on Gantt</span>
                     </div>
-                </button>
-                <button 
+                </Button>
+                <Button 
                     onClick={() => setPreferredView("GANTT")}
-                    className="button-secondary"
-                    style={{ 
-                        flexDirection: 'column', 
-                        height: '100px', 
-                        gap: '8px',
-                        borderColor: preferredView === 'GANTT' ? 'var(--primary)' : 'var(--outline-variant)',
-                        backgroundColor: preferredView === 'GANTT' ? 'var(--surface-container-low)' : 'transparent',
-                        color: preferredView === 'GANTT' ? 'var(--primary)' : 'var(--on-surface-variant)'
-                    }}
+                    variant={preferredView === 'GANTT' ? 'primary' : 'secondary'}
+                    className="flex-col h-24 gap-sm"
                 >
                     <Calendar size={24} />
-                    <div style={{ textAlign: 'center' }}>
-                        <span style={{ display: 'block', fontWeight: preferredView === 'GANTT' ? 800 : 600 }}>Gantt Only</span>
-                        <span style={{ fontSize: '10px', opacity: 0.6 }}>Hidden on Kanban</span>
+                    <div className="text-center">
+                        <span className="block font-bold">Gantt Only</span>
+                        <span className="text-meta opacity-60">Hidden on Kanban</span>
                     </div>
-                </button>
+                </Button>
             </div>
-          </div>
+          </FormField>
 
-          {/* Eligibility Section */}
-          <div style={{ padding: '24px', backgroundColor: 'var(--surface-container-low)', borderRadius: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="card-sanctuary p-xl bg-container-low border-none">
+              <div className="flex justify-between items-center">
                   <div>
-                      <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--on-surface)' }}>Sprint Eligibility</h4>
-                      <p style={{ fontSize: '12px', color: 'var(--on-surface-variant)', marginTop: '4px' }}>Can this node be assigned to a strategic cycle?</p>
+                      <h4 className="text-sm font-bold text-on-surface">Sprint Eligibility</h4>
+                      <p className="text-xs text-on-surface-variant mt-xs">Allow assignment to strategic cycles.</p>
                   </div>
                   <div 
                     onClick={() => setIsSprintEligible(!isSprintEligible)}
-                    style={{ 
-                        width: '48px', 
-                        height: '24px', 
-                        borderRadius: '12px', 
-                        backgroundColor: isSprintEligible ? 'var(--tertiary)' : 'var(--surface-container-high)',
-                        position: 'relative',
-                        cursor: 'pointer',
-                        transition: 'background-color 0.2s'
-                    }}
+                    className={`toggle-track ${isSprintEligible ? 'active' : ''}`}
                   >
-                      <motion.div 
-                        animate={{ x: isSprintEligible ? 24 : 0 }}
-                        style={{ 
-                            width: '20px', 
-                            height: '20px', 
-                            borderRadius: '50%', 
-                            backgroundColor: 'white', 
-                            position: 'absolute', 
-                            top: '2px', 
-                            left: '2px',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                        }}
-                      />
+                      <motion.div animate={{ x: isSprintEligible ? 24 : 0 }} className="toggle-thumb" />
                   </div>
               </div>
           </div>
           
-          <div style={{ padding: '16px', backgroundColor: 'rgba(70, 86, 184, 0.05)', borderRadius: '12px', border: '1px solid rgba(70, 86, 184, 0.1)' }}>
-              <p style={{ fontSize: '12px', color: 'var(--primary)', lineHeight: 1.5 }}>
-                  <strong>Note:</strong> Items that aren't eligible for sprints (like Legendaries) will show on the board/gantt based on project timelines rather than specific cycles.
+          <div className="info-box-primary">
+              <p className="text-xs text-primary leading-relaxed">
+                  Items like Legendaries that aren't eligible for sprints will show based on global project timelines.
               </p>
           </div>
         </div>
-
-        <footer style={{ padding: '32px 40px', borderTop: '1px solid var(--outline-variant)', display: 'flex', gap: '12px' }}>
-            <button 
-                onClick={handleSave}
-                className="button-premium" 
-                style={{ flex: 1 }}
-                disabled={isSaving}
-            >
-                {isSaving ? "Saving..." : <><Save size={18} /> Apply Governance</>}
-            </button>
-            <button onClick={onClose} className="button-secondary" style={{ border: 'none' }}>
-                Discard
-            </button>
-        </footer>
-      </motion.div>
-    </div>
+    </Modal>
   );
 }

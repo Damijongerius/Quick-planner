@@ -1,6 +1,5 @@
 import { Sidebar } from "@/components/Sidebar";
 import { TopAppBar } from "@/components/TopAppBar";
-import { AIChatDrawer } from "@/components/AIChatDrawer";
 import { MigrationGuard } from "@/components/auth/MigrationGuard";
 import { getProject } from "@/lib/actions";
 import { notFound } from "next/navigation";
@@ -28,7 +27,6 @@ export default async function ProjectLayout({
         <main className="main-content">
           <TopAppBar projectId={projectId} />
           {children}
-          <AIChatDrawer projectId={projectId} />
         </main>
       </div>
     </MigrationGuard>

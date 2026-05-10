@@ -5,6 +5,7 @@ import { X, Calendar, Tag, Box, AlertTriangle, Trash2, Save } from "lucide-react
 import { getNode, deleteNode, updateNode } from "@/lib/actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { IconRenderer } from "./IconPicker";
+import { Button } from "./ui/Button";
 
 interface NodeDetailPanelProps {
   projectId: string;
@@ -50,20 +51,20 @@ export function NodeDetailPanel({ projectId, nodeId, isOpen, onClose, onUpdate }
   if (!isOpen) return null;
 
   return (
-    <div className="glass" style={{ width: '400px', height: '100%', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Node Details</h3>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+    <div className="side-panel-container glass p-xl">
+      <header className="modal-header">
+        <h3 className="text-xl font-bold">Node Details</h3>
+        <button onClick={onClose} className="button-ghost p-xs text-on-surface-variant">
           <X size={24} />
         </button>
       </header>
 
       {isLoading ? (
-        <p>Loading...</p>
+        <p className="text-secondary p-xl text-center">Loading...</p>
       ) : node ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="flex flex-col gap-xl">
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', color: '#6b7280', marginBottom: '8px' }}>TITLE</label>
+            <label className="text-meta block mb-sm">TITLE</label>
             <input 
               className="input-premium" 
               value={title} 
@@ -71,17 +72,17 @@ export function NodeDetailPanel({ projectId, nodeId, isOpen, onClose, onUpdate }
             />
           </div>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button onClick={handleUpdate} className="button-premium" style={{ flex: 1 }}>
+          <div className="flex gap-md">
+            <Button onClick={handleUpdate} className="flex-1">
               <Save size={18} /> Save
-            </button>
-            <button onClick={handleDelete} className="button-secondary" style={{ color: '#ef4444' }}>
+            </Button>
+            <Button onClick={handleDelete} variant="secondary" className="text-error">
               <Trash2 size={18} />
-            </button>
+            </Button>
           </div>
         </div>
       ) : (
-        <p>Node not found</p>
+        <p className="text-error p-xl text-center">Node not found</p>
       )}
     </div>
   );

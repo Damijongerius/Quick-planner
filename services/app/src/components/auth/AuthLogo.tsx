@@ -2,31 +2,28 @@ import { Layout } from "lucide-react";
 
 export function AuthLogo() {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '40px', justifyContent: 'center' }}>
+    <div className="flex items-center justify-center gap-lg mb-2xl">
       <div style={{ 
-        width: '48px', 
-        height: '48px', 
+        width: '56px', 
+        height: '56px', 
         backgroundColor: 'var(--primary)', 
-        borderRadius: '14px', 
+        borderRadius: '18px', 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center', 
         color: 'white',
-        boxShadow: 'var(--primary-shadow)'
+        boxShadow: 'var(--primary-shadow)',
+        flexShrink: 0
       }}>
-        <Layout size={28} />
+        <Layout size={32} />
       </div>
-      <div>
-        <h1 style={{ 
-          fontSize: '24px', 
-          fontWeight: 800, 
-          fontFamily: 'var(--font-display)',
-          color: 'var(--on-surface)',
-          letterSpacing: '-0.03em'
-        }}>
+      <div className="text-left">
+        <h1 className="text-3xl font-bold tracking-tight" style={{ lineHeight: 1 }}>
           Sanctuary
         </h1>
-        <p className="text-meta" style={{ fontSize: '9px' }}>Planning Intelligence</p>
+        <p className="text-meta opacity-50" style={{ fontSize: '10px', marginTop: '2px' }}>
+          Planning Intelligence
+        </p>
       </div>
     </div>
   );

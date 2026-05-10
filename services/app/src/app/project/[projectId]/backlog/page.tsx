@@ -10,11 +10,15 @@ export default async function BacklogPage({ params }: { params: Promise<{ projec
 
   return (
     <div className="canvas-content">
-      <div style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-0.025em', marginBottom: '4px' }}>Backlog</h2>
-        <p style={{ color: 'var(--on-surface-variant)', fontSize: '14px' }}>
-          A simplified, hierarchical view of your strategic objectives and tasks.
-        </p>
+      <div className="board-header">
+        <div className="flex flex-col gap-xs">
+          <div className="board-header-meta">
+            <span>Project Backlog</span>
+            <span className="board-header-divider"></span>
+            <span className="text-meta text-xs">HIERARCHICAL VIEW</span>
+          </div>
+          <h2 className="board-title">Strategy Backlog</h2>
+        </div>
       </div>
 
       <BacklogView 

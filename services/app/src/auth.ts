@@ -58,13 +58,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token.id && session.user) {
         session.user.id = token.id as string;
         
-        // Check if user has a Google account linked
-        const userWithAccounts = await prisma.user.findUnique({
+        // Fetch the latest user data from the database to ensure we have the Google profile info
+        const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
           include: { accounts: true }
         });
         
-        (session.user as any).isMigrated = userWithAccounts?.accounts.some(acc => acc.provider === 'google') || false;
+        if (dbUser) {
+            session.user.name = dbUser.name ?? "";
+            session.user.email = dbUser.email ?? "";
+            session.user.image = dbUser.image ?? "";
+            (session.user as any).isMigrated = dbUser.accounts.some(acc => acc.provider === 'google');
+        }
       }
       return session
     },

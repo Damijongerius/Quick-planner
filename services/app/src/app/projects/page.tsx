@@ -4,6 +4,7 @@ import { Plus, Briefcase, Calendar, ChevronRight, LayoutGrid } from "lucide-reac
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { UserMenu } from "@/components/UserMenu";
+import { Button } from "@/components/ui/Button";
 
 export default async function ProjectsPage() {
   const session = await auth();
@@ -98,9 +99,9 @@ export default async function ProjectsPage() {
                         width: '100%'
                     }}
                 />
-                <button type="submit" className="button-premium" style={{ width: '100%' }}>
+                <Button type="submit" variant="primary" style={{ width: '100%' }}>
                     <Plus size={20} /> Initialize Project
-                </button>
+                </Button>
             </div>
         </form>
       </div>

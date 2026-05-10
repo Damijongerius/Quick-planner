@@ -1,7 +1,9 @@
 "use client";
 
-import { LayoutGrid, Calendar, ChevronRight, ChevronLeft, Filter } from "lucide-react";
+import { LayoutGrid, Calendar, ChevronRight, ChevronLeft } from "lucide-react";
 import { IconRenderer } from "./IconPicker";
+import { SegmentedControl } from "./ui/SegmentedControl";
+import { Button } from "./ui/Button";
 
 interface BoardHeaderProps {
   sprints: any[];
@@ -24,149 +26,99 @@ export function BoardHeader({
   onNodeTypeToggle,
   onViewModeChange
 }: BoardHeaderProps) {
-  const currentIndex = sprints.findIndex(s => s.id === selectedSprintId);
+  const currentIndex = getSprintIndex(sprints, selectedSprintId);
   const selectedSprint = sprints[currentIndex];
 
-  const handlePrev = () => {
-    if (currentIndex > 0) {
-        onSprintChange(sprints[currentIndex - 1].id);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentIndex < sprints.length - 1) {
-        onSprintChange(sprints[currentIndex + 1].id);
-    }
-  };
-
   return (
-    <div style={{ marginBottom: '48px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '24px' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '12px', 
-          color: 'var(--primary)', 
-          fontWeight: 700, 
-          letterSpacing: '0.1em', 
-          fontSize: '10px', 
-          textTransform: 'uppercase' 
-        }}>
+    <div className="board-header">
+      <div className="flex flex-col gap-xs">
+        <div className="board-header-meta">
           <span>Strategic Roadmap</span>
-          <span style={{ width: '16px', height: '1px', backgroundColor: 'rgba(70, 86, 184, 0.3)' }}></span>
+          <span className="board-header-divider"></span>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-             <button 
-                onClick={handlePrev}
-                disabled={currentIndex <= 0 || sprints.length === 0}
-                className="button-secondary"
-                style={{ padding: '4px', border: 'none', background: 'transparent', opacity: (currentIndex <= 0) ? 0.3 : 1 }}
-             >
-                <ChevronLeft size={14} />
-             </button>
-             
-             <span style={{ minWidth: '120px', textAlign: 'center', fontSize: '11px' }}>
-                {selectedSprint?.name || 'No Cycles Defined'}
-             </span>
-
-             <button 
-                onClick={handleNext}
-                disabled={currentIndex >= sprints.length - 1 || sprints.length === 0}
-                className="button-secondary"
-                style={{ padding: '4px', border: 'none', background: 'transparent', opacity: (currentIndex >= sprints.length - 1) ? 0.3 : 1 }}
-             >
-                <ChevronRight size={14} />
-             </button>
+          <div className="flex items-center gap-xs">
+             <Button variant="ghost" size="sm" onClick={() => handlePrev(currentIndex, sprints, onSprintChange)} disabled={isFirstSprint(currentIndex)} className="p-xs">
+               <ChevronLeft size={14} />
+             </Button>
+             <span className="board-sprint-nav-title">{selectedSprint?.name || 'No Cycles Defined'}</span>
+             <Button variant="ghost" size="sm" onClick={() => handleNext(currentIndex, sprints, onSprintChange)} disabled={isLastSprint(currentIndex, sprints.length)} className="p-xs">
+               <ChevronRight size={14} />
+             </Button>
           </div>
         </div>
-        <h2 style={{ fontSize: '36px', fontWeight: 800, letterSpacing: '-0.025em', color: 'var(--on-surface)', margin: 0 }}>
-          Sprint Board
-        </h2>
+        <h2 className="board-title">Sprint Board</h2>
       </div>
 
-      {/* Multi-select Node Type Filter Chips */}
-      <div style={{ display: 'flex', gap: '8px', padding: '4px', backgroundColor: 'var(--surface-container)', borderRadius: '9999px', overflowX: 'auto', maxWidth: '100%' }}>
-          <button 
-            onClick={() => onNodeTypeToggle("all")}
-            className="button-secondary"
-            style={{ 
-                border: 'none', 
-                fontSize: '11px', 
-                fontWeight: 700,
-                padding: '8px 16px',
-                backgroundColor: selectedNodeTypeIds.length === 0 ? 'var(--surface-container-lowest)' : 'transparent',
-                color: selectedNodeTypeIds.length === 0 ? 'var(--primary)' : 'var(--on-surface-variant)',
-                boxShadow: selectedNodeTypeIds.length === 0 ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
-            }}
-          >
-              ALL TYPES
-          </button>
-          {nodeTypes.map(type => {
-              const isSelected = selectedNodeTypeIds.includes(type.id);
-              return (
-                  <button 
-                    key={type.id}
-                    onClick={() => onNodeTypeToggle(type.id)}
-                    className="button-secondary"
-                    style={{ 
-                        border: 'none', 
-                        fontSize: '11px', 
-                        fontWeight: 700,
-                        padding: '8px 16px',
-                        backgroundColor: isSelected ? 'var(--surface-container-lowest)' : 'transparent',
-                        color: isSelected ? type.color : 'var(--on-surface-variant)',
-                        boxShadow: isSelected ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                    }}
-                  >
-                      <IconRenderer name={type.icon} size={14} color={isSelected ? type.color : 'var(--on-surface-variant)'} />
-                      {type.name.toUpperCase()}
-                  </button>
-              );
-          })}
-      </div>
+      <TypeFilterList 
+        nodeTypes={nodeTypes} 
+        selectedNodeTypeIds={selectedNodeTypeIds} 
+        onToggle={onNodeTypeToggle} 
+      />
 
-      <div style={{ 
-        backgroundColor: 'var(--surface-container)', 
-        padding: '4px', 
-        borderRadius: '9999px', 
-        display: 'flex' 
-      }}>
-        <button 
-          onClick={() => onViewModeChange("KANBAN")}
-          className={`button-secondary ${viewMode === 'KANBAN' ? 'active' : ''}`}
-          style={{ 
-            border: 'none', 
-            padding: '8px 24px', 
-            backgroundColor: viewMode === 'KANBAN' ? 'var(--surface-container-lowest)' : 'transparent',
-            color: viewMode === 'KANBAN' ? 'var(--primary)' : 'var(--on-surface-variant)',
-            boxShadow: viewMode === 'KANBAN' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-            fontWeight: viewMode === 'KANBAN' ? 700 : 500,
-            fontSize: '13px'
-          }}
-        >
-          <LayoutGrid size={18} style={{ marginRight: '8px' }} />
-          Board View
-        </button>
-        <button 
-          onClick={() => onViewModeChange("GANTT")}
-          className={`button-secondary ${viewMode === 'GANTT' ? 'active' : ''}`}
-          style={{ 
-            border: 'none', 
-            padding: '8px 24px', 
-            backgroundColor: viewMode === 'GANTT' ? 'var(--surface-container-lowest)' : 'transparent',
-            color: viewMode === 'GANTT' ? 'var(--primary)' : 'var(--on-surface-variant)',
-            boxShadow: viewMode === 'GANTT' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-            fontWeight: viewMode === 'GANTT' ? 700 : 500,
-            fontSize: '13px'
-          }}
-        >
-          <Calendar size={18} style={{ marginRight: '8px' }} />
-          Gantt View
-        </button>
-      </div>
+      <SegmentedControl 
+        options={[
+            { id: 'KANBAN', label: 'Board View', icon: <LayoutGrid size={18} /> },
+            { id: 'GANTT', label: 'Gantt View', icon: <Calendar size={18} /> }
+        ]}
+        value={viewMode}
+        onChange={onViewModeChange}
+      />
     </div>
   );
+}
+
+// --- Implementation Details (The Prose) ---
+
+function handlePrev(currentIndex: number, sprints: any[], onSprintChange: Function) {
+  if (currentIndex > 0) onSprintChange(sprints[currentIndex - 1].id);
+}
+
+function handleNext(currentIndex: number, sprints: any[], onSprintChange: Function) {
+  if (currentIndex < sprints.length - 1) onSprintChange(sprints[currentIndex + 1].id);
+}
+
+function TypeFilterList({ nodeTypes, selectedNodeTypeIds, onToggle }: any) {
+  return (
+    <div className="chip-group">
+      <Button 
+        variant="ghost" size="sm" onClick={() => onToggle("all")}
+        className={`chip-item ${selectedNodeTypeIds.length === 0 ? 'active' : ''}`}
+      >
+          ALL TYPES
+      </Button>
+      {nodeTypes.map((type: any) => (
+        <TypeChip 
+          key={type.id} 
+          type={type} 
+          isSelected={selectedNodeTypeIds.includes(type.id)} 
+          onToggle={onToggle} 
+        />
+      ))}
+    </div>
+  );
+}
+
+function TypeChip({ type, isSelected, onToggle }: any) {
+  return (
+    <Button 
+      variant="ghost" size="sm" onClick={() => onToggle(type.id)}
+      icon={<IconRenderer name={type.icon} size={14} color={isSelected ? type.color : 'var(--on-surface-variant)'} />}
+      className={`chip-item ${isSelected ? 'active' : ''}`}
+      style={isSelected ? { color: type.color } : {}}
+    >
+        {type.name.toUpperCase()}
+    </Button>
+  );
+}
+
+function getSprintIndex(sprints: any[], selectedId: string | null) {
+  return sprints.findIndex(s => s.id === selectedId);
+}
+
+function isFirstSprint(index: number) {
+  return index <= 0;
+}
+
+function isLastSprint(index: number, total: number) {
+  return total === 0 || index >= total - 1;
 }

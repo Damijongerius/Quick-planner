@@ -74,46 +74,37 @@ export function GanttChart({ projectId, nodes, sprints, currentSprintId }: Gantt
   };
 
   return (
-    <div className="card-sanctuary" style={{ padding: 0, overflow: 'hidden', backgroundColor: 'var(--surface-container-lowest)', border: '1px solid var(--outline-variant)' }}>
+    <div className="card-sanctuary gantt-container">
       {/* Chart Header */}
-      <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--outline-variant)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ padding: '8px', backgroundColor: 'rgba(70, 86, 184, 0.1)', color: 'var(--primary)', borderRadius: '8px' }}>
+      <header className="gantt-header">
+        <div className="flex items-center gap-md">
+            <div className="gantt-header-icon">
                 <Milestone size={20} />
             </div>
             <div>
-                <h3 style={{ fontSize: '16px', fontWeight: 800 }}>Project Strategic Timeline</h3>
-                <p className="text-meta" style={{ fontSize: '9px', opacity: 0.6 }}>
+                <h3 className="gantt-header-title">Project Strategic Timeline</h3>
+                <p className="text-meta gantt-header-subtitle">
                     {startDate.toLocaleDateString()} — {endDate.toLocaleDateString()} • {sprints.length} Cycles Defined
                 </p>
             </div>
         </div>
-      </div>
+      </header>
 
-      <div style={{ overflowX: 'auto', width: '100%' }}>
-        <div style={{ minWidth: `${days.length * 40 + 280}px` }}>
+      <div className="gantt-scroll-area">
+        <div className="gantt-content" style={{ '--gantt-min-width': `${days.length * 40 + 280}px` } as any}>
           
-          <div style={{ display: 'flex', backgroundColor: 'var(--surface-container-low)', borderBottom: '1px solid var(--outline-variant)' }}>
-            <div style={{ width: '280px', padding: '12px 32px', fontSize: '10px', fontWeight: 800, color: 'var(--on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.1em', borderRight: '1px solid var(--outline-variant)' }}>
+          <div className="gantt-grid-header">
+            <div className="gantt-label-col text-meta">
                 Strategic Phases
             </div>
-            <div style={{ flex: 1, display: 'flex' }}>
+            <div className="flex flex-1">
                 {days.map((day, i) => {
                     const isFirstOfMonth = day.getDate() === 1;
                     const isWeekend = day.getDay() === 0 || day.getDay() === 6;
                     return (
-                        <div key={i} style={{ 
-                            width: '40px', 
-                            textAlign: 'center', 
-                            padding: '8px 0', 
-                            fontSize: '9px', 
-                            fontWeight: 700,
-                            color: isWeekend ? 'rgba(89, 96, 100, 0.3)' : 'var(--on-surface-variant)',
-                            borderRight: '1px solid rgba(172, 179, 183, 0.1)',
-                            position: 'relative'
-                        }}>
+                        <div key={i} className={`gantt-day-col ${isWeekend ? 'weekend' : ''}`}>
                             {isFirstOfMonth && (
-                                <div style={{ position: 'absolute', top: '-18px', left: 0, whiteSpace: 'nowrap', color: 'var(--primary)', fontSize: '8px', fontWeight: 800 }}>
+                                <div className="gantt-month-label">
                                     {day.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
                                 </div>
                             )}
@@ -125,11 +116,11 @@ export function GanttChart({ projectId, nodes, sprints, currentSprintId }: Gantt
           </div>
 
           {/* Sprints Row */}
-          <div style={{ display: 'flex', borderBottom: '2px solid var(--outline-variant)', height: '48px', backgroundColor: 'var(--surface-container-low)' }}>
-             <div style={{ width: '280px', display: 'flex', alignItems: 'center', padding: '0 32px', borderRight: '1px solid var(--outline-variant)', fontSize: '10px', fontWeight: 800, color: 'var(--primary)' }}>
+          <div className="gantt-sprints-row">
+             <div className="gantt-label-col text-meta text-primary">
                 STRATEGIC CYCLES
              </div>
-             <div style={{ flex: 1, position: 'relative' }}>
+             <div className="flex-1 relative">
                 {sprints.map(sprint => {
                     const start = getDayOffset(sprint.startDate);
                     const end = getDayOffset(sprint.endDate);
@@ -141,25 +132,11 @@ export function GanttChart({ projectId, nodes, sprints, currentSprintId }: Gantt
                     return (
                         <div 
                             key={sprint.id}
+                            className={`gantt-sprint-bar ${isActive ? 'active' : ''}`}
                             style={{ 
-                                position: 'absolute',
-                                left: `${start * 40}px`,
-                                width: `${width}px`,
-                                height: '32px',
-                                top: '8px',
-                                backgroundColor: isActive ? 'var(--primary)' : 'var(--surface-container-highest)',
-                                color: isActive ? 'white' : 'var(--on-surface-variant)',
-                                borderRadius: '6px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                padding: '0 12px',
-                                fontSize: '10px',
-                                fontWeight: 800,
-                                boxShadow: isActive ? 'var(--primary-shadow)' : 'none',
-                                zIndex: 2,
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden'
-                            }}
+                                '--left': `${start * 40}px`,
+                                '--width': `${width}px`
+                            } as any}
                         >
                             {sprint.name.toUpperCase()}
                         </div>
@@ -169,7 +146,7 @@ export function GanttChart({ projectId, nodes, sprints, currentSprintId }: Gantt
           </div>
 
           {/* Nodes Rows */}
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className="flex flex-col">
             {nodes.map((node) => {
               const startCol = getDayOffset(node.startDate || node.createdAt);
               const endCol = getDayOffset(node.endDate);
@@ -178,49 +155,30 @@ export function GanttChart({ projectId, nodes, sprints, currentSprintId }: Gantt
               const width = (startCol !== null && endCol !== null) ? (endCol - startCol + 1) * 40 : 120;
 
               return (
-                <div key={node.id} style={{ display: 'flex', borderBottom: '1px solid rgba(172, 179, 183, 0.1)', height: '48px' }}>
-                  <div style={{ width: '280px', display: 'flex', alignItems: 'center', gap: '12px', padding: '0 32px', borderRight: '1px solid var(--outline-variant)', backgroundColor: 'var(--surface-container-lowest)' }}>
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: nodeColor }} />
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--on-surface)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div key={node.id} className="gantt-node-row">
+                  <div className="gantt-label-col gantt-node-label-container">
+                    <div className="gantt-node-indicator" style={{ backgroundColor: nodeColor }} />
+                    <span className="gantt-node-title">
                         {node.title}
                     </span>
                   </div>
                   
-                  <div style={{ flex: 1, position: 'relative', height: '100%' }}>
+                  <div className="flex-1 relative h-full">
                     {/* Background Grid */}
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', pointerEvents: 'none' }}>
+                    <div className="gantt-bg-grid">
                         {days.map((day, i) => (
-                            <div key={i} style={{ 
-                                width: '40px', 
-                                height: '100%', 
-                                borderRight: '1px solid rgba(172, 179, 183, 0.05)',
-                                backgroundColor: (day.getDay() === 0 || day.getDay() === 6) ? 'rgba(0,0,0,0.01)' : 'transparent'
-                            }} />
+                            <div key={i} className={`gantt-grid-cell ${day.getDay() === 0 || day.getDay() === 6 ? 'weekend' : ''}`} />
                         ))}
                     </div>
 
                     {startCol !== null && (
                       <div 
+                        className="gantt-node-bar"
                         style={{ 
-                          position: 'absolute', 
-                          left: `${startCol * 40 + 4}px`, 
-                          width: `${width}px`, 
-                          height: '24px', 
-                          top: '12px',
-                          backgroundColor: `${nodeColor}10`,
-                          border: `1px solid ${nodeColor}40`,
-                          borderRadius: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          padding: '0 8px',
-                          fontSize: '9px',
-                          color: nodeColor,
-                          fontWeight: 700,
-                          zIndex: 1,
-                          textTransform: 'uppercase',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden'
-                        }}
+                          '--left': `${startCol * 40 + 4}px`, 
+                          '--width': `${width}px`,
+                          '--color': nodeColor
+                        } as any}
                       >
                         {node.status}
                       </div>

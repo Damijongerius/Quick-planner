@@ -33,31 +33,17 @@ export function TopAppBar({ projectId }: TopAppBarProps) {
 
   return (
     <header className="top-bar">
-      <div className="search-container" style={{ width: '33%' }}>
-        <Search className="search-icon" size={18} />
-        <input 
-          className="input-premium" 
-          placeholder="Find nodes in this workspace..." 
-          type="text" 
-        />
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <div style={{ display: 'flex', gap: '4px', position: 'relative' }} ref={dropdownRef}>
-          <button className="button-secondary" style={{ border: 'none', padding: '8px' }}>
-            <Bell size={20} className="text-meta" style={{ color: 'var(--on-surface-variant)' }} />
+      <div className="flex items-center gap-md">
+        <div className="flex gap-xs relative" ref={dropdownRef}>
+          <button className="icon-button">
+            <Bell size={20} className="text-on-surface-variant" />
           </button>
           
           <button 
-            className={`button-secondary ${isSettingsOpen ? 'active' : ''}`}
+            className={`icon-button ${isSettingsOpen ? 'active' : ''}`}
             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-            style={{ 
-                border: 'none', 
-                padding: '8px',
-                backgroundColor: isSettingsOpen ? 'var(--surface-container-high)' : 'transparent'
-            }}
           >
-            <Settings size={20} className="text-meta" style={{ color: isSettingsOpen ? 'var(--primary)' : 'var(--on-surface-variant)' }} />
+            <Settings size={20} className={isSettingsOpen ? 'text-primary' : 'text-on-surface-variant'} />
           </button>
 
           <AnimatePresence>
@@ -66,46 +52,36 @@ export function TopAppBar({ projectId }: TopAppBarProps) {
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="glass"
-                style={{ 
-                    position: 'absolute', 
-                    top: '100%', 
-                    right: 0, 
-                    marginTop: '12px', 
-                    width: '320px', 
-                    padding: '12px',
-                    zIndex: 100,
-                    borderRadius: '24px'
-                }}
+                className="glass dropdown-menu settings-dropdown"
               >
-                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--outline-variant)', marginBottom: '8px' }}>
+                <div className="dropdown-header">
                     <p className="text-meta">Workspace Settings</p>
                 </div>
                 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div className="dropdown-body flex flex-col gap-xs">
                     {settingsItems.map((item) => (
                         <Link 
                             key={item.name} 
                             href={item.href}
                             onClick={() => setIsSettingsOpen(false)}
-                            style={{ textDecoration: 'none' }}
+                            className="nav-link"
                         >
-                            <div className="nav-item" style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 16px' }}>
-                                <div style={{ color: 'var(--primary)' }}>
+                            <div className="nav-item flex items-center gap-md">
+                                <div className="text-primary">
                                     <item.icon size={18} />
                                 </div>
-                                <div style={{ flex: 1 }}>
-                                    <p style={{ fontSize: '13px', fontWeight: 700, color: 'var(--on-surface)' }}>{item.name}</p>
-                                    <p style={{ fontSize: '11px', color: 'var(--on-surface-variant)', opacity: 0.7 }}>{item.desc}</p>
+                                <div className="flex-1">
+                                    <p className="dropdown-item-title">{item.name}</p>
+                                    <p className="dropdown-item-desc">{item.desc}</p>
                                 </div>
-                                <ChevronRight size={14} className="text-meta" style={{ opacity: 0.3 }} />
+                                <ChevronRight size={14} className="text-meta opacity-30" />
                             </div>
                         </Link>
                     ))}
                 </div>
                 
-                <div style={{ padding: '12px', marginTop: '8px', borderTop: '1px solid var(--outline-variant)' }}>
-                    <button className="button-secondary" style={{ width: '100%', border: 'none', justifyContent: 'center', color: 'var(--error)', fontSize: '12px' }}>
+                <div className="dropdown-footer">
+                    <button className="button-ghost w-full justify-center text-error text-xs">
                         Archive Project
                     </button>
                 </div>

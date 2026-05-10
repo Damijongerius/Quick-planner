@@ -15,49 +15,40 @@ function SignInContent() {
   const error = searchParams.get("error");
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      minHeight: '100vh', 
-      width: '100vw', 
-      background: 'var(--surface)',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
+    <div className="flex items-center justify-center" style={{ minHeight: '100vh', width: '100vw', background: 'var(--surface)', position: 'relative', overflow: 'hidden' }}>
       {/* Abstract Background Decoration */}
       <div style={{ 
         position: 'absolute', 
         top: '-10%', 
         right: '-10%', 
-        width: '600px', 
-        height: '600px', 
-        background: 'radial-gradient(circle, rgba(70, 86, 184, 0.05) 0%, rgba(255,255,255,0) 70%)',
+        width: '800px', 
+        height: '800px', 
+        background: 'radial-gradient(circle, rgba(70, 86, 184, 0.08) 0%, rgba(255,255,255,0) 70%)',
         zIndex: 0 
       }} />
       <div style={{ 
         position: 'absolute', 
         bottom: '-10%', 
         left: '-10%', 
-        width: '600px', 
-        height: '600px', 
-        background: 'radial-gradient(circle, rgba(147, 51, 234, 0.05) 0%, rgba(255,255,255,0) 70%)',
+        width: '800px', 
+        height: '800px', 
+        background: 'radial-gradient(circle, rgba(147, 51, 234, 0.08) 0%, rgba(255,255,255,0) 70%)',
         zIndex: 0 
       }} />
 
       <motion.div 
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         className="glass"
         style={{ 
-          padding: '64px', 
-          width: '500px', 
+          padding: 'var(--spacing-xxl)', 
+          width: '100%',
+          maxWidth: '480px',
           textAlign: 'center',
           position: 'relative',
           zIndex: 1,
-          backgroundColor: 'rgba(255, 255, 255, 0.7)',
-          border: '1px solid var(--outline-variant)',
-          borderRadius: '32px'
+          borderRadius: '40px',
+          margin: '24px'
         }}
       >
         <AuthLogo />
@@ -66,8 +57,8 @@ function SignInContent() {
           {error && <AuthErrorBanner error={error} />}
         </AnimatePresence>
         
-        <div style={{ marginBottom: '48px' }}>
-            <h2 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--on-surface)', marginBottom: '12px' }}>
+        <div className="mb-2xl">
+            <h2 className="text-3xl font-bold tracking-tight mb-sm">
                 Welcome Back
             </h2>
             <p className="text-secondary">

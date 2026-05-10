@@ -1,18 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  ChevronRight, 
-  Plus, 
-  Edit2,
-  GripVertical,
-  Loader2,
-  Archive,
-  ArchiveRestore
-} from "lucide-react";
+import { Plus, Archive, ArchiveRestore, Sparkles, FileJson } from "lucide-react";
 import { createNode, getNodeChildren, archiveNode } from "@/lib/actions";
 import { motion, AnimatePresence } from "framer-motion";
-import { IconRenderer } from "./IconPicker";
+import { AIImportModal } from "./ai/AIImportModal";
+import { BacklogNodeRow } from "./BacklogNodeRow";
+import { Button } from "./ui/Button";
 
 interface BacklogTreeProps {
   projectId: string;
@@ -26,74 +20,42 @@ interface BacklogTreeProps {
 
 export function BacklogTree({ projectId, node, nodeTypes, onSelect, selectedNodeId, depth = 0, hideCompleted = false }: BacklogTreeProps) {
   const [isOpen, setIsOpen] = useState(depth < 1);
-  const [showAddMenu, setShowAddMenu] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newNodeTitle, setNewNodeTitle] = useState("");
   const [selectedType, setSelectedType] = useState<any>(null);
   const [isHovered, setIsHovered] = useState(false);
-  
   const [children, setChildren] = useState<any[]>([]);
   const [isLoadingChildren, setIsLoadingChildren] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number } | null>(null);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   const isSelected = selectedNodeId === node.id;
   const nodeType = nodeTypes.find(t => t.id === node.nodeTypeId) || node.type;
-  
   const allowedChildren = nodeType?.allowedChildren?.map((ac: any) => ac.childNodeTypeType) || [];
-  
-  // Use links if they are already pre-fetched (first 2 levels usually)
   const initialChildren = node.childLinks?.map((l: any) => l.childNode) || [];
 
-  useEffect(() => {
-    if (initialChildren.length > 0 && children.length === 0) {
-        setChildren(initialChildren);
-    }
-  }, [node.id]);
+  useEffect(() => { if (initialChildren.length > 0 && children.length === 0) setChildren(initialChildren); }, [node.id]);
 
   const loadChildren = async () => {
     setIsLoadingChildren(true);
-    try {
-        const data = await getNodeChildren(projectId, node.id);
-        setChildren(data);
-    } catch (error) {
-        console.error("Failed to load children", error);
-    } finally {
-        setIsLoadingChildren(false);
-    }
+    try { const data = await getNodeChildren(projectId, node.id); setChildren(data); }
+    catch (error) { console.error("Failed to load children", error); }
+    finally { setIsLoadingChildren(false); }
   };
 
   const toggleOpen = (e: React.MouseEvent) => {
     e.stopPropagation();
     const newOpenState = !isOpen;
     setIsOpen(newOpenState);
-    if (newOpenState && children.length === 0) {
-        loadChildren();
-    }
+    if (newOpenState && children.length === 0) loadChildren();
   };
 
-  // Calculate real progress based on children
-  const calculateProgress = (): number => {
+  const progress = (() => {
     const targetNodes = children.length > 0 ? children : initialChildren;
-    if (targetNodes.length === 0) {
-      return node.status === 'DONE' ? 100 : 0;
-    }
-    
-    const totalProgress = targetNodes.reduce((acc: number, child: any) => {
-      return acc + (child.status === 'DONE' ? 100 : (child.status === 'IN_PROGRESS' ? 50 : 0));
-    }, 0);
-    
+    if (targetNodes.length === 0) return node.status === 'DONE' ? 100 : 0;
+    const totalProgress = targetNodes.reduce((acc: number, child: any) => acc + (child.status === 'DONE' ? 100 : (child.status === 'IN_PROGRESS' ? 50 : 0)), 0);
     return Math.round(totalProgress / targetNodes.length);
-  };
-
-  const progress = calculateProgress();
-
-  // Check for priority in custom fields (case insensitive)
-  const getPriority = () => {
-    if (!node.content) return null;
-    const priorityKey = Object.keys(node.content).find(k => k.toLowerCase() === 'priority');
-    return priorityKey ? node.content[priorityKey] : null;
-  };
-
-  const priority = getPriority();
+  })();
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,230 +65,133 @@ export function BacklogTree({ projectId, node, nodeTypes, onSelect, selectedNode
     setNewNodeTitle("");
     setSelectedType(null);
     setIsOpen(true);
-    // Refresh children after creation
     loadChildren();
   };
 
-  if (hideCompleted && node.status === 'DONE') {
-    return null;
-  }
+  if (hideCompleted && node.status === 'DONE') return null;
 
   return (
-    <div style={{ width: '100%' }}>
-      {/* Node Row */}
-      <div 
-        className={`backlog-row ${isSelected ? 'selected' : ''}`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onClick={() => onSelect(node)}
-        style={{ 
-          display: 'flex', 
-          alignItems: 'flex-start', 
-          justifyContent: 'space-between',
-          padding: depth === 0 ? '16px 24px' : `12px 24px 12px ${depth * 40 + 24}px`,
-          borderBottom: '1px solid var(--outline-variant)',
-          cursor: 'pointer',
-          transition: 'background-color 0.2s',
-          backgroundColor: isSelected ? 'var(--surface-container-low)' : 'transparent',
-          opacity: node.isArchived ? 0.5 : 1
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', flex: 1, minWidth: 0 }}>
-          <div 
-            onClick={toggleOpen}
-            style={{ 
-              color: 'var(--on-surface-variant)', 
-              transition: 'transform 0.2s',
-              transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-              display: (children.length > 0 || initialChildren.length > 0 || isHovered) ? 'block' : 'none',
-              width: '16px',
-              marginTop: '4px'
-            }}
-          >
-            {isLoadingChildren ? <Loader2 size={14} className="animate-spin" /> : <ChevronRight size={16} />}
-          </div>
-          
-          <div style={{ color: nodeType?.color || 'var(--primary)', display: 'flex', alignItems: 'center', marginTop: depth === 0 ? '0' : '3px' }}>
-            {depth === 0 ? (
-                <IconRenderer name={nodeType?.icon || 'Folder'} size={20} color={nodeType?.color || 'var(--primary)'} />
-            ) : (
-                <IconRenderer name={nodeType?.icon || 'Circle'} size={16} color={nodeType?.color || 'var(--primary)'} />
-            )}
-          </div>
+    <div className="w-full" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+      <BacklogNodeRow 
+        node={node} nodeType={nodeType} depth={depth} isOpen={isOpen} isSelected={isSelected}
+        isLoadingChildren={isLoadingChildren} hasChildren={children.length > 0 || initialChildren.length > 0}
+        isHovered={isHovered} onToggle={toggleOpen} onSelect={() => onSelect(node)}
+        onContextMenu={(e) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY }); }}
+        progress={progress}
+      />
 
-          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
-            <span style={{ 
-              fontSize: depth === 0 ? '14px' : '14px', 
-              fontWeight: depth === 0 ? 700 : 600,
-              color: 'var(--on-surface)',
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-              lineHeight: '1.4'
-            }}>
-              {node.title}
-            </span>
-            {depth === 0 && (
-                <span className="text-meta" style={{ fontSize: '9px', marginTop: '2px', opacity: 0.7 }}>
-                  {nodeType?.name || 'Node'}
-                </span>
-            )}
-
-            {/* Custom Fields Preview */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-              {Object.entries(node.content || {}).map(([key, value]) => {
-                  if (!value || key.toLowerCase() === 'priority') return null;
-                  return (
-                      <div key={key} style={{ 
-                        fontSize: '10px', 
-                        color: 'var(--on-surface-variant)', 
-                        backgroundColor: 'var(--surface-container-high)', 
-                        padding: '2px 8px', 
-                        borderRadius: '4px',
-                        display: 'flex',
-                        gap: '4px',
-                        border: '1px solid var(--outline-variant)'
-                      }}>
-                          <span style={{ fontWeight: 800, opacity: 0.5 }}>{key.toUpperCase()}</span>
-                          <span style={{ fontWeight: 600 }}>{String(value)}</span>
-                      </div>
-                  )
-              })}
-            </div>
-          </div>
-
-          {priority && (
-            <span style={{ 
-                fontSize: '9px', 
-                fontWeight: 800, 
-                padding: '2px 8px', 
-                borderRadius: '4px', 
-                backgroundColor: priority.toString().toLowerCase() === 'high' ? 'rgba(168, 54, 75, 0.1)' : 'rgba(0, 107, 96, 0.1)', 
-                color: priority.toString().toLowerCase() === 'high' ? 'var(--error)' : 'var(--tertiary)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em'
-            }}>
-                {priority}
-            </span>
-          )}
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-          {(children.length > 0 || initialChildren.length > 0) && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--on-surface-variant)', fontSize: '12px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--primary)' }}></div>
-                    <span>{children.length || initialChildren.length} Items</span>
-                </div>
-                <div style={{ width: '96px', height: '6px', backgroundColor: 'var(--surface-container-highest)', borderRadius: '9999px' }}>
-                    <div style={{ width: `${progress}%`, height: '100%', backgroundColor: 'var(--primary)', borderRadius: '9999px', transition: 'width 0.5s ease-out' }}></div>
-                </div>
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: '4px', opacity: isHovered ? 1 : 0, transition: 'opacity 0.2s' }}>
-             {allowedChildren.length > 0 && (
-                 <button 
-                    className="button-secondary" 
-                    title="Add Child"
-                    style={{ border: 'none', padding: '4px' }}
-                    onClick={(e) => { e.stopPropagation(); setShowAddMenu(!showAddMenu); }}
-                 >
-                    <Plus size={16} />
-                 </button>
-             )}
-             <button 
-                className="button-secondary" 
-                title={node.isArchived ? "Restore" : "Archive"} 
-                style={{ border: 'none', padding: '4px', color: node.isArchived ? 'var(--tertiary)' : 'var(--on-surface-variant)' }}
-                onClick={(e) => { e.stopPropagation(); archiveNode(projectId, node.id, !node.isArchived); }}
-             >
-                {node.isArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
-             </button>
-             <button className="button-secondary" title="Reorder" style={{ border: 'none', padding: '4px' }}>
-                <GripVertical size={16} />
-             </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Add Menus */}
+      {/* Context Menu */}
       <AnimatePresence>
-        {showAddMenu && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            style={{ marginLeft: `${depth * 40 + 64}px`, marginTop: '8px', marginBottom: '8px', zIndex: 10, position: 'relative' }}
-          >
-            <div className="glass" style={{ padding: '16px', width: '280px' }}>
-              <p className="text-meta" style={{ marginBottom: '12px' }}>Add Strategic Component</p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {allowedChildren.map((type: any) => (
-                  <button 
-                    key={type.id}
-                    onClick={() => {
-                      setSelectedType(type);
-                      setIsCreating(true);
-                      setShowAddMenu(false);
-                    }}
-                    className="button-secondary"
-                    style={{ fontSize: '10px', color: type.color, borderColor: `${type.color}40`, fontWeight: 700 }}
+          {contextMenu && (
+              <>
+                  <div className="context-menu-overlay" onClick={() => setContextMenu(null)} />
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }} 
+                    animate={{ opacity: 1, scale: 1 }} 
+                    className="context-menu"
+                    style={{ top: contextMenu.y, left: contextMenu.x }}
                   >
-                    {type.name.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        )}
+                      <button 
+                        onClick={() => { archiveNode(projectId, node.id, !node.isArchived); setContextMenu(null); }} 
+                        className="context-menu-item"
+                      >
+                          {node.isArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
+                          {node.isArchived ? "Restore Node" : "Archive Node"}
+                      </button>
+                  </motion.div>
+              </>
+          )}
+      </AnimatePresence>
 
-        {isCreating && (
+      <AnimatePresence>
+        {isOpen && (
           <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            style={{ marginLeft: `${depth * 40 + 64}px`, marginTop: '12px', marginBottom: '12px' }}
+            initial={{ opacity: 0, height: 0 }} 
+            animate={{ opacity: 1, height: 'auto' }} 
+            exit={{ opacity: 0, height: 0 }} 
+            className="overflow-hidden"
           >
-            <form onSubmit={handleCreate} className="glass" style={{ padding: '12px', display: 'flex', gap: '8px', border: `1px solid ${selectedType?.color}40` }}>
-              <input 
-                autoFocus
-                className="input-premium"
-                style={{ padding: '8px 16px', fontSize: '13px', borderRadius: '8px' }}
-                placeholder={`Name your ${selectedType?.name}...`}
-                value={newNodeTitle}
-                onChange={(e) => setNewNodeTitle(e.target.value)}
-              />
-              <button type="submit" className="button-premium" style={{ padding: '8px 16px', fontSize: '12px', backgroundColor: selectedType?.color }}>
-                Add
-              </button>
-              <button 
-                type="button" 
-                onClick={() => setIsCreating(false)}
-                style={{ background: 'none', border: 'none', color: 'var(--error)', fontSize: '12px', cursor: 'pointer' }}
-              >
-                Cancel
-              </button>
-            </form>
+            {children.map((child: any) => (
+              <BacklogTree key={child.id} projectId={projectId} node={child} nodeTypes={nodeTypes} onSelect={onSelect} selectedNodeId={selectedNodeId} depth={depth + 1} hideCompleted={hideCompleted} />
+            ))}
+
+            {/* AI Generator Trigger */}
+            {allowedChildren.length > 0 && (
+                <div 
+                    className="backlog-tree-actions" 
+                    style={{ 
+                        '--depth-padding': `${depth * 40 + 80}px`,
+                        backgroundColor: 'transparent',
+                        border: 'none'
+                    } as any}
+                >
+                    {!isCreating ? (
+                        <div className="flex gap-md">
+                            <button 
+                                onClick={() => setIsAIModalOpen(true)} 
+                                className="button-premium px-lg py-xs text-[10px] rounded-full border-dashed"
+                                style={{ padding: '6px 16px' }}
+                            >
+                                <Sparkles size={12} className="text-primary" />
+                                AI Generate
+                            </button>
+                            <button 
+                                onClick={() => setIsCreating(true)} 
+                                className="button-secondary px-lg py-xs text-[10px] rounded-full"
+                                style={{ padding: '6px 16px' }}
+                            >
+                                <Plus size={12} />
+                                Add Child
+                            </button>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleCreate} className="child-creation-form" style={{ padding: '24px', borderRadius: '24px', boxShadow: 'var(--ambient-shadow)' }}>
+                            <div className="text-meta text-[9px] mb-sm opacity-60">SELECT OBJECTIVE TYPE</div>
+                            <div className="flex flex-wrap gap-xs mb-lg">
+                                {allowedChildren.map((type: any) => (
+                                    <button 
+                                        key={type.id} 
+                                        type="button" 
+                                        onClick={() => setSelectedType(type)} 
+                                        className={`type-chip ${selectedType?.id === type.id ? 'active' : ''}`}
+                                        style={{ '--type-color': type.color } as any}
+                                    >
+                                        {type.name.toUpperCase()}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="flex gap-md">
+                                <input 
+                                    autoFocus 
+                                    className="input-premium flex-1 h-11 text-sm" 
+                                    placeholder="Enter strategic title..." 
+                                    value={newNodeTitle} 
+                                    onChange={(e) => setNewNodeTitle(e.target.value)} 
+                                />
+                                <button 
+                                    type="submit" 
+                                    className="button-premium px-xl" 
+                                    disabled={!newNodeTitle || !selectedType}
+                                >
+                                    Initialize
+                                </button>
+                                <button 
+                                    type="button" 
+                                    className="button-ghost" 
+                                    onClick={() => setIsCreating(false)}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    )}
+                </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Children Container */}
-      {isOpen && (
-        <div className="children-container">
-          {(children.length > 0 ? children : initialChildren).map((child: any) => (
-            <BacklogTree 
-              key={child.id} 
-              projectId={projectId}
-              node={child} 
-              nodeTypes={nodeTypes} 
-              onSelect={onSelect}
-              selectedNodeId={selectedNodeId}
-              depth={depth + 1}
-              hideCompleted={hideCompleted}
-            />
-          ))}
-        </div>
-      )}
+      <AIImportModal projectId={projectId} isOpen={isAIModalOpen} onClose={() => setIsAIModalOpen(false)} mode="SUBTREE" context={{ nodeId: node.id, nodeTypes: allowedChildren, title: node.title }} />
     </div>
   );
 }

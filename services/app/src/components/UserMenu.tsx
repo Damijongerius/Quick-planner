@@ -1,8 +1,9 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { User, LogOut } from "lucide-react";
-import Image from "next/image";
+import { LogOut } from "lucide-react";
+import { Avatar } from "./ui/Avatar";
+import { Button } from "./ui/Button";
 
 export function UserMenu() {
   const { data: session } = useSession();
@@ -10,26 +11,32 @@ export function UserMenu() {
   if (!session?.user) return null;
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '16px', background: 'var(--surface-container-low)' }}>
-      {session.user.image ? (
-        <Image src={session.user.image} alt={session.user.name || "User"} width={40} height={40} style={{ borderRadius: '12px' }} />
-      ) : (
-        <div style={{ width: '40px', height: '40px', borderRadius: '12px', backgroundColor: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <User size={20} />
-        </div>
-      )}
-      <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-        <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--on-surface)' }}>{session.user.name}</span>
-        <span style={{ fontSize: '11px', color: 'var(--on-surface-variant)' }}>{session.user.email}</span>
+    <div className="user-menu-container">
+      <Avatar 
+        src={session.user.image} 
+        name={session.user.name} 
+        size="md" 
+      />
+      <div className="user-info">
+        <span className="user-name">
+            {session.user.name}
+        </span>
+        <span className="user-email">
+            {session.user.email}
+        </span>
       </div>
-      <button 
-        onClick={() => signOut({ callbackUrl: '/auth/signin' })}
-        className="button-secondary"
-        style={{ padding: '8px', borderRadius: '10px' }}
+      <Button 
+        variant="ghost" 
+        onClick={handleUserSignOut}
         title="Sign Out"
+        size="sm"
       >
         <LogOut size={16} />
-      </button>
+      </Button>
     </div>
   );
+}
+
+function handleUserSignOut() {
+  signOut({ callbackUrl: '/auth/signin' });
 }

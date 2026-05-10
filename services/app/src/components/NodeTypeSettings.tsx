@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Braces, Trash2, LayoutGrid } from "lucide-react";
-import { createNodeType, deleteNodeType } from "@/lib/actions";
+import { Plus, Braces, Trash2, LayoutGrid, FileJson } from "lucide-react";
+import { createNodeType, deleteNodeType, getRelations } from "@/lib/actions";
 import { IconPicker, IconRenderer } from "./IconPicker";
 import { PremiumColorPicker } from "./PremiumColorPicker";
 import { FieldEditor } from "./FieldEditor";
 import { BoardConfigEditor } from "./BoardConfigEditor";
+import { AIImportModal } from "./ai/AIImportModal";
+import { useEffect } from "react";
+import { Button } from "./ui/Button";
 
 interface NodeTypeSettingsProps {
   projectId: string;
@@ -24,6 +27,13 @@ export function NodeTypeSettings({ projectId, initialNodeTypes }: NodeTypeSettin
   const [newColor, setNewColor] = useState("#3b82f6");
   const [newIcon, setNewIcon] = useState("Target");
 
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [relations, setRelations] = useState<any[]>([]);
+
+  useEffect(() => {
+    getRelations(projectId).then(setRelations);
+  }, [projectId]);
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData();
@@ -37,64 +47,98 @@ export function NodeTypeSettings({ projectId, initialNodeTypes }: NodeTypeSettin
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px', marginBottom: '48px' }}>
+      <div className="flex justify-between items-center mb-xl">
+        <div>
+            <h2 className="text-editorial text-2xl font-bold">Node Ecosystem</h2>
+            <p className="text-meta text-xs mt-xs">Define types and allowed relations</p>
+        </div>
+        <Button 
+            onClick={() => setIsAIModalOpen(true)}
+            size="sm"
+            icon={<FileJson size={18} />}
+        >
+            AI ARCHITECT
+        </Button>
+      </div>
+
+      <AIImportModal 
+        projectId={projectId}
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+        mode="NODE_TYPES"
+        context={{ 
+            nodeTypes: initialNodeTypes.map((t: any) => ({ 
+                name: t.name, 
+                color: t.color, 
+                icon: t.icon, 
+                isSprintEligible: t.isSprintEligible,
+                boardConfig: t.boardConfig,
+                fields: t.fields.map((f: any) => ({ name: f.name, type: f.type })) 
+            })),
+            relations: relations.map((r: any) => ({ parent: r.parentNodeType.name, child: r.childNodeTypeType.name })),
+            allRelations: relations.map((r: any) => ({ parent: r.parentNodeType.name, child: r.childNodeTypeType.name }))
+        }}
+      />
+      <div className="grid grid-cols-3 gap-xl mb-2xl">
         {initialNodeTypes.map((type) => (
-          <div key={type.id} className="card-sanctuary" style={{ padding: '24px', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', backgroundColor: type.color }} />
+          <div key={type.id} className="card-sanctuary p-xl relative overflow-hidden">
+            <div className="node-accent-strip" style={{ backgroundColor: type.color }} />
             
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ padding: '10px', borderRadius: '10px', backgroundColor: `${type.color}15`, border: `1px solid ${type.color}30` }}>
+            <div className="flex justify-between items-start mb-lg">
+              <div className="flex items-center gap-md">
+                <div className="node-icon-box" style={{ backgroundColor: `${type.color}15`, borderColor: `${type.color}30` }}>
                   <IconRenderer name={type.icon} color={type.color} size={24} />
                 </div>
                 <div>
-                  <h3 className="text-editorial" style={{ fontSize: '1.25rem', fontWeight: 600 }}>{type.name}</h3>
-                  <p className="text-meta" style={{ fontSize: '0.75rem' }}>ID: {type.id.slice(-6)}</p>
+                  <h3 className="text-editorial text-lg font-bold">{type.name}</h3>
+                  <p className="text-meta text-xs">ID: {type.id.slice(-6)}</p>
                 </div>
               </div>
-              <button 
+              <Button 
+                variant="ghost"
                 onClick={() => deleteNodeType(projectId, type.id)}
-                style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer', opacity: 0.5 }}
-                onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
-              >
-                <Trash2 size={18} />
-              </button>
+                icon={<Trash2 size={18} />}
+                className="p-xs"
+              />
             </div>
             
-            <div style={{ marginBottom: '24px' }}>
-              <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--on-surface-variant)', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '0.05em' }}>Fields</p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            <div className="mb-xl">
+              <p className="node-section-label">Fields</p>
+              <div className="flex flex-wrap gap-sm">
                 {type.fields.map((field: any) => (
-                  <span key={field.id} style={{ fontSize: '0.7rem', padding: '4px 10px', borderRadius: '6px', backgroundColor: 'var(--surface-container)', color: 'var(--on-surface-variant)' }}>
+                  <span key={field.id} className="node-field-pill">
                     {field.name}
                   </span>
                 ))}
-                {type.fields.length === 0 && <span style={{ fontSize: '0.75rem', color: 'var(--on-surface-variant)' }}>No fields defined</span>}
+                {type.fields.length === 0 && <span className="text-xs text-on-surface-variant">No fields defined</span>}
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button 
+            <div className="flex gap-sm">
+              <Button 
                 onClick={() => {
                   setActiveNodeType(type);
                   setIsBoardEditorOpen(true);
                 }}
-                className="button-premium" 
-                style={{ flex: 1, fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'var(--surface-container)', color: 'var(--primary)', boxShadow: 'none' }}
+                variant="secondary"
+                size="sm"
+                icon={<LayoutGrid size={16} />}
+                className="flex-1"
               >
-                <LayoutGrid size={16} /> Board Config
-              </button>
-              <button 
+                Board Config
+              </Button>
+              <Button 
                 onClick={() => {
                   setActiveNodeType(type);
                   setIsFieldEditorOpen(true);
                 }}
-                className="button-premium" 
-                style={{ flex: 1, fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'var(--surface-container)', color: 'var(--on-surface)', boxShadow: 'none' }}
+                variant="secondary"
+                size="sm"
+                icon={<Braces size={16} />}
+                className="flex-1"
               >
-                <Braces size={16} /> Edit Fields
-              </button>
+                Edit Fields
+              </Button>
             </div>
           </div>
         ))}
@@ -102,40 +146,19 @@ export function NodeTypeSettings({ projectId, initialNodeTypes }: NodeTypeSettin
         {!isCreating ? (
           <div 
             onClick={() => setIsCreating(true)}
-            className="card-sanctuary" 
-            style={{ 
-              padding: '40px', 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              gap: '16px', 
-              border: '2px dashed var(--outline-variant)',
-              background: 'transparent',
-              cursor: 'pointer',
-              opacity: 0.7,
-              transition: 'all 0.3s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.opacity = '1';
-              e.currentTarget.style.boxShadow = 'var(--ambient-shadow)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.opacity = '0.7';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
+            className="node-type-create-placeholder"
           >
-            <div style={{ padding: '12px', borderRadius: '50%', backgroundColor: 'var(--surface-container)' }}>
+            <div className="node-create-icon-container">
               <Plus size={32} color="var(--on-surface-variant)" />
             </div>
-            <p className="text-editorial" style={{ fontWeight: 500, color: 'var(--on-surface-variant)' }}>Create New Node Type</p>
+            <p className="text-editorial font-medium text-on-surface-variant">Create New Node Type</p>
           </div>
         ) : (
-          <div className="card-sanctuary" style={{ padding: '32px' }}>
-            <h3 className="text-editorial" style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '24px' }}>New Node Type</h3>
+          <div className="card-sanctuary p-2xl">
+            <h3 className="text-editorial text-lg font-bold mb-xl">New Node Type</h3>
             <form onSubmit={handleCreate}>
-              <div style={{ marginBottom: '20px' }}>
-                <label className="text-meta" style={{ display: 'block', fontSize: '0.875rem', marginBottom: '8px' }}>Name</label>
+              <div className="mb-lg">
+                <label className="text-meta block text-sm mb-sm">Name</label>
                 <input 
                   autoFocus
                   className="input-premium" 
@@ -146,8 +169,8 @@ export function NodeTypeSettings({ projectId, initialNodeTypes }: NodeTypeSettin
                 />
               </div>
 
-              <div style={{ marginBottom: '20px' }}>
-                <label className="text-meta" style={{ display: 'block', fontSize: '0.875rem', marginBottom: '8px' }}>Icon</label>
+              <div className="mb-lg">
+                <label className="text-meta block text-sm mb-sm">Icon</label>
                 <IconPicker 
                   currentIcon={newIcon} 
                   onSelect={setNewIcon} 
@@ -155,23 +178,23 @@ export function NodeTypeSettings({ projectId, initialNodeTypes }: NodeTypeSettin
                 />
               </div>
 
-              <div style={{ marginBottom: '32px' }}>
-                <label className="text-meta" style={{ display: 'block', fontSize: '0.875rem', marginBottom: '12px' }}>Color Palette</label>
+              <div className="mb-2xl">
+                <label className="text-meta block text-sm mb-lg">Color Palette</label>
                 <PremiumColorPicker 
                   currentColor={newColor} 
                   onSelect={setNewColor} 
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <button type="submit" className="button-premium" style={{ flex: 1 }}>Create Type</button>
-                <button 
+              <div className="flex gap-md">
+                <Button type="submit" className="flex-1">Create Type</Button>
+                <Button 
+                  variant="ghost"
                   type="button" 
                   onClick={() => setIsCreating(false)}
-                  style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', padding: '0 16px', cursor: 'pointer' }}
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </form>
           </div>

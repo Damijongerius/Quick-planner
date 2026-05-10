@@ -18,33 +18,19 @@ import { createRelation, deleteRelation } from '@/lib/actions';
 import { IconRenderer } from './IconPicker';
 
 // Custom Node component to show icons in Sanctuary style
+// Custom Node component to show icons in Sanctuary style
 const NodeTypeNode = ({ data }: any) => {
   return (
-    <div className="card-sanctuary" style={{ 
-      padding: '16px', 
-      borderRadius: '12px', 
-      background: 'var(--surface-container-lowest)', 
-      borderLeft: `4px solid ${data.color || 'var(--primary)'}`,
-      color: 'var(--on-surface)',
-      minWidth: '160px',
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: '12px',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-      position: 'relative'
-    }}>
-      <Handle type="target" position={Position.Top} style={{ background: 'var(--outline-variant)', border: 'none', width: '8px', height: '8px' }} />
-      <div style={{ 
-        color: data.color || 'var(--primary)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+    <div 
+      className="flow-node-card" 
+      style={{ '--node-color': data.color || 'var(--primary)' } as any}
+    >
+      <Handle type="target" position={Position.Top} className="flow-handle-target" />
+      <div className="flow-node-icon text-node-color">
         <IconRenderer name={data.icon} size={20} />
       </div>
-      <div className="text-meta" style={{ fontSize: '10px', fontWeight: 800 }}>{data.label}</div>
-      <Handle type="source" position={Position.Bottom} style={{ background: 'var(--primary)', border: 'none', width: '8px', height: '8px' }} />
+      <div className="text-meta text-xs font-bold">{data.label}</div>
+      <Handle type="source" position={Position.Bottom} className="flow-handle-source" />
     </div>
   );
 };
@@ -116,7 +102,7 @@ export function RelationEditor({ projectId, nodeTypes, initialRelations }: Relat
   }, [projectId]);
 
   return (
-    <div style={{ width: '100%', height: '500px', borderRadius: '32px', overflow: 'hidden', position: 'relative', border: '1px solid var(--outline-variant)' }}>
+    <div className="flow-canvas-container">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -132,36 +118,15 @@ export function RelationEditor({ projectId, nodeTypes, initialRelations }: Relat
       </ReactFlow>
       
       {/* Toolbar Area */}
-      <div style={{ 
-        position: 'absolute', 
-        top: '24px', 
-        left: '24px', 
-        display: 'flex', 
-        gap: '12px',
-        zIndex: 10
-      }}>
-        <div className="glass" style={{ padding: '4px', borderRadius: '9999px', display: 'flex', boxShadow: 'var(--ambient-shadow)' }}>
-            <button className="button-premium" style={{ padding: '8px 24px', fontSize: '11px' }}>Select</button>
-            <button className="button-secondary" style={{ border: 'none', padding: '8px 24px', fontSize: '11px', color: 'var(--on-surface-variant)' }}>Connect</button>
-            <button className="button-secondary" style={{ border: 'none', padding: '8px 24px', fontSize: '11px', color: 'var(--on-surface-variant)' }}>Inspect</button>
+      <div className="flow-toolbar-top">
+        <div className="glass flex p-xs rounded-full shadow-ambient">
+            <button className="button-premium px-xl text-xs">Select</button>
+            <button className="button-secondary border-none px-xl text-xs text-on-surface-variant">Connect</button>
+            <button className="button-secondary border-none px-xl text-xs text-on-surface-variant">Inspect</button>
         </div>
       </div>
 
-      <div style={{ 
-        position: 'absolute', 
-        bottom: '24px', 
-        left: '24px', 
-        fontSize: '11px', 
-        fontWeight: 700,
-        color: 'var(--on-surface-variant)', 
-        backgroundColor: 'rgba(255,255,255,0.8)', 
-        backdropFilter: 'blur(8px)',
-        padding: '8px 16px', 
-        borderRadius: '9999px',
-        pointerEvents: 'none',
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em'
-      }}>
+      <div className="flow-instructions">
         Connect BOTTOM to TOP to define parent-child flow
       </div>
     </div>

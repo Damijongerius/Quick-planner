@@ -24,8 +24,8 @@ export function PremiumColorPicker({ currentColor, onSelect }: PremiumColorPicke
   const isCustomColor = !PREMIUM_PALETTE.includes(currentColor);
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px' }}>
+    <div className="flex items-center gap-md flex-wrap">
+      <div className="grid grid-cols-6 gap-sm">
         {PREMIUM_PALETTE.map(color => {
           const isActive = currentColor === color;
           return (
@@ -33,44 +33,27 @@ export function PremiumColorPicker({ currentColor, onSelect }: PremiumColorPicke
               key={color}
               type="button"
               onClick={() => onSelect(color)}
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                backgroundColor: color,
-                border: isActive ? '2px solid white' : '2px solid transparent',
-                boxShadow: isActive ? `0 0 10px ${color}` : 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                transform: isActive ? 'scale(1.1)' : 'scale(1)'
-              }}
+              className={`color-swatch ${isActive ? 'active' : ''}`}
+              style={{ backgroundColor: color, '--node-color': color } as any}
             />
           );
         })}
       </div>
-      
-      <div 
-        style={{ 
-          width: '32px', 
-          height: '32px', 
-          borderRadius: '50%', 
-          overflow: 'hidden', 
-          position: 'relative',
-          border: isCustomColor ? '2px solid white' : '2px solid rgba(255,255,255,0.2)',
-          boxShadow: isCustomColor ? `0 0 10px ${currentColor}` : 'none',
-          cursor: 'pointer',
-          transform: isCustomColor ? 'scale(1.1)' : 'scale(1)',
-          transition: 'all 0.2s'
-        }}
+
+      <div
+        className={`custom-color-trigger ${isCustomColor ? 'active' : ''}`}
+        style={{ '--node-color': currentColor } as any}
         title="Custom Color"
       >
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isCustomColor ? currentColor : 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)', pointerEvents: 'none' }}>
-        </div>
-        <input 
-          type="color" 
-          value={currentColor} 
+        <div
+          className="custom-color-preview"
+          style={isCustomColor ? { backgroundColor: currentColor } : {}}
+        />
+        <input
+          type="color"
+          value={currentColor}
           onChange={(e) => onSelect(e.target.value)}
-          style={{ width: '200%', height: '200%', transform: 'translate(-25%, -25%)', cursor: 'pointer', opacity: 0 }}
+          className="custom-color-input"
         />
       </div>
     </div>

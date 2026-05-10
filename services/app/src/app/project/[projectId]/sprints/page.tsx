@@ -1,9 +1,12 @@
-import { getSprints } from "@/lib/actions";
+import { getSprints, getNodeTypes } from "@/lib/actions";
 import { SprintPage } from "@/components/SprintPage";
 
 export default async function Sprints({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
-  const sprints = await getSprints(projectId);
+  const [sprints, nodeTypes] = await Promise.all([
+    getSprints(projectId),
+    getNodeTypes(projectId)
+  ]);
 
   return (
     <div className="canvas-content">
@@ -14,7 +17,7 @@ export default async function Sprints({ params }: { params: Promise<{ projectId:
         </p>
       </div>
       
-      <SprintPage projectId={projectId} sprints={sprints} />
+      <SprintPage projectId={projectId} sprints={sprints} nodeTypes={nodeTypes} />
     </div>
   );
 }
