@@ -1,4 +1,7 @@
 "use client";
+import "./Backlog.css";
+import "./ui/Progress.css";
+import "./ui/Badge.css";
 
 import React from "react";
 import { ChevronRight, Loader2 } from "lucide-react";
@@ -64,7 +67,7 @@ export function BacklogNodeRow({
           <IconRenderer name={nodeType?.icon || (depth === 0 ? 'Folder' : 'Circle')} size={depth === 0 ? 20 : 16} />
         </div>
 
-        <div className="flex flex-col min-w-0 flex-1">
+        <div className="flex flex-col min-w-0 flex-1 gap-xs">
           <div className="flex items-center gap-sm">
             <span className={`backlog-node-title ${depth === 0 ? 'root' : ''} tracking-tight`}>
               {node.title}
@@ -102,7 +105,7 @@ export function BacklogNodeRow({
           </div>
         ) : (
           <div className="flex items-center gap-sm">
-            <span className="text-[10px] font-bold opacity-40">{progress}%</span>
+            <span className="text-10px font-bold opacity-40">{progress}%</span>
             <div className="progress-container" style={{ width: '80px', height: '4px' }}>
                <div className="progress-bar" style={{ '--progress-width': `${progress}%` } as any} />
             </div>

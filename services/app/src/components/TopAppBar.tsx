@@ -1,15 +1,17 @@
 "use client";
+import "./TopAppBar.css";
 
 import { useState, useRef, useEffect } from "react";
-import { Search, Bell, Settings, Calendar, Trees, LayoutGrid, ChevronRight, X, Clock } from "lucide-react";
+import { Search, Bell, Settings, Calendar, Trees, LayoutGrid, ChevronRight, X, Clock, Menu } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface TopAppBarProps {
   projectId: string;
+  onMenuClick?: () => void;
 }
 
-export function TopAppBar({ projectId }: TopAppBarProps) {
+export function TopAppBar({ projectId, onMenuClick }: TopAppBarProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -27,14 +29,21 @@ export function TopAppBar({ projectId }: TopAppBarProps) {
   const settingsItems = [
     { name: "Sprints", href: `/project/${projectId}/sprints`, icon: Calendar, desc: "Manage milestones and dates" },
     { name: "Audit Log", href: `/project/${projectId}/history`, icon: Clock, desc: "Track all strategic changes" },
-    { name: "Node Relations", href: `/project/${projectId}/settings/relations`, icon: Trees, desc: "Define connection rules" },
-    { name: "Nodes", href: `/project/${projectId}/settings/nodes`, icon: LayoutGrid, desc: "Configure types and fields" },
+    { name: "Node Architecture", href: `/project/${projectId}/settings/nodes`, icon: Trees, desc: "Design types and connections" },
   ];
 
   return (
     <header className="top-bar">
-      <div className="flex items-center gap-md">
-        <div className="flex gap-xs relative" ref={dropdownRef}>
+      <div className="flex items-center justify-between w-full">
+        <button 
+          onClick={onMenuClick}
+          className="p-md hover:bg-surface-container-low rounded-full lg:hidden"
+        >
+          <Menu size={20} className="text-on-surface" />
+        </button>
+
+        <div className="flex items-center gap-md ml-auto">
+          <div className="flex gap-xs relative" ref={dropdownRef}>
           <button className="icon-button">
             <Bell size={20} className="text-on-surface-variant" />
           </button>
@@ -80,8 +89,11 @@ export function TopAppBar({ projectId }: TopAppBarProps) {
                     ))}
                 </div>
                 
-                <div className="dropdown-footer">
-                    <button className="button-ghost w-full justify-center text-error text-xs">
+                <div className="dropdown-footer" style={{ borderTop: '1px solid var(--outline-variant)', marginTop: '8px', paddingTop: '8px' }}>
+                    <button 
+                      className="button-ghost w-full justify-center text-error font-bold"
+                      style={{ border: 'none', background: 'transparent' }}
+                    >
                         Archive Project
                     </button>
                 </div>
@@ -90,6 +102,7 @@ export function TopAppBar({ projectId }: TopAppBarProps) {
           </AnimatePresence>
         </div>
       </div>
-    </header>
-  );
+    </div>
+  </header>
+);
 }

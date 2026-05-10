@@ -48,8 +48,8 @@ export function DependencyManager({ dependencies, allNodes, currentNodeId, onAdd
       >
         <option value="none">+ ADD BLOCKING NODE</option>
         {allNodes
-          .filter(n => n.id !== currentNodeId && !dependencies?.some((d: any) => d.blockingNode?.id === n.id))
-          .map(n => (
+          .filter((n: any) => n.id !== currentNodeId && !dependencies?.some((d: any) => d.blockingNode?.id === n.id))
+          .map((n: any) => (
             <option key={n.id} value={n.id}>{n.title}</option>
           ))
         }

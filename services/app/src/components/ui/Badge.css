@@ -1,0 +1,83 @@
+.badge-base {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+}
+
+.badge-sm { font-size: 9px; }
+.badge-md { font-size: 11px; }
+
+.badge-primary { background: var(--primary); color: white; }
+.badge-secondary { background: var(--surface-container-high); color: var(--on-surface-variant); }
+.badge-success { background: var(--tertiary); color: white; }
+.badge-error { background: var(--error); color: white; }
+.badge-outline { border: 1px solid var(--outline-variant); color: var(--on-surface-variant); }
+
+.badge-archived {
+  font-size: 9px;
+  font-weight: 900;
+  color: var(--primary);
+  background-color: rgba(70, 86, 184, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.badge-pill {
+  font-size: 9px; 
+  padding: 4px 12px; 
+  border-radius: 9999px; 
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.node-badge {
+  font-size: 10px; 
+  color: var(--on-surface-variant); 
+  background-color: var(--surface-container-high); 
+  padding: 2px 8px; 
+  border-radius: 4px;
+  display: flex;
+  gap: 4px;
+  border: 1px solid var(--outline-variant);
+}
+
+.node-badge-key {
+  font-weight: 800; 
+  opacity: 0.5;
+}
+
+.node-badge-value {
+  font-weight: 600;
+}
+
+.status-done-badge {
+  color: var(--tertiary); 
+  display: flex; 
+  align-items: center; 
+  gap: 6px; 
+  font-size: 11px; 
+  font-weight: 800;
+}
+
+.type-chip {
+  padding: 4px 12px; 
+  border-radius: 9999px; 
+  font-size: 10px; 
+  font-weight: 800; 
+  border: 1px solid var(--outline-variant); 
+  background: var(--surface-container-low); 
+  color: var(--on-surface-variant); 
+  cursor: pointer; 
+  transition: all 0.2s;
+}
+
+.type-chip.active {
+  border-color: var(--type-color); 
+  background-color: color-mix(in srgb, var(--type-color), transparent 85%); 
+  color: var(--type-color);
+}

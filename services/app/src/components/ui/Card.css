@@ -1,0 +1,63 @@
+.card-sanctuary {
+  background: var(--surface-container-lowest);
+  border-radius: 16px;
+  padding: var(--spacing-lg);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.card-sanctuary:hover {
+  box-shadow: var(--ambient-shadow);
+}
+
+.card-elevated {
+  background: var(--surface-container-lowest);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.card-outline {
+  background: transparent;
+  border: 1px solid var(--outline-variant);
+}
+
+.card-flat {
+  background: var(--surface-container-low);
+}
+
+.card-p-none { padding: 0; }
+.card-p-sm { padding: var(--spacing-sm); }
+.card-p-md { padding: var(--spacing-md); }
+.card-p-lg { padding: var(--spacing-lg); }
+
+.sprint-card {
+  padding: 32px 40px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center;
+}
+
+.kanban-card {
+  padding: 20px 24px; 
+  cursor: pointer; 
+  background-color: var(--surface-container-lowest); 
+  border-radius: 16px; 
+  border: 1px solid transparent; 
+  transition: all 0.2s; 
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+  position: relative;
+}
+
+.kanban-card.done {
+  background-color: rgba(234, 239, 242, 0.5); 
+  box-shadow: none; 
+  opacity: 0.8;
+}
+
+.kanban-card.dragging {
+  border: 2px solid var(--primary); 
+  box-shadow: var(--primary-shadow); 
+  opacity: 0.8;
+}
+
+.kanban-card.in-progress {
+  border-left: 4px solid var(--node-color);
+}

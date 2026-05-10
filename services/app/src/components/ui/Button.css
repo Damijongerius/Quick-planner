@@ -1,0 +1,128 @@
+.button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 12px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  outline: none;
+  white-space: nowrap;
+}
+
+.button-primary {
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: 0 2px 4px rgba(70, 86, 184, 0.1);
+}
+
+.button-primary:hover:not(:disabled) {
+  background: var(--primary-container);
+  transform: translateY(-1px);
+  box-shadow: var(--primary-shadow);
+}
+
+.button-secondary {
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline-variant);
+}
+
+.button-secondary:hover:not(:disabled) {
+  background: var(--surface-container-high);
+  border-color: var(--on-surface-variant);
+}
+
+.button-ghost {
+  background: transparent;
+  color: var(--on-surface-variant);
+}
+
+.button-ghost:hover:not(:disabled) {
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+}
+
+.button-danger {
+  background: var(--error);
+  color: white;
+}
+
+.button-danger:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.button-sm { padding: 6px 12px; font-size: 12px; }
+.button-md { padding: 12px 24px; font-size: 14px; }
+.button-lg { padding: 16px 32px; font-size: 16px; }
+
+.button-base:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button-icon-only {
+  background: none;
+  border: none;
+  color: var(--on-surface-variant);
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: background-color 0.2s;
+}
+
+.button-icon-only:hover {
+  background-color: var(--surface-container);
+}
+
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 12px;
+  background: transparent;
+  border: none;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.icon-button:hover {
+  background-color: var(--surface-container-low);
+}
+
+.icon-button.active {
+  background-color: var(--surface-container-high);
+  color: var(--primary);
+}
+
+.button-sanctuary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 16px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-container-lowest);
+  color: var(--on-surface);
+  box-shadow: var(--ambient-shadow);
+  padding: 16px 32px;
+}
+
+.button-sanctuary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(70, 86, 184, 0.15);
+  border-color: var(--primary);
+}
+
+.button-sanctuary:active {
+  transform: translateY(0);
+}

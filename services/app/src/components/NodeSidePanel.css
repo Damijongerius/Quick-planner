@@ -1,0 +1,128 @@
+.side-panel-container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 32px 0 0 32px;
+  background-color: var(--surface-container-lowest);
+  overflow: hidden;
+}
+
+.side-panel-header {
+  padding: var(--spacing-xl) 40px var(--spacing-md) 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.side-panel-title {
+  font-size: 32px;
+  font-weight: 800;
+  width: 100%;
+  margin-bottom: 8px;
+  color: var(--on-surface);
+}
+
+.side-panel-desc {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+}
+
+.side-panel-icon-container {
+  width: 40px; 
+  height: 40px; 
+  border-radius: 12px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  background-color: color-mix(in srgb, var(--node-color), transparent 85%); 
+  color: var(--node-color);
+}
+
+.side-panel-config-grid {
+  display: grid; 
+  grid-template-columns: var(--grid-columns, 1fr 1fr); 
+  gap: 16px;
+}
+
+.side-panel-tabs-wrapper {
+  padding: 0 40px 16px 40px;
+}
+
+.side-panel-scroll-area {
+  padding: 40px;
+}
+
+.side-panel-footer {
+  padding: 40px;
+}
+
+/* Timeline/History inside panel */
+.timeline-item {
+  display: flex; 
+  gap: 16px; 
+  position: relative;
+}
+
+.timeline-dot {
+  width: 12px; 
+  height: 12px; 
+  border-radius: 50%; 
+  background-color: var(--outline-variant); 
+  margin-top: 4px;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.timeline-content {
+  flex: 1; 
+  padding-bottom: 24px; 
+  border-left: 1px solid var(--outline-variant); 
+  margin-left: -22.5px; 
+  padding-left: 32px;
+}
+
+.timeline-event-action {
+  font-size: 10px; 
+  font-weight: 800; 
+  color: var(--primary); 
+  text-transform: uppercase;
+}
+
+.timeline-event-date {
+  font-size: 11px; 
+  color: var(--on-surface-variant);
+}
+
+.timeline-event-title {
+  font-size: 13px; 
+  font-weight: 600;
+}
+
+.timeline-event-diff {
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  margin-top: 4px; 
+  font-size: 11px; 
+  color: var(--on-surface-variant);
+}
+
+.diff-old { opacity: 0.6; }
+.diff-new { color: var(--primary); font-weight: 700; }
+
+.timeline-empty {
+  text-align: center; 
+  padding: 40px; 
+  opacity: 0.5;
+}
+
+.timeline-empty-icon {
+  margin: 0 auto 12px; 
+  opacity: 0.2;
+}
+
+.timeline-empty-text {
+  font-size: 13px;
+}

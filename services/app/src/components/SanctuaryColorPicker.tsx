@@ -1,6 +1,6 @@
 "use client";
 
-const PREMIUM_PALETTE = [
+const SANCTUARY_PALETTE = [
   "#3b82f6", // Blue
   "#8b5cf6", // Violet
   "#ec4899", // Pink
@@ -15,18 +15,18 @@ const PREMIUM_PALETTE = [
   "#64748b"  // Slate
 ];
 
-interface PremiumColorPickerProps {
+interface SanctuaryColorPickerProps {
   currentColor: string;
   onSelect: (color: string) => void;
 }
 
-export function PremiumColorPicker({ currentColor, onSelect }: PremiumColorPickerProps) {
-  const isCustomColor = !PREMIUM_PALETTE.includes(currentColor);
+export function SanctuaryColorPicker({ currentColor, onSelect }: SanctuaryColorPickerProps) {
+  const isCustomColor = !SANCTUARY_PALETTE.includes(currentColor);
 
   return (
     <div className="flex items-center gap-md flex-wrap">
       <div className="grid grid-cols-6 gap-sm">
-        {PREMIUM_PALETTE.map(color => {
+        {SANCTUARY_PALETTE.map((color: any) => {
           const isActive = currentColor === color;
           return (
             <button

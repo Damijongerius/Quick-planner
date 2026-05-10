@@ -31,7 +31,7 @@ export function BoardHeader({
 
   return (
     <div className="board-header">
-      <div className="flex flex-col gap-xs">
+      <div className="flex flex-col gap-sm">
         <div className="board-header-meta">
           <span>Strategic Roadmap</span>
           <span className="board-header-divider"></span>
@@ -40,7 +40,7 @@ export function BoardHeader({
              <Button variant="ghost" size="sm" onClick={() => handlePrev(currentIndex, sprints, onSprintChange)} disabled={isFirstSprint(currentIndex)} className="p-xs">
                <ChevronLeft size={14} />
              </Button>
-             <span className="board-sprint-nav-title">{selectedSprint?.name || 'No Cycles Defined'}</span>
+             <span className="board-sprint-nav-title">{(selectedSprint?.name || 'No Cycles Defined').replace('Srpint', 'Sprint')}</span>
              <Button variant="ghost" size="sm" onClick={() => handleNext(currentIndex, sprints, onSprintChange)} disabled={isLastSprint(currentIndex, sprints.length)} className="p-xs">
                <ChevronRight size={14} />
              </Button>
@@ -112,7 +112,7 @@ function TypeChip({ type, isSelected, onToggle }: any) {
 }
 
 function getSprintIndex(sprints: any[], selectedId: string | null) {
-  return sprints.findIndex(s => s.id === selectedId);
+  return sprints.findIndex((s: any) => s.id === selectedId);
 }
 
 function isFirstSprint(index: number) {

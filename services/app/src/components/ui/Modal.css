@@ -1,0 +1,99 @@
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--outline-variant); 
+  border-radius: 12px;
+  box-shadow: var(--ambient-shadow);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background-color: rgba(44, 52, 55, 0.4);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg);
+}
+
+.modal-content {
+  background: var(--surface-container-lowest);
+  width: 90%;
+  max-width: var(--modal-max-width, 520px);
+  border-radius: 32px;
+  box-shadow: var(--sanctuary-shadow);
+  border: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: var(--spacing-xl) 40px;
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-body {
+  padding: 40px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  padding: var(--spacing-xl) 40px;
+  border-top: 1px solid var(--outline-variant);
+}
+
+.migration-guard-overlay {
+  position: fixed; 
+  inset: 0; 
+  z-index: 9999; 
+  background-color: rgba(10, 10, 12, 0.95); 
+  backdrop-filter: blur(20px); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  padding: 24px;
+}
+
+.migration-guard-card {
+  max-width: 500px; 
+  width: 100%; 
+  padding: 48px; 
+  text-align: center; 
+  border: 1px solid var(--primary); 
+  box-shadow: 0 0 80px rgba(70, 86, 184, 0.2);
+}
+
+.migration-guard-icon-box {
+  width: 80px; 
+  height: 80px; 
+  border-radius: 24px; 
+  background-color: rgba(70, 86, 184, 0.1); 
+  color: var(--primary); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  margin: 0 auto 32px;
+}
+
+.migration-guard-title {
+  font-size: 28px; 
+  font-weight: 800; 
+  margin-bottom: 16px; 
+  color: var(--on-surface);
+}
+
+.migration-guard-description {
+  color: var(--on-surface-variant); 
+  line-height: 1.6; 
+  margin-bottom: 40px;
+}

@@ -7,19 +7,23 @@ import {
   User, 
   KanbanSquare, 
   ChevronLeft,
+  X
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { UserMenu } from "@/components/UserMenu";
+import "./Sidebar.css";
 
 interface SidebarProps {
   project: {
     id: string;
     name: string;
   };
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export function Sidebar({ project }: SidebarProps) {
+export function Sidebar({ project, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
 
   const menuItems = [
@@ -28,8 +32,15 @@ export function Sidebar({ project }: SidebarProps) {
   ];
 
   return (
-    <aside className="sidebar-sanctuary">
+    <aside className={`sidebar-sanctuary ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
+        <div className="flex justify-between items-center mb-md lg:hidden">
+          <span className="text-meta">MENU</span>
+          <button onClick={onClose} className="p-sm hover:bg-surface-container-high rounded-full">
+            <X size={20} />
+          </button>
+        </div>
+
         <Link 
             href="/projects" 
             className="sidebar-back-link"

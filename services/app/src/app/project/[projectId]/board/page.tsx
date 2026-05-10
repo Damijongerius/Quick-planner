@@ -8,7 +8,7 @@ export default async function BoardPage({ params }: { params: Promise<{ projectI
   const allNodes = await getAllNodes(projectId);
 
   // Find active sprint
-  const activeSprint = sprints.find(s => s.status === 'ACTIVE') || sprints[0];
+  const activeSprint = sprints.find((s: any) => s.status === 'ACTIVE') || sprints[0];
 
   return (
     <div className="canvas-content">

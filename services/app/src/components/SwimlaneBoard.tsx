@@ -22,7 +22,7 @@ export function SwimlaneBoard({ projectId, nodes, nodeTypes, onRefresh }: Swimla
   return (
     <div className="flex flex-col gap-xl">
       {nodeTypes.map(type => {
-        const typeNodes = nodes.filter(n => n.nodeTypeId === type.id);
+        const typeNodes = nodes.filter((n: any) => n.nodeTypeId === type.id);
         if (typeNodes.length === 0) return null;
 
         return (
@@ -33,7 +33,7 @@ export function SwimlaneBoard({ projectId, nodes, nodeTypes, onRefresh }: Swimla
                 <div key={status} className="swimlane-column">
                   <h4 className="swimlane-column-label">{status}</h4>
                   <div className="flex flex-col gap-sm">
-                    {typeNodes.filter(n => n.status === status).map(node => (
+                    {typeNodes.filter((n: any) => n.status === status).map((node: any) => (
                       <div
                         key={node.id}
                         className="swimlane-card"

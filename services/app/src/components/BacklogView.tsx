@@ -26,15 +26,15 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const searchParams = useSearchParams();
 
-  const childTypeIds = new Set(nodeTypes.flatMap(t => t.allowedChildren?.map((ac: any) => ac.childNodeTypeId) || []));
-  const availableRootTypes = nodeTypes.filter(t => !childTypeIds.has(t.id)).length > 0 
-    ? nodeTypes.filter(t => !childTypeIds.has(t.id)) 
+  const childTypeIds = new Set(nodeTypes.flatMap((t: any) => t.allowedChildren?.map((ac: any) => ac.childNodeTypeId) || []));
+  const availableRootTypes = nodeTypes.filter((t: any) => !childTypeIds.has(t.id)).length > 0 
+    ? nodeTypes.filter((t: any) => !childTypeIds.has(t.id)) 
     : nodeTypes;
 
   useEffect(() => {
     const nodeId = searchParams.get('nodeId');
     if (nodeId && allNodes.length > 0) {
-      const node = allNodes.find(n => n.id === nodeId);
+      const node = allNodes.find((n: any) => n.id === nodeId);
       if (node) { setSelectedNode(node); setIsPanelOpen(true); }
     }
   }, [searchParams, allNodes]);
@@ -72,7 +72,7 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
       <div className="backlog-main-layout">
         <div className="backlog-tree-container card-sanctuary">
           {nodes.map(node => (
-            <BacklogTree key={node.id} projectId={projectId} node={node} nodeTypes={nodeTypes} onSelect={(n) => { setSelectedNode(n); setIsPanelOpen(true); }} selectedNodeId={selectedNode?.id} hideCompleted={hideCompleted} />
+            <BacklogTree key={node.id} projectId={projectId} node={node} nodeTypes={nodeTypes} onSelect={(n: any) => { setSelectedNode(n); setIsPanelOpen(true); }} selectedNodeId={selectedNode?.id} hideCompleted={hideCompleted} />
           ))}
 
           {nodes.length === 0 && (

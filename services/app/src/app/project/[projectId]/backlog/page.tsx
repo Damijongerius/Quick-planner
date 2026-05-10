@@ -11,7 +11,7 @@ export default async function BacklogPage({ params }: { params: Promise<{ projec
   return (
     <div className="canvas-content">
       <div className="board-header">
-        <div className="flex flex-col gap-xs">
+        <div className="flex flex-col gap-sm">
           <div className="board-header-meta">
             <span>Project Backlog</span>
             <span className="board-header-divider"></span>

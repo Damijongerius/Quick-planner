@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { User as UserIcon } from "lucide-react";
+import "./Avatar.css";
 
 interface AvatarProps {
   src?: string | null;

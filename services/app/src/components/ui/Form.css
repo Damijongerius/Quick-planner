@@ -1,0 +1,56 @@
+.form-field-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.form-field-label {
+  opacity: 0.6;
+  font-size: 11px !important;
+}
+
+.form-field-description {
+  font-size: 11px;
+  color: var(--on-surface-variant);
+  opacity: 0.6;
+}
+
+.form-field-error {
+  font-size: 11px;
+  color: var(--error);
+  font-weight: 600;
+}
+
+.toggle-track {
+  width: 40px; 
+  height: 20px; 
+  border-radius: 10px; 
+  background-color: var(--surface-container-high);
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.toggle-track.active {
+  background-color: var(--tertiary);
+}
+
+.toggle-thumb {
+  width: 16px; 
+  height: 16px; 
+  border-radius: 50%; 
+  background-color: white; 
+  position: absolute; 
+  top: 2px; 
+  left: 2px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.child-creation-form {
+  display: flex; 
+  flex-direction: column; 
+  gap: 12px; 
+  padding: 16px; 
+  background-color: var(--surface-container-low); 
+  border-radius: 16px;
+}

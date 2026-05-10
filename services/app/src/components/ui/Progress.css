@@ -1,0 +1,23 @@
+.progress-container {
+  width: 100px;
+  height: 6px;
+  background-color: var(--surface-container-high);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background-color: var(--primary);
+  transition: width 0.3s ease;
+}
+
+@media (max-width: 640px) {
+  .progress-container {
+    width: 60px !important;
+  }
+}

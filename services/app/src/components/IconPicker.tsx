@@ -1,4 +1,5 @@
 "use client";
+import "./Blueprint.css";
 
 import * as Icons from "lucide-react";
 import { Search } from "lucide-react";

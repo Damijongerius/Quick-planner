@@ -128,7 +128,7 @@ function isInvalidDrop(destination: any, source: any) {
 
 function updateLocalNodeStatus(nodes: any[], setNodes: Function, nodeId: string, newStatus: string) {
   const updatedNodes = [...nodes];
-  const nodeIndex = updatedNodes.findIndex(n => n.id === nodeId);
+  const nodeIndex = updatedNodes.findIndex((n: any) => n.id === nodeId);
   if (nodeIndex !== -1) {
       updatedNodes[nodeIndex].status = newStatus;
       setNodes(updatedNodes);

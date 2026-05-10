@@ -1,4 +1,6 @@
 "use client";
+import "./Timeline.css";
+import "./ui/Avatar.css";
 
 import React from "react";
 import { User, ArrowRight, Clock } from "lucide-react";

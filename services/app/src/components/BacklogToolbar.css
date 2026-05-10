@@ -1,0 +1,33 @@
+.backlog-toolbar-container {
+  flex-direction: row;
+}
+
+.backlog-init-menu {
+  left: 0; 
+  right: auto; 
+  width: 240px;
+}
+
+.filter-active-tertiary {
+  background-color: rgba(0, 107, 96, 0.05) !important;
+  border-color: var(--tertiary) !important;
+  color: var(--tertiary) !important;
+}
+
+.filter-active-primary {
+  background-color: rgba(70, 86, 184, 0.05) !important;
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+@media (max-width: 640px) {
+  .backlog-toolbar-container {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .backlog-toolbar-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}

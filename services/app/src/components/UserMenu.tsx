@@ -1,4 +1,5 @@
 "use client";
+import "./Sidebar.css";
 
 import { useSession, signOut } from "next-auth/react";
 import { LogOut } from "lucide-react";

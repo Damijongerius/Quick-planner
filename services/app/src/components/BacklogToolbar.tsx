@@ -1,4 +1,7 @@
 "use client";
+import "./BacklogToolbar.css";
+import "./Backlog.css";
+import "./TopAppBar.css";
 
 import React from "react";
 import { PlusCircle, Archive, ArchiveRestore, FileJson, Plus, Search, X } from "lucide-react";
@@ -31,11 +34,11 @@ export function BacklogToolbar({
 
   return (
     <div className="flex flex-col gap-md">
-      <div className="flex justify-between items-center bg-surface-container-low p-md rounded-2xl border border-outline-variant shadow-sm">
+      <div className="flex justify-between items-center bg-surface-container-low p-md rounded-2xl border border-outline-variant shadow-sm backlog-toolbar-container">
         <div className="flex items-center gap-md relative">
           <button 
             onClick={() => availableRootTypes.length > 1 ? setShowInitMenu(!showInitMenu) : onAddRoot(availableRootTypes[0]?.id, availableRootTypes[0]?.name)}
-            className="button-premium"
+            className="button-sanctuary"
             style={{ padding: '12px 24px', fontSize: '13px', boxShadow: 'var(--primary-shadow)' }}
           >
             <Plus size={18} />
@@ -62,7 +65,7 @@ export function BacklogToolbar({
                   style={{ top: 'calc(100% + 12px)', left: 0, width: '280px', padding: '12px' }}
                 >
                   <div className="dropdown-header" style={{ padding: '12px 8px' }}>
-                    <div className="text-meta text-primary text-[10px]">SELECT STRATEGIC PILLAR</div>
+                    <div className="text-meta text-primary text-10px">SELECT STRATEGIC PILLAR</div>
                   </div>
                   <div className="dropdown-body flex flex-col gap-xs">
                     {availableRootTypes.map(type => (
@@ -85,7 +88,7 @@ export function BacklogToolbar({
           </AnimatePresence>
         </div>
 
-        <div className="flex gap-md items-center">
+        <div className="flex gap-md items-center backlog-toolbar-actions">
           <Button 
             variant={hideCompleted ? 'secondary' : 'ghost'} 
             size="sm" 
@@ -123,7 +126,7 @@ export function BacklogToolbar({
                 <Search size={18} className="text-on-surface-variant ml-sm" />
                 <input 
                   autoFocus
-                  className="input-premium flex-1 border-none bg-transparent h-12 text-base" 
+                  className="input-sanctuary flex-1 border-none bg-transparent h-12 text-base" 
                   placeholder="Search objectives, tasks, and requirements..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}

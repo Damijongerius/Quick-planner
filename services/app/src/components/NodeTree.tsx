@@ -32,7 +32,7 @@ export function NodeTree({ projectId, node, nodeTypes, onSelect, selectedNodeId 
     setIsOpen(true);
   };
 
-  const nodeType = nodeTypes.find(t => t.id === node.nodeTypeId);
+  const nodeType = nodeTypes.find((t: any) => t.id === node.nodeTypeId);
   const allowedChildren = nodeType?.allowedChildren?.map((ac: any) => ac.childNodeTypeType) || [];
 
   return (
@@ -76,7 +76,7 @@ export function NodeTree({ projectId, node, nodeTypes, onSelect, selectedNodeId 
           <select 
             className="input-premium p-xs text-xs"
             value={selectedType?.id || ""}
-            onChange={(e) => setSelectedType(nodeTypes.find(t => t.id === e.target.value))}
+            onChange={(e) => setSelectedType(nodeTypes.find((t: any) => t.id === e.target.value))}
             required
           >
             <option value="">Select type...</option>

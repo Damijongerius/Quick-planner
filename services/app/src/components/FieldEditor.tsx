@@ -52,7 +52,7 @@ export function FieldEditor({ projectId, nodeType, isOpen, onClose }: FieldEdito
             <label className="text-meta block mb-lg">Active Attributes</label>
             <div className="flex flex-col gap-md">
               {nodeType?.fields.map((field: any) => {
-                const Icon = FIELD_TYPES.find(t => t.type === field.type)?.icon || Type;
+                const Icon = FIELD_TYPES.find((t: any) => t.type === field.type)?.icon || Type;
                 return (
                   <div key={field.id} className="attribute-row">
                     <div className="flex items-center gap-lg">

@@ -16,13 +16,16 @@ interface BoardConfigEditorProps {
 }
 
 export function BoardConfigEditor({ projectId, nodeType, isOpen, onClose }: BoardConfigEditorProps) {
-  const [preferredView, setPreferredView] = useState("KANBAN");
+  const [showOnKanban, setShowOnKanban] = useState(true);
+  const [showOnGantt, setShowOnGantt] = useState(true);
   const [isSprintEligible, setIsSprintEligible] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (nodeType) {
-      setPreferredView(nodeType.boardConfig?.preferredView || "KANBAN");
+      const config = nodeType.boardConfig || {};
+      setShowOnKanban(config.showOnKanban !== false);
+      setShowOnGantt(config.showOnGantt !== false);
       setIsSprintEligible(nodeType.isSprintEligible);
     }
   }, [nodeType]);
@@ -30,7 +33,11 @@ export function BoardConfigEditor({ projectId, nodeType, isOpen, onClose }: Boar
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await updateNodeTypeBoardConfig(projectId, nodeType.id, { preferredView, isSprintEligible });
+      await updateNodeTypeBoardConfig(projectId, nodeType.id, { 
+        showOnKanban, 
+        showOnGantt, 
+        isSprintEligible 
+      });
       onClose();
     } catch (error) {
       console.error("Failed to save board config", error);
@@ -55,28 +62,28 @@ export function BoardConfigEditor({ projectId, nodeType, isOpen, onClose }: Boar
         }
     >
         <div className="flex flex-col gap-xl">
-          <FormField label="Board Integration" description="Control how nodes of this type appear on project boards.">
+          <FormField label="Board Visibility" description="Control which views nodes of this type appear in.">
             <div className="grid grid-cols-2 gap-md">
                 <Button 
-                    onClick={() => setPreferredView("KANBAN")}
-                    variant={preferredView === 'KANBAN' ? 'primary' : 'secondary'}
+                    onClick={() => setShowOnKanban(!showOnKanban)}
+                    variant={showOnKanban ? 'primary' : 'secondary'}
                     className="flex-col h-24 gap-sm"
                 >
                     <LayoutGrid size={24} />
                     <div className="text-center">
-                        <span className="block font-bold">Kanban Only</span>
-                        <span className="text-meta opacity-60">Hidden on Gantt</span>
+                        <span className="block font-bold">Kanban Board</span>
+                        <span className="text-meta opacity-60">{showOnKanban ? 'VISIBLE' : 'HIDDEN'}</span>
                     </div>
                 </Button>
                 <Button 
-                    onClick={() => setPreferredView("GANTT")}
-                    variant={preferredView === 'GANTT' ? 'primary' : 'secondary'}
+                    onClick={() => setShowOnGantt(!showOnGantt)}
+                    variant={showOnGantt ? 'primary' : 'secondary'}
                     className="flex-col h-24 gap-sm"
                 >
                     <Calendar size={24} />
                     <div className="text-center">
-                        <span className="block font-bold">Gantt Only</span>
-                        <span className="text-meta opacity-60">Hidden on Kanban</span>
+                        <span className="block font-bold">Gantt Timeline</span>
+                        <span className="text-meta opacity-60">{showOnGantt ? 'VISIBLE' : 'HIDDEN'}</span>
                     </div>
                 </Button>
             </div>

@@ -1,20 +1,25 @@
-import { getNodeTypes } from "@/lib/actions";
-import { NodeTypeSettings } from "@/components/NodeTypeSettings";
+import { getNodeTypes, getRelations } from "@/lib/actions";
+import { NodeEcosystemEditor } from "@/components/NodeEcosystemEditor";
 
-export default async function NodeTypesPage({ params }: { params: Promise<{ projectId: string }> }) {
+export default async function NodeArchitecturePage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
   const nodeTypes = await getNodeTypes(projectId);
+  const relations = await getRelations(projectId);
 
   return (
     <div className="canvas-content">
       <div style={{ marginBottom: '48px' }}>
-        <h2 style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-0.025em', marginBottom: '4px' }}>Nodes</h2>
+        <h2 style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-0.025em', marginBottom: '4px' }}>Node Architecture</h2>
         <p style={{ color: 'var(--on-surface-variant)', fontSize: '14px' }}>
-          Define the building blocks and behavioral rules of your strategic system.
+          Design your strategic ecosystem. Click types to configure, drag connections to define rules.
         </p>
       </div>
 
-      <NodeTypeSettings projectId={projectId} initialNodeTypes={nodeTypes} />
+      <NodeEcosystemEditor 
+        projectId={projectId} 
+        nodeTypes={nodeTypes} 
+        initialRelations={relations} 
+      />
     </div>
   );
 }

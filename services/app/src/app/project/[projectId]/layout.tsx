@@ -1,5 +1,4 @@
-import { Sidebar } from "@/components/Sidebar";
-import { TopAppBar } from "@/components/TopAppBar";
+import { ProjectShell } from "@/components/ProjectShell";
 import { MigrationGuard } from "@/components/auth/MigrationGuard";
 import { getProject } from "@/lib/actions";
 import { notFound } from "next/navigation";
@@ -20,15 +19,9 @@ export default async function ProjectLayout({
 
   return (
     <MigrationGuard>
-      <div style={{ display: 'flex' }}>
-        <Sidebar project={project} />
-        {/* Spacer for fixed sidebar (288px) */}
-        <div style={{ width: '288px', flexShrink: 0 }}></div>
-        <main className="main-content">
-          <TopAppBar projectId={projectId} />
-          {children}
-        </main>
-      </div>
+      <ProjectShell project={project} projectId={projectId}>
+        {children}
+      </ProjectShell>
     </MigrationGuard>
   );
 }
