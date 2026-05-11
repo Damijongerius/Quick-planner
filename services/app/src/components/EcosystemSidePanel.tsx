@@ -1,7 +1,4 @@
-"use client";
-
-import React from 'react';
-import { X, Braces, LayoutGrid, Trash2 } from 'lucide-react';
+import { X, Braces, LayoutGrid, Trash2, Milestone, Settings2 } from 'lucide-react';
 import { IconRenderer, IconPicker } from './IconPicker';
 import { SanctuaryColorPicker } from './SanctuaryColorPicker';
 import { Button } from './ui/Button';
@@ -23,22 +20,30 @@ export function EcosystemSidePanel({
   onOpenBoardEditor
 }: EcosystemSidePanelProps) {
   const [name, setName] = React.useState(activeNodeType.name);
+  const [isSprintEligible, setIsSprintEligible] = React.useState(activeNodeType.isSprintEligible);
 
   React.useEffect(() => {
     setName(activeNodeType.name);
+    setIsSprintEligible(activeNodeType.isSprintEligible);
   }, [activeNodeType]);
   
   const handleUpdateIcon = async (icon: string) => {
-    await updateNodeType(projectId, activeNodeType.id, activeNodeType.name, activeNodeType.color, icon, activeNodeType.isSprintEligible);
+    await updateNodeType(projectId, activeNodeType.id, activeNodeType.name, activeNodeType.color, icon, isSprintEligible);
   };
 
   const handleUpdateColor = async (color: string) => {
-    await updateNodeType(projectId, activeNodeType.id, name, color, activeNodeType.icon, activeNodeType.isSprintEligible);
+    await updateNodeType(projectId, activeNodeType.id, name, color, activeNodeType.icon, isSprintEligible);
   };
 
   const handleUpdateName = async () => {
     if (name === activeNodeType.name) return;
-    await updateNodeType(projectId, activeNodeType.id, name, activeNodeType.color, activeNodeType.icon, activeNodeType.isSprintEligible);
+    await updateNodeType(projectId, activeNodeType.id, name, activeNodeType.color, activeNodeType.icon, isSprintEligible);
+  };
+
+  const handleToggleSprint = async () => {
+    const newVal = !isSprintEligible;
+    setIsSprintEligible(newVal);
+    await updateNodeType(projectId, activeNodeType.id, name, activeNodeType.color, activeNodeType.icon, newVal);
   };
 
   const handleDelete = async () => {
@@ -62,7 +67,7 @@ export function EcosystemSidePanel({
                     onChange={(e) => setName(e.target.value)} 
                     onBlur={handleUpdateName}
                 />
-                <p className="text-meta text-10px tracking-widest opacity-60">BLUEPRINT CONFIGURATION</p>
+                <p className="text-meta text-10px tracking-widest opacity-60">BLUEPRINT SETTINGS</p>
             </div>
         </div>
         <button onClick={onClose} className="p-sm hover:bg-surface-container-high rounded-full transition-colors">
@@ -71,48 +76,66 @@ export function EcosystemSidePanel({
       </div>
 
       <div className="space-y-xl">
-        <section>
-            <label className="text-meta text-10px mb-md block opacity-60">VISUAL IDENTITY</label>
+        <section className="card-sanctuary bg-white/5 p-lg border-none">
+            <label className="text-meta text-10px mb-md block opacity-60">BLUEPRINT IDENTITY</label>
             <div className="flex flex-col gap-lg">
                 <div>
-                    <p className="text-10px font-bold mb-sm opacity-40 uppercase">Icon</p>
+                    <p className="text-10px font-bold mb-sm opacity-40 uppercase">Icon Representation</p>
                     <IconPicker currentIcon={activeNodeType.icon} onSelect={handleUpdateIcon} color={activeNodeType.color} />
                 </div>
                 <div>
-                    <p className="text-10px font-bold mb-sm opacity-40 uppercase">Color Palette</p>
+                    <p className="text-10px font-bold mb-sm opacity-40 uppercase">Color Signature</p>
                     <SanctuaryColorPicker currentColor={activeNodeType.color} onSelect={handleUpdateColor} />
                 </div>
             </div>
         </section>
 
-        <section>
-            <label className="text-meta text-10px mb-md block opacity-60">ARCHITECTURE</label>
-            <div className="flex flex-col gap-sm">
-                <Button onClick={onOpenFieldEditor} variant="sanctuary" size="sm" icon={<Braces size={16} />} className="w-full justify-start h-12 px-lg">
-                    Edit Fields Definitions
-                </Button>
-                <Button onClick={onOpenBoardEditor} variant="secondary" size="sm" icon={<LayoutGrid size={16} />} className="w-full justify-start h-12 px-lg">
-                    Board Governance
+        <section className="card-sanctuary bg-white/5 p-lg border-none">
+            <label className="text-meta text-10px mb-md block opacity-60">STRATEGIC FLOW</label>
+            <div className="flex flex-col gap-md">
+                <div className="flex items-center justify-between p-md bg-white/5 rounded-xl">
+                    <div className="flex items-center gap-md">
+                        <Milestone size={18} className="opacity-60" />
+                        <div>
+                            <p className="text-xs font-bold">Sprint Eligibility</p>
+                            <p className="text-10px opacity-50">Can nodes of this type be assigned to cycles?</p>
+                        </div>
+                    </div>
+                    <div 
+                        onClick={handleToggleSprint}
+                        className={`toggle-track ${isSprintEligible ? 'active' : ''}`}
+                    >
+                        <div className={`toggle-thumb ${isSprintEligible ? 'translate-x-5' : 'translate-x-0'} transition-transform duration-200`} />
+                    </div>
+                </div>
+
+                <Button onClick={onOpenBoardEditor} variant="secondary" size="sm" icon={<LayoutGrid size={16} />} className="w-full justify-start h-12 px-lg rounded-xl">
+                    Configure Board View & Type
                 </Button>
             </div>
         </section>
 
-        <section>
-            <label className="text-meta text-10px mb-md block opacity-60">DEFINED FIELDS</label>
+        <section className="card-sanctuary bg-white/5 p-lg border-none">
+            <div className="flex justify-between items-center mb-md">
+                <label className="text-meta text-10px block opacity-60 uppercase">Property Definitions</label>
+                <Button onClick={onOpenFieldEditor} variant="ghost" size="sm" icon={<Settings2 size={12} />} className="h-6 text-[10px] px-sm">
+                    Manage
+                </Button>
+            </div>
             <div className="flex flex-wrap gap-xs">
                 {activeNodeType.fields?.map((f: any) => (
-                    <span key={f.id} className="px-sm py-xs bg-surface-container-high rounded-lg text-10px font-bold text-on-surface-variant border border-outline-variant">
+                    <span key={f.id} className="px-sm py-xs bg-white/10 rounded-lg text-10px font-bold text-white border border-white/10">
                         {f.name.toUpperCase()}
                     </span>
                 ))}
-                {activeNodeType.fields?.length === 0 && <p className="text-10px italic opacity-40">No custom fields defined</p>}
+                {activeNodeType.fields?.length === 0 && <p className="text-10px italic opacity-40">No custom properties defined</p>}
             </div>
         </section>
       </div>
 
-      <div className="mt-auto pt-xl border-t border-outline-variant">
+      <div className="mt-auto pt-xl border-t border-white/10">
         <Button onClick={handleDelete} variant="ghost" size="sm" className="text-error w-full justify-start hover:bg-error/10" icon={<Trash2 size={16} />}>
-            Destroy Blueprint
+            Destroy Blueprint Type
         </Button>
       </div>
     </div>

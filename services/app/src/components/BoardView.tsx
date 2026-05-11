@@ -41,8 +41,22 @@ export function BoardView({ projectId, initialSprints, initialNodeTypes, initial
 
         <AnimatePresence mode="wait">
           {isPanelOpen && (
-            <motion.div key={selectedNode?.id} initial={{ width: 0, opacity: 0 }} animate={{ width: '450px', opacity: 1 }} exit={{ width: 0, opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 120 }} className="board-side-panel-container">
-              <NodeSidePanel projectId={projectId} node={selectedNode} isOpen={isPanelOpen} onClose={() => { setIsPanelOpen(false); refresh(); }} sprints={initialSprints} allNodes={nodes} />
+            <motion.div 
+              key={selectedNode?.id} 
+              initial={{ x: '100%', opacity: 0 }} 
+              animate={{ x: 0, opacity: 1 }} 
+              exit={{ x: '100%', opacity: 0 }} 
+              transition={{ type: 'spring', damping: 25, stiffness: 120 }} 
+              className="board-side-panel-container"
+            >
+              <NodeSidePanel 
+                projectId={projectId} 
+                node={selectedNode} 
+                isOpen={isPanelOpen} 
+                onClose={() => { setIsPanelOpen(false); refresh(); }} 
+                sprints={initialSprints} 
+                allNodes={nodes} 
+              />
             </motion.div>
           )}
         </AnimatePresence>

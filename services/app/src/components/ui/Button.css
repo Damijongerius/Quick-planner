@@ -105,7 +105,7 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  border-radius: 16px;
+  border-radius: 12px;
   font-family: var(--font-display);
   font-weight: 800;
   cursor: pointer;
@@ -114,7 +114,8 @@
   background: var(--surface-container-lowest);
   color: var(--on-surface);
   box-shadow: var(--ambient-shadow);
-  padding: 16px 32px;
+  padding: 10px 20px;
+  font-size: 13px;
 }
 
 .button-sanctuary:hover {

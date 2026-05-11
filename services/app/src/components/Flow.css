@@ -24,16 +24,18 @@
 
 .flow-handle-target {
   background: var(--outline-variant) !important; 
-  border: none !important; 
-  width: 8px !important; 
-  height: 8px !important;
+  border: 2px solid var(--surface-container-lowest) !important; 
+  width: 12px !important; 
+  height: 12px !important;
+  box-shadow: 0 0 0 1px var(--outline-variant);
 }
 
 .flow-handle-source {
   background: var(--primary) !important; 
-  border: none !important; 
-  width: 8px !important; 
-  height: 8px !important;
+  border: 2px solid var(--surface-container-lowest) !important; 
+  width: 12px !important; 
+  height: 12px !important;
+  box-shadow: 0 0 0 1px var(--primary);
 }
 
 .flow-node-icon {

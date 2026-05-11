@@ -71,12 +71,64 @@
   opacity: 0.7;
 }
 
-.backlog-tree-actions {
-  padding-left: var(--depth-padding); 
-  padding-top: 12px; 
-  padding-bottom: 12px; 
-  border-bottom: 1px solid var(--outline-variant); 
-  background: color-mix(in srgb, var(--primary), transparent 98%);
+.backlog-creation-container {
+  padding-left: var(--depth-padding);
+  position: relative;
+}
+
+.backlog-tree-line-subtle {
+  position: absolute;
+  left: calc(var(--depth-padding) - 20px);
+  top: 0;
+  bottom: 50%;
+  width: 2px;
+  background: var(--outline-variant);
+  border-bottom-left-radius: 8px;
+}
+
+.child-creation-suite {
+  padding: 32px;
+  border-radius: 24px;
+  margin-top: 12px;
+  margin-bottom: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--sanctuary-shadow);
+}
+
+.blueprint-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-container-low);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.blueprint-chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--type-color);
+}
+
+.blueprint-chip:hover {
+  background: var(--surface-container-high);
+  border-color: var(--type-color);
+}
+
+.blueprint-chip.active {
+  background: color-mix(in srgb, var(--type-color), transparent 85%);
+  border-color: var(--type-color);
+  color: var(--type-color);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--type-color), transparent 90%);
 }
 
 .backlog-empty-state {

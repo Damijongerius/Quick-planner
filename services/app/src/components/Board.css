@@ -113,13 +113,16 @@
   padding: 4px;
 }
 .board-side-panel-container {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 500px;
   background: var(--surface-container-lowest);
-  border-left: 1px solid var(--outline-variant);
-  height: calc(100vh - 100px);
-  position: sticky;
-  top: 100px;
+  box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+  z-index: 1000;
   overflow-y: auto;
-  z-index: 60;
+  border-left: 1px solid var(--outline-variant);
 }
 
 .swimlane-section { margin-bottom: 2rem; }

@@ -21,7 +21,7 @@ export function ProjectShell({ children, project, projectId }: ProjectShellProps
         onClose={() => setIsSidebarOpen(false)} 
       />
       
-      <div className="flex flex-col min-w-0 h-full relative">
+      <div className="main-content-wrapper flex flex-col min-w-0 h-full relative">
         <TopAppBar 
             projectId={projectId} 
             onMenuClick={() => setIsSidebarOpen(true)} 

@@ -1,5 +1,6 @@
 "use client";
 import "./TopAppBar.css";
+import "./ui/Button.css";
 
 import { useState, useRef, useEffect } from "react";
 import { Search, Bell, Settings, Calendar, Trees, LayoutGrid, ChevronRight, X, Clock, Menu } from "lucide-react";
@@ -34,20 +35,25 @@ export function TopAppBar({ projectId, onMenuClick }: TopAppBarProps) {
 
   return (
     <header className="top-bar">
-      <div className="flex items-center justify-between w-full">
+      <div className="flex items-center lg:hidden">
         <button 
           onClick={onMenuClick}
-          className="p-md hover:bg-surface-container-low rounded-full lg:hidden"
+          className="icon-button"
         >
           <Menu size={20} className="text-on-surface" />
         </button>
+      </div>
 
-        <div className="flex items-center gap-md ml-auto">
-          <div className="flex gap-xs relative" ref={dropdownRef}>
+      <div className="flex-1" />
+
+      <div className="flex items-center gap-sm shrink-0" ref={dropdownRef}>
+        <div className="relative">
           <button className="icon-button">
             <Bell size={20} className="text-on-surface-variant" />
           </button>
-          
+        </div>
+        
+        <div className="relative">
           <button 
             className={`icon-button ${isSettingsOpen ? 'active' : ''}`}
             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
@@ -62,6 +68,7 @@ export function TopAppBar({ projectId, onMenuClick }: TopAppBarProps) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                 className="glass dropdown-menu settings-dropdown"
+                style={{ right: 0, top: '100%', marginTop: '12px' }}
               >
                 <div className="dropdown-header">
                     <p className="text-meta">Workspace Settings</p>
@@ -102,7 +109,6 @@ export function TopAppBar({ projectId, onMenuClick }: TopAppBarProps) {
           </AnimatePresence>
         </div>
       </div>
-    </div>
-  </header>
+    </header>
 );
 }

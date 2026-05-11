@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box;
+}
+
 :root {
   /* Tonal Layers Hierarchy */
   --surface: #f8f9fb;
@@ -227,11 +231,47 @@ h1, h2, h3, h4, h5, h6 {
 .app-shell-grid {
   display: grid;
   grid-template-columns: 1fr;
-  width: 100vw;
+  width: 100%;
 }
 
 @media (min-width: 1024px) {
   .app-shell-grid {
     grid-template-columns: 288px 1fr;
   }
+  
+  .sidebar-sanctuary {
+    grid-column: 1;
+  }
+  
+  .main-content-wrapper {
+    grid-column: 2;
+    width: 100%;
+  }
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(12px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.glass-dark {
+  background: rgba(26, 28, 30, 0.8) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+}
+
+.glass-dark * {
+  color: white;
+}
+
+.glass-dark .input-sanctuary, 
+.glass-dark .input-premium {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: white;
 }

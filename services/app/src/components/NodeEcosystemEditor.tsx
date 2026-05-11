@@ -25,9 +25,17 @@ export function NodeEcosystemEditor({ projectId, nodeTypes, initialRelations }: 
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
-  const initialNodes = useMemo(() => calculateHierarchicalLayout(nodeTypes, initialRelations).map((n: any) => ({
-    ...n, data: { ...n.data, onClick: () => setActiveNodeType(nodeTypes.find((t: any) => t.id === n.id)) }
-  })), [nodeTypes, initialRelations]);
+  const initialNodes = useMemo(() => calculateHierarchicalLayout(nodeTypes, initialRelations).map((n: any) => {
+    const type = nodeTypes.find((t: any) => t.id === n.id);
+    return {
+      ...n, 
+      data: { 
+        ...n.data, 
+        fields: type?.fields || [],
+        onClick: () => setActiveNodeType(type) 
+      }
+    };
+  }), [nodeTypes, initialRelations]);
 
   const initialEdges: Edge[] = useMemo(() => initialRelations.map((rel: any) => ({
     id: rel.id, source: rel.parentNodeTypeId, target: rel.childNodeTypeId, animated: true,
