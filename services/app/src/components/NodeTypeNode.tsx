@@ -1,3 +1,6 @@
+"use client";
+
+import React from 'react';
 import { Settings, Braces } from 'lucide-react';
 import { Handle, Position } from 'reactflow';
 import { IconRenderer } from './IconPicker';

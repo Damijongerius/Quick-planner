@@ -1,3 +1,6 @@
+"use client";
+
+import React from 'react';
 import { X, Braces, LayoutGrid, Trash2, Milestone, Settings2 } from 'lucide-react';
 import { IconRenderer, IconPicker } from './IconPicker';
 import { SanctuaryColorPicker } from './SanctuaryColorPicker';
