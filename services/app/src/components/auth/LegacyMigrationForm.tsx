@@ -46,39 +46,39 @@ function MigrationToggle({ onActivate }: { onActivate: () => void }) {
 function MigrationForm({ email, setEmail, password, setPassword, onSubmit }: any) {
   return (
     <motion.form 
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: 'auto' }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
       onSubmit={onSubmit}
-      className="text-left"
+      className="text-left bg-surface-container-low p-xl rounded-3xl border border-outline-variant shadow-sm mt-lg"
     >
       <div className="mb-lg">
-        <label className="text-meta flex items-center gap-sm mb-sm opacity-60">
-          <Mail size={14} /> Email
+        <label className="text-meta flex items-center gap-sm mb-md opacity-40 uppercase tracking-widest text-[10px]">
+          <Mail size={12} /> Master Credentials
         </label>
         <input 
           type="email" 
-          className="input-premium" 
+          className="input-sanctuary w-full" 
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
+          placeholder="strategic.visionary@sanctuary.io"
           required 
         />
       </div>
       <div className="mb-xl">
-        <label className="text-meta flex items-center gap-sm mb-sm opacity-60">
-          <Lock size={14} /> Password
+        <label className="text-meta flex items-center gap-sm mb-md opacity-40 uppercase tracking-widest text-[10px]">
+          <Lock size={12} /> Security Key
         </label>
         <input 
           type="password" 
-          className="input-premium" 
+          className="input-sanctuary w-full" 
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••"
           required 
         />
       </div>
-      <button type="submit" className="button-premium w-full bg-on-surface text-surface flex items-center justify-center gap-md">
-        <LogIn size={18} /> Authenticate
+      <button type="submit" className="button-premium w-full flex items-center justify-center gap-md h-12">
+        <LogIn size={18} /> INITIALIZE ACCESS
       </button>
     </motion.form>
   );

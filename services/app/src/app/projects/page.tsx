@@ -1,6 +1,6 @@
 import { getProjects, createProject } from "@/lib/actions";
 import Link from "next/link";
-import { Plus, Briefcase, Calendar, ChevronRight, LayoutGrid } from "lucide-react";
+import { Plus, Briefcase, ChevronRight, Sparkles, Terminal } from "lucide-react";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { UserMenu } from "@/components/UserMenu";
@@ -13,97 +13,69 @@ export default async function ProjectsPage() {
   const projects = await getProjects();
 
   return (
-    <div className="canvas-content" style={{ maxWidth: '1000px', margin: '0 auto', paddingTop: '40px' }}>
-      <header style={{ marginBottom: '64px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="canvas-content py-2xl px-xl" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <header className="flex justify-between items-end mb-2xl pb-xl border-b border-outline-variant">
         <div>
-            <h1 style={{ fontSize: '48px', fontWeight: 800, letterSpacing: '-0.05em', marginBottom: '16px' }}>Your Sanctuary</h1>
-            <p style={{ color: 'var(--on-surface-variant)', fontSize: '18px', fontWeight: 500 }}>
-            Select a strategic workspace to continue.
-            </p>
+            <div className="flex items-center gap-sm mb-xs opacity-50">
+                <Sparkles size={16} className="text-primary" />
+                <span className="text-meta text-[10px]">Strategic command center</span>
+            </div>
+            <h1 className="text-editorial text-6xl font-bold tracking-tight">Your Sanctuary</h1>
+            <p className="text-secondary mt-sm opacity-70">Select an operational theater to orchestrate your strategy.</p>
         </div>
-        <div style={{ minWidth: '250px' }}>
+        <div className="flex items-center gap-xl">
             <UserMenu />
         </div>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '32px' }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-xl">
         {projects.map((project) => (
           <Link 
             key={project.id} 
             href={`/project/${project.id}/board`}
-            style={{ textDecoration: 'none' }}
+            className="group no-underline"
           >
-            <div className="card-sanctuary" style={{ 
-                padding: '40px', 
-                height: '100%', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                justifyContent: 'space-between',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                cursor: 'pointer'
-            }}>
-                <div>
-                    <div style={{ 
-                        width: '56px', 
-                        height: '56px', 
-                        backgroundColor: 'rgba(70, 86, 184, 0.1)', 
-                        color: 'var(--primary)', 
-                        borderRadius: '16px', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center',
-                        marginBottom: '24px'
-                    }}>
-                        <Briefcase size={28} />
+            <div className="card-sanctuary glass h-full p-2xl transition-all duration-300 group-hover:-translate-y-2 group-hover:border-primary group-hover:shadow-sanctuary">
+                <div className="flex flex-col h-full justify-between">
+                    <div>
+                        <div className="w-14 h-14 rounded-2xl bg-surface-container-high flex items-center justify-center text-primary mb-xl group-hover:scale-110 transition-transform">
+                            <Briefcase size={28} />
+                        </div>
+                        <h3 className="text-editorial text-2xl font-bold mb-xs">{project.name}</h3>
+                        <p className="text-meta text-[10px] opacity-40 uppercase tracking-widest">
+                            Established {new Date(project.createdAt).toLocaleDateString()}
+                        </p>
                     </div>
-                    <h3 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--on-surface)', marginBottom: '8px' }}>{project.name}</h3>
-                    <p style={{ color: 'var(--on-surface-variant)', fontSize: '14px', fontWeight: 500 }}>
-                        Created {new Date(project.createdAt).toLocaleDateString()}
-                    </p>
-                </div>
-                <div style={{ marginTop: '32px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', fontWeight: 700, fontSize: '14px' }}>
-                    Open Workspace <ChevronRight size={16} />
+                    
+                    <div className="mt-2xl flex items-center gap-sm text-primary font-bold text-xs uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                        Enter Workspace <ChevronRight size={14} />
+                    </div>
                 </div>
             </div>
           </Link>
         ))}
 
-        <form action={async (formData: FormData) => {
-            "use server";
-            const name = formData.get("name") as string;
-            if (name) await createProject(name);
-        }}>
-            <div className="card-sanctuary" style={{ 
-                padding: '40px', 
-                height: '100%', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                justifyContent: 'center',
-                border: '2px dashed var(--outline-variant)',
-                background: 'transparent'
-            }}>
+        <div className="card-sanctuary bg-surface-container-low border-dashed p-2xl">
+            <div className="flex items-center gap-sm mb-lg opacity-40">
+                <Terminal size={14} />
+                <span className="text-[10px] font-black tracking-widest uppercase">Provision New Theater</span>
+            </div>
+            <form action={async (formData: FormData) => {
+                "use server";
+                const name = formData.get("name") as string;
+                if (name) await createProject(name);
+            }} className="flex flex-col gap-lg">
                 <input 
                     name="name"
-                    placeholder="Project Name..."
+                    placeholder="Theater Name..."
+                    className="input-sanctuary bg-transparent border-none border-b border-outline-variant rounded-none px-0 text-xl font-bold"
                     required
-                    style={{ 
-                        background: 'transparent',
-                        border: 'none',
-                        borderBottom: '2px solid var(--outline-variant)',
-                        fontSize: '20px',
-                        fontWeight: 700,
-                        padding: '8px 0',
-                        marginBottom: '24px',
-                        outline: 'none',
-                        color: 'var(--on-surface)',
-                        width: '100%'
-                    }}
                 />
-                <Button type="submit" variant="primary" style={{ width: '100%' }}>
-                    <Plus size={20} /> Initialize Project
+                <Button type="submit" variant="primary" className="h-12">
+                    <Plus size={18} /> Initialize Strategic Unit
                 </Button>
-            </div>
-        </form>
+            </form>
+        </div>
       </div>
     </div>
   );
