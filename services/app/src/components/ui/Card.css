@@ -1,11 +1,11 @@
-.card-sanctuary {
+.card-planner {
   background: var(--surface-container-lowest);
   border-radius: 16px;
   padding: var(--spacing-lg);
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-.card-sanctuary:hover {
+.card-planner:hover {
   box-shadow: var(--ambient-shadow);
 }
 

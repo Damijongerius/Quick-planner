@@ -1,5 +1,5 @@
 /**
- * Sanctuary Action Hub
+ * Planner Action Hub
  * This file re-exports all modular actions to maintain backward compatibility.
  * Each module is focused and strictly below the line-count limit.
  */

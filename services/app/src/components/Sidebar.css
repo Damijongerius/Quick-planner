@@ -1,4 +1,4 @@
-.sidebar-sanctuary {
+.sidebar-planner {
   width: 288px;
   height: 100vh;
   background: var(--surface-container-low);
@@ -96,7 +96,7 @@
 }
 
 @media (max-width: 1024px) {
-  .sidebar-sanctuary {
+  .sidebar-planner {
     position: fixed;
     left: 0;
     top: 0;
@@ -104,7 +104,7 @@
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .sidebar-sanctuary.open {
+  .sidebar-planner.open {
     transform: translateX(0);
   }
 }

@@ -33,8 +33,8 @@ export function IconPicker({ currentIcon, onSelect, color = "#3b82f6" }: IconPic
   );
 
   return (
-    <div className="glass p-md max-w-[320px]">
-      <div className="relative mb-md">
+    <div className="glass p-sm max-w-xs">
+      <div className="relative mb-sm">
         <input 
           className="input-premium pl-xl text-sm"
           placeholder="Search icons..."
@@ -58,7 +58,7 @@ export function IconPicker({ currentIcon, onSelect, color = "#3b82f6" }: IconPic
               className={`icon-picker-button ${isActive ? 'active' : ''}`}
               style={{ '--node-color': color } as any}
             >
-              <Icon size={18} />
+              <Icon size={16} />
             </button>
           );
         })}

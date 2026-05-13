@@ -11,7 +11,7 @@ export default async function NodeArchitecturePage({ params }: { params: Promise
       <div style={{ marginBottom: '48px' }}>
         <h2 style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-0.025em', marginBottom: '4px' }}>Node Architecture</h2>
         <p style={{ color: 'var(--on-surface-variant)', fontSize: '14px' }}>
-          Design your strategic ecosystem. Click types to configure, drag connections to define rules.
+          Design your nodes. Click types to configure, drag connections to define rules.
         </p>
       </div>
 

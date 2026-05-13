@@ -79,16 +79,16 @@ export function NodeDetailsTab({
           <div className="timeline-container">
               <div className="col-span-2"><label className="text-meta text-primary">Strategic Timeline</label></div>
               <FormField label="Start">
-                  <input type="date" className="input-sanctuary" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                  <input type="date" className="input-planner" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
               </FormField>
               <FormField label="End">
-                  <input type="date" className="input-sanctuary" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                  <input type="date" className="input-planner" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
               </FormField>
           </div>
       )}
 
       <FormField label="Description">
-          <textarea className="input-sanctuary side-panel-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Provide strategic context..." />
+          <textarea className="input-planner side-panel-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Provide strategic context..." />
       </FormField>
 
       <DependencyManager dependencies={node.blockedBy} allNodes={allNodes} currentNodeId={node.id} onAdd={async (id: string) => { if (id !== 'none') await addDependency(projectId, node.id, id); }} onRemove={async (id: string) => await removeDependency(projectId, id)} />

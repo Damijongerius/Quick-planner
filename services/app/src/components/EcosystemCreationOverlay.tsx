@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Button } from './ui/Button';
 import { createNodeType } from '@/lib/actions';
 import { IconPicker } from './IconPicker';
-import { SanctuaryColorPicker } from './SanctuaryColorPicker';
+import { PlannerColorPicker } from './PlannerColorPicker';
 
 interface EcosystemCreationOverlayProps {
   projectId: string;
@@ -28,17 +28,17 @@ export function EcosystemCreationOverlay({ projectId, onClose }: EcosystemCreati
   };
 
   return (
-    <div className="absolute inset-0 z-[100] flex items-center justify-center bg-surface/80 backdrop-blur-md animate-in fade-in">
-       <div className="card-sanctuary p-2xl w-full max-w-md shadow-sanctuary">
+    <div className="fixed inset-0 z-1000 flex items-center justify-center bg-surface/80 backdrop-blur-md animate-in fade-in overflow-y-auto p-xl">
+       <div className="card-planner p-2xl w-full max-w-md shadow-planner my-auto">
           <h3 className="text-editorial text-2xl font-bold mb-md">New Node Type</h3>
-          <p className="text-secondary mb-xl">Define a new building block for your strategic ecosystem.</p>
+          <p className="text-secondary mb-xl">Define a new node type for your ecosystem.</p>
           
-          <form onSubmit={handleCreate} className="flex flex-col gap-xl">
+          <form onSubmit={handleCreate} className="flex flex-col gap-lg">
             <div>
                 <label className="text-meta block text-xs mb-sm">TYPE NAME</label>
                 <input 
                     autoFocus
-                    className="input-sanctuary"
+                    className="input-planner"
                     placeholder="e.g. Objective, Goal, Task..."
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
@@ -56,7 +56,7 @@ export function EcosystemCreationOverlay({ projectId, onClose }: EcosystemCreati
                 </div>
                 <div>
                     <p className="text-10px font-bold mb-sm opacity-40 uppercase">Color Palette</p>
-                    <SanctuaryColorPicker currentColor={color} onSelect={setColor} />
+                    <PlannerColorPicker currentColor={color} onSelect={setColor} />
                 </div>
             </div>
             

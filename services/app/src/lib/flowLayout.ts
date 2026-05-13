@@ -1,13 +1,16 @@
-export function calculateHierarchicalLayout(nodeTypes: any[], relations: any[]) {
+import { NodeType, AllowedRelation } from "./types";
+import { Node } from "reactflow";
+
+export function calculateHierarchicalLayout(nodeTypes: NodeType[], relations: AllowedRelation[]): Node[] {
   const depths: Record<string, number> = {};
-  nodeTypes.forEach((t: any) => depths[t.id] = 0);
+  nodeTypes.forEach((t) => depths[t.id] = 0);
   
   let changed = true;
   let iterations = 0;
   while (changed && iterations < 10) {
     changed = false;
     iterations++;
-    relations.forEach((rel: any) => {
+    relations.forEach((rel) => {
       const parentDepth = depths[rel.parentNodeTypeId];
       if (depths[rel.childNodeTypeId] <= parentDepth) {
         depths[rel.childNodeTypeId] = parentDepth + 1;
@@ -22,7 +25,7 @@ export function calculateHierarchicalLayout(nodeTypes: any[], relations: any[]) 
     nodesByDepth[depth].push(id);
   });
 
-  return nodeTypes.map((type: any) => {
+  return nodeTypes.map((type) => {
     const depth = depths[type.id];
     const nodesAtThisDepth = nodesByDepth[depth];
     const horizontalIndex = nodesAtThisDepth.indexOf(type.id);

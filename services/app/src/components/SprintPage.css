@@ -13,7 +13,7 @@
 .sprint-card:hover {
   transform: translateY(-4px);
   border-color: var(--primary-container);
-  box-shadow: var(--sanctuary-shadow);
+  box-shadow: var(--planner-shadow);
 }
 
 .sprint-icon-box {

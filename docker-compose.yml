@@ -3,28 +3,34 @@ services:
     build:
       context: ./services/app
       dockerfile: Dockerfile
-    container_name: quick-planner-app
+    container_name: planner-app
     ports:
       - "3000:3000"
     env_file:
       - ./services/app/.env
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/quickplanner?schema=public
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/planner_db?schema=public
       - AUTH_URL=http://localhost:3000
       - AUTH_TRUST_HOST=true
       - NODE_OPTIONS=--dns-result-order=ipv4first
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ./services/app:/app
+      - /app/node_modules
+      - /app/.next
+    command: ./dev.sh
     depends_on:
       - db
     restart: always
 
   db:
     image: postgres:16-alpine
-    container_name: quick-planner-db
+    container_name: planner-db
     restart: always
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=quickplanner
+      - POSTGRES_DB=planner_db
     ports:
       - "5432:5432"
     volumes:

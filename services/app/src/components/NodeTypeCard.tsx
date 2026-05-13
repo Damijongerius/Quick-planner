@@ -15,7 +15,7 @@ interface NodeTypeCardProps {
 
 export function NodeTypeCard({ projectId, type, onOpenBoardConfig, onOpenFieldEditor }: NodeTypeCardProps) {
   return (
-    <div className="card-sanctuary p-xl relative overflow-hidden">
+    <div className="card-planner p-xl relative overflow-hidden">
       <div className="node-accent-strip" style={{ backgroundColor: type.color }} />
       
       <div className="flex justify-between items-start mb-lg">

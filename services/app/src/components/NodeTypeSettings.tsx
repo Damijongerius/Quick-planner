@@ -43,10 +43,10 @@ export function NodeTypeSettings({ projectId, initialNodeTypes }: any) {
         {!isCreating ? (
           <div onClick={() => setIsCreating(true)} className="node-type-create-placeholder"><Plus size={32} /><p className="font-bold">ADD BLUEPRINT</p></div>
         ) : (
-          <div className="card-sanctuary p-xl border-2 border-primary animate-in zoom-in-95">
+          <div className="card-planner p-xl border-2 border-primary animate-in zoom-in-95">
             <h3 className="text-editorial font-bold mb-md">New Blueprint</h3>
             <form onSubmit={handleCreate} className="flex flex-col gap-md">
-              <input autoFocus className="input-sanctuary" placeholder="Type Name" value={newName} onChange={(e) => setNewName(e.target.value)} required />
+              <input autoFocus className="input-planner" placeholder="Type Name" value={newName} onChange={(e) => setNewName(e.target.value)} required />
               <div className="flex gap-sm"><Button type="submit" className="flex-1">Create</Button><Button variant="ghost" onClick={() => setIsCreating(false)}>Cancel</Button></div>
             </form>
           </div>

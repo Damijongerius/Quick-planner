@@ -32,7 +32,7 @@ export function Sidebar({ project, isOpen, onClose }: SidebarProps) {
   ];
 
   return (
-    <aside className={`sidebar-sanctuary ${isOpen ? 'open' : ''}`}>
+    <aside className={`sidebar-planner ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
         <div className="flex justify-between items-center mb-md lg:hidden">
           <span className="text-meta">MENU</span>

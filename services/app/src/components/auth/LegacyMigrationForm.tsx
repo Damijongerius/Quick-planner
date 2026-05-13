@@ -2,6 +2,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { motion } from "framer-motion";
 import { Mail, Lock, LogIn, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 export function LegacyMigrationForm() {
   const [showLegacy, setShowLegacy] = useState(false);
@@ -27,23 +28,31 @@ export function LegacyMigrationForm() {
 
 // --- Implementation Details (The Prose) ---
 
-function handleLegacyAuthentication(e: React.FormEvent, email: string, password: any) {
+function handleLegacyAuthentication(e: React.FormEvent, email: string, password: string) {
   e.preventDefault();
   performLegacySignIn(email, password);
 }
 
 function MigrationToggle({ onActivate }: { onActivate: () => void }) {
   return (
-    <button 
+    <Button 
       onClick={onActivate}
-      className="button-secondary mx-auto px-lg py-sm text-xs text-on-surface-variant flex items-center gap-xs rounded-full"
+      variant="ghost"
     >
-      Legacy Migration <ChevronDown size={14} />
-    </button>
+      Utilize Legacy Migration
+    </Button>
   );
 }
 
-function MigrationForm({ email, setEmail, password, setPassword, onSubmit }: any) {
+interface MigrationFormProps {
+  email: string;
+  setEmail: (email: string) => void;
+  password: string;
+  setPassword: (password: string) => void;
+  onSubmit: (e: React.FormEvent) => void;
+}
+
+function MigrationForm({ email, setEmail, password, setPassword, onSubmit }: MigrationFormProps) {
   return (
     <motion.form 
       initial={{ opacity: 0, y: 10 }}
@@ -57,10 +66,10 @@ function MigrationForm({ email, setEmail, password, setPassword, onSubmit }: any
         </label>
         <input 
           type="email" 
-          className="input-sanctuary w-full" 
+          className="input-planner w-full" 
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="strategic.visionary@sanctuary.io"
+          placeholder="strategic.visionary@planner.io"
           required 
         />
       </div>
@@ -70,21 +79,21 @@ function MigrationForm({ email, setEmail, password, setPassword, onSubmit }: any
         </label>
         <input 
           type="password" 
-          className="input-sanctuary w-full" 
+          className="input-planner w-full" 
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••"
           required 
         />
       </div>
-      <button type="submit" className="button-premium w-full flex items-center justify-center gap-md h-12">
+      <button type="submit" className="button-planner w-full flex items-center justify-center gap-md h-12">
         <LogIn size={18} /> INITIALIZE ACCESS
       </button>
     </motion.form>
   );
 }
 
-async function performLegacySignIn(email: string, password: any) {
+async function performLegacySignIn(email: string, password: string) {
   await signIn("credentials", {
     email,
     password,

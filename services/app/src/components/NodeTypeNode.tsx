@@ -1,15 +1,29 @@
 "use client";
 
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import { Settings, Braces } from 'lucide-react';
 import { Handle, Position } from 'reactflow';
 import { IconRenderer } from './IconPicker';
+import { PropertyPill } from './ui/PropertyPill';
 
-export const NodeTypeNode = ({ data }: any) => {
+import { FieldDefinition } from '@/lib/types';
+
+interface NodeTypeNodeProps {
+  data: {
+    label: string;
+    color: string;
+    icon: string;
+    fields: FieldDefinition[];
+    onClick: () => void;
+    isSelected?: boolean;
+  };
+}
+
+export const NodeTypeNode = ({ data }: NodeTypeNodeProps) => {
   return (
     <div 
       className={`blueprint-flow-node ${data.isSelected ? 'selected' : ''}`} 
-      style={{ '--node-color': data.color || 'var(--primary)' } as any}
+      style={{ '--node-color': data.color || 'var(--primary)' } as CSSProperties}
       onClick={data.onClick}
     >
       <Handle type="target" position={Position.Top} className="flow-handle-target" />
@@ -31,16 +45,14 @@ export const NodeTypeNode = ({ data }: any) => {
       </div>
 
       {data.fields && data.fields.length > 0 && (
-        <div className="blueprint-node-fields">
-          <div className="flex items-center gap-xs mb-xs opacity-30">
-            <Braces size={10} />
-            <span className="text-10px font-bold uppercase">Properties</span>
+        <div className="blueprint-node-fields p-lg border-t border-outline-variant/20">
+          <div className="flex items-center gap-xs opacity-40 mb-md">
+            <Braces size={12} />
+            <span className="text-10px font-bold uppercase tracking-widest">Properties</span>
           </div>
-          <div className="flex flex-wrap gap-xs">
-            {data.fields.map((f: any) => (
-              <div key={f.id} className="blueprint-field-tag">
-                {f.name}
-              </div>
+          <div className="flex flex-wrap gap-xs mt-sm">
+            {data.fields.map((f) => (
+              <PropertyPill key={f.id} label={f.name} />
             ))}
           </div>
         </div>

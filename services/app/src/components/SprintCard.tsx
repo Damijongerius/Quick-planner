@@ -18,7 +18,7 @@ export function SprintCard({ sprint, projectId }: any) {
   const Icon = config.icon;
 
   return (
-    <div className="card-sanctuary sprint-card">
+    <div className="card-planner sprint-card">
       <div className="flex items-center gap-xl">
         <div className="sprint-icon-box" style={{ backgroundColor: config.bg, color: config.color }}>
           <Icon size={24} />

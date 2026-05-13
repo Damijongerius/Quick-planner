@@ -78,7 +78,7 @@ export function BacklogChildCreation({ projectId, node, allowedChildren, depth, 
                  <div className="text-[10px] font-black opacity-30 mb-sm tracking-widest uppercase">Objective Title</div>
                  <input 
                     autoFocus 
-                    className="input-sanctuary w-full h-12" 
+                    className="input-planner w-full h-12" 
                     placeholder="Enter strategic title..." 
                     value={newNodeTitle} 
                     onChange={(e) => setNewNodeTitle(e.target.value)} 

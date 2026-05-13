@@ -38,7 +38,7 @@ export function BacklogToolbar({
         <div className="flex items-center gap-md relative">
           <button 
             onClick={() => availableRootTypes.length > 1 ? setShowInitMenu(!showInitMenu) : onAddRoot(availableRootTypes[0]?.id, availableRootTypes[0]?.name)}
-            className="button-sanctuary"
+            className="button-planner"
             style={{ padding: '12px 24px', fontSize: '13px', boxShadow: 'var(--primary-shadow)' }}
           >
             <Plus size={18} />
@@ -126,7 +126,7 @@ export function BacklogToolbar({
                 <Search size={18} className="text-on-surface-variant ml-sm" />
                 <input 
                   autoFocus
-                  className="input-sanctuary flex-1 border-none bg-transparent h-12 text-base" 
+                  className="input-planner flex-1 border-none bg-transparent h-12 text-base" 
                   placeholder="Search objectives, tasks, and requirements..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}

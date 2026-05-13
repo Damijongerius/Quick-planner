@@ -14,7 +14,7 @@ export async function importProjectData(projectId: string, data: any) {
     const typeMap = new Map<string, string>(); // name -> id
     
     const existingTypes = await prisma.nodeType.findMany({ where: { projectId } });
-    existingTypes.forEach(t => typeMap.set(t.name, t.id));
+    existingTypes.forEach((t: any) => typeMap.set(t.name, t.id));
 
     for (const nt of nodeTypes) {
         let typeId = typeMap.get(nt.name);
@@ -35,7 +35,7 @@ export async function importProjectData(projectId: string, data: any) {
                 }
             });
             typeId = created.id;
-            typeMap.set(nt.name, typeId);
+            typeMap.set(nt.name, created.id);
         }
     }
 
@@ -65,7 +65,7 @@ export async function importProjectData(projectId: string, data: any) {
         where: { projectId, userId: session.user.id }
     });
     const sprintMap = new Map<string, string>();
-    existingSprints.forEach(s => sprintMap.set(s.name, s.id));
+    existingSprints.forEach((s: any) => sprintMap.set(s.name, s.id));
 
     for (const s of sprints) {
         if (!sprintMap.has(s.name)) {

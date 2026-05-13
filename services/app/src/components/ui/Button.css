@@ -28,12 +28,15 @@
 .button-secondary {
   background: var(--surface-container-low);
   color: var(--on-surface);
-  border: 1px solid var(--outline-variant);
+  border: 1.5px solid var(--outline-variant);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
 }
 
 .button-secondary:hover:not(:disabled) {
   background: var(--surface-container-high);
-  border-color: var(--on-surface-variant);
+  border-color: rgba(70, 86, 184, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
 }
 
 .button-ghost {
@@ -100,28 +103,30 @@
   color: var(--primary);
 }
 
-.button-sanctuary {
+.button-planner {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  border-radius: 12px;
+  border-radius: 20px;
   font-family: var(--font-display);
   font-weight: 800;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   border: 1px solid var(--outline-variant);
-  background: var(--surface-container-lowest);
+  background: white;
   color: var(--on-surface);
-  box-shadow: var(--ambient-shadow);
-  padding: 10px 20px;
-  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
+  padding: 12px 28px;
+  font-size: 15px;
+  letter-spacing: -0.01em;
 }
 
-.button-sanctuary:hover {
+.button-planner:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(70, 86, 184, 0.15);
-  border-color: var(--primary);
+  box-shadow: 0 20px 40px rgba(70, 86, 184, 0.12), 0 1px 2px rgba(0, 0, 0, 0.05);
+  border-color: rgba(70, 86, 184, 0.3);
+  background: white;
 }
 
 .google-signin-button {

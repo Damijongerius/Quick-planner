@@ -66,6 +66,7 @@ model Project {
   id            String   @id @default(cuid())
   name          String
   userId        String
+  isArchived    Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

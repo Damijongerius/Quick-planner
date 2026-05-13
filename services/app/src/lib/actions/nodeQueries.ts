@@ -39,7 +39,7 @@ export async function getNodeChildren(projectId: string, nodeId: string) {
       }
     }
   });
-  const children = node?.childLinks.map(l => l.childNode) || [];
+  const children = node?.childLinks.map((l: any) => l.childNode) || [];
   return serializeData(children);
 }
 

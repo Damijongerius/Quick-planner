@@ -7,26 +7,31 @@ import { AIImportModal } from "./ai/AIImportModal";
 import { Button } from "./ui/Button";
 import { SprintCard } from "./SprintCard";
 import { SprintCreationForm } from "./SprintCreationForm";
+import { SprintSection } from "./SprintSection";
+import { Sprint, NodeType } from "@/lib/types";
 
-export function SprintPage({ projectId, sprints, nodeTypes = [] }: any) {
+interface SprintPageProps {
+  projectId: string;
+  sprints: Sprint[];
+  nodeTypes?: NodeType[];
+}
+
+export function SprintPage({ projectId, sprints, nodeTypes = [] }: SprintPageProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
-  const activeSprints = sprints.filter((s: any) => s.status === 'ACTIVE');
-  const plannedSprints = sprints.filter((s: any) => s.status === 'PLANNED');
-  const completedSprints = sprints.filter((s: any) => s.status === 'COMPLETED');
+  const activeSprints = sprints.filter((s: Sprint) => s.status === 'ACTIVE');
+  const plannedSprints = sprints.filter((s: Sprint) => s.status === 'PLANNED');
+  const completedSprints = sprints.filter((s: Sprint) => s.status === 'COMPLETED');
 
   return (
     <div className="flex flex-col gap-2xl">
-      <div className="flex justify-between items-end pb-lg border-b">
+      <div className="flex justify-between items-baseline pb-lg border-b">
+
         <div>
-          <div className="flex items-center gap-sm mb-xs">
-            <Target size={20} className="text-primary" />
-            <span className="text-meta">Strategic Governance</span>
-          </div>
-          <h2 className="text-editorial text-4xl font-bold tracking-tight">Milestone Roadmap</h2>
-          <p className="text-secondary mt-sm opacity-70">Orchestrate and track the progress of your high-level strategic cycles.</p>
+          <h2 className="text-editorial text-4xl font-bold tracking-tight">Sprint Roadmap</h2>
         </div>
+
         <div className="flex gap-md">
           <Button 
             onClick={() => setIsAIModalOpen(true)} 
@@ -40,7 +45,7 @@ export function SprintPage({ projectId, sprints, nodeTypes = [] }: any) {
               onClick={() => setIsCreating(true)} 
               icon={<Plus size={18} />}
             >
-              New Milestone
+              New Sprint
             </Button>
           )}
         </div>
@@ -52,7 +57,7 @@ export function SprintPage({ projectId, sprints, nodeTypes = [] }: any) {
         onClose={() => setIsAIModalOpen(false)} 
         mode="SPRINT" 
         context={{ 
-            sprints: sprints.map((s: any) => ({ name: s.name, status: s.status, startDate: s.startDate, endDate: s.endDate })), 
+            sprints: sprints.map((s: Sprint) => ({ name: s.name, status: s.status, startDate: s.startDate, endDate: s.endDate })), 
             allNodeTypes: nodeTypes 
         }} 
       />
@@ -61,52 +66,38 @@ export function SprintPage({ projectId, sprints, nodeTypes = [] }: any) {
         <SprintCreationForm projectId={projectId} onCancel={() => setIsCreating(false)} />
       )}
 
-      {/* Active Sprints */}
-      {activeSprints.length > 0 && (
-        <section className="flex flex-col gap-md">
-          <div className="flex items-center gap-sm mb-xs">
-            <Rocket size={16} className="text-primary" />
-            <h3 className="text-meta">Active Engagement</h3>
-          </div>
-          <div className="flex flex-col gap-md">
-            {activeSprints.map((sprint: any) => <SprintCard key={sprint.id} sprint={sprint} projectId={projectId} />)}
-          </div>
-        </section>
-      )}
+      <SprintSection 
+        title="Active Engagement"
+        icon={Rocket}
+        iconColor="text-primary"
+        sprints={activeSprints}
+        projectId={projectId}
+      />
 
-      {/* Planned Sprints */}
-      {plannedSprints.length > 0 && (
-        <section className="flex flex-col gap-md">
-          <div className="flex items-center gap-sm mb-xs">
-            <Clock size={16} className="text-on-surface-variant" />
-            <h3 className="text-meta">Planned Horizons</h3>
-          </div>
-          <div className="flex flex-col gap-md">
-            {plannedSprints.map((sprint: any) => <SprintCard key={sprint.id} sprint={sprint} projectId={projectId} />)}
-          </div>
-        </section>
-      )}
+      <SprintSection 
+        title="Planned Horizons"
+        icon={Clock}
+        iconColor="text-on-surface-variant"
+        sprints={plannedSprints}
+        projectId={projectId}
+      />
 
-      {/* Completed Sprints */}
-      {completedSprints.length > 0 && (
-        <section className="flex flex-col gap-md opacity-60">
-          <div className="flex items-center gap-sm mb-xs">
-            <CheckCircle size={16} className="text-tertiary" />
-            <h3 className="text-meta">Completed Milestones</h3>
-          </div>
-          <div className="flex flex-col gap-md">
-            {completedSprints.map((sprint: any) => <SprintCard key={sprint.id} sprint={sprint} projectId={projectId} />)}
-          </div>
-        </section>
-      )}
+      <SprintSection 
+        title="Completed Milestones"
+        icon={CheckCircle}
+        iconColor="text-tertiary"
+        sprints={completedSprints}
+        projectId={projectId}
+        className="opacity-60"
+      />
 
       {sprints.length === 0 && !isCreating && (
         <div className="sprint-empty-state">
           <Calendar size={64} className="sprint-empty-icon" />
-          <p className="sprint-empty-title">No strategic cycles initialized.</p>
-          <p className="sprint-empty-desc">Start by defining your first milestone or use the AI Strategy Import.</p>
+          <p className="sprint-empty-title">No sprints here yet</p>
+          <p className="sprint-empty-desc">Start by defining your first sprint or use AI</p>
           <Button onClick={() => setIsCreating(true)} className="mt-md" variant="secondary" icon={<Plus size={18} />}>
-            Create First Milestone
+            Create First Sprint
           </Button>
         </div>
       )}

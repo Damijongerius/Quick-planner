@@ -4,7 +4,7 @@ services:
       context: ./services/app
       dockerfile: Dockerfile
     platform: linux/arm64
-    container_name: quick-planner-app-arm64
+    container_name: planner-app-arm64
     ports:
       - "3000:3000"
     environment:
@@ -19,7 +19,7 @@ services:
   db:
     image: postgres:16-alpine
     platform: linux/arm64
-    container_name: quick-planner-db-arm64
+    container_name: planner-db-arm64
     restart: always
     environment:
       - POSTGRES_USER=postgres

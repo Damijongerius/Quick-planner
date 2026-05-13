@@ -79,17 +79,17 @@ export default async function ProfilePage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '24px' }}>
         <div style={{ gridColumn: 'span 8', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* Manifesto */}
-            <div className="card-sanctuary" style={{ padding: '40px', borderRadius: '40px' }}>
+            <div className="card-planner" style={{ padding: '40px', borderRadius: '40px' }}>
                 <h3 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--on-surface)', marginBottom: '24px' }}>Manifesto</h3>
                 <p style={{ fontSize: '18px', color: 'var(--on-surface-variant)', fontStyle: 'italic', lineHeight: 1.6 }}>
-                    "Architecting clarity from complexity. In the Sanctuary, we don't just manage time; we master attention."
+                    "Architecting clarity from complexity. In the Planner, we don't just manage time; we master attention."
                 </p>
             </div>
         </div>
 
         {/* Sidebar Sections */}
         <div style={{ gridColumn: 'span 4', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div className="card-sanctuary" style={{ backgroundColor: 'var(--surface-container-low)', borderRadius: '40px', padding: '32px' }}>
+            <div className="card-planner" style={{ backgroundColor: 'var(--surface-container-low)', borderRadius: '40px', padding: '32px' }}>
                 <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '24px' }}>Preferences</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {[

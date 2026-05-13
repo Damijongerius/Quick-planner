@@ -56,7 +56,7 @@ function UpgradeRequiredCard({ onAction }: { onAction: () => void }) {
       <div className="flex flex-col gap-lg">
         <button 
           onClick={onAction}
-          className="button-sanctuary w-full p-lg text-lg flex items-center justify-center gap-md"
+          className="button-planner w-full p-lg text-lg flex items-center justify-center gap-md"
         >
           <Sparkles size={20} />
           Connect Google Account

@@ -8,9 +8,11 @@ import { Modal } from "./ui/Modal";
 import { FormField } from "./ui/FormField";
 import { Button } from "./ui/Button";
 
+import { NodeType } from "@/lib/types";
+
 interface BoardConfigEditorProps {
   projectId: string;
-  nodeType: any;
+  nodeType: NodeType | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -31,14 +33,17 @@ export function BoardConfigEditor({ projectId, nodeType, isOpen, onClose }: Boar
   }, [nodeType]);
 
   const handleSave = async () => {
+    if (!nodeType || !nodeType.id) return;
+    const nodeId = nodeType.id;
     setIsSaving(true);
     try {
-      await updateNodeTypeBoardConfig(projectId, nodeType.id, { 
+      await updateNodeTypeBoardConfig(projectId, nodeId, { 
         showOnKanban, 
         showOnGantt, 
         isSprintEligible 
       });
       onClose();
+
     } catch (error) {
       console.error("Failed to save board config", error);
     } finally {
@@ -89,7 +94,7 @@ export function BoardConfigEditor({ projectId, nodeType, isOpen, onClose }: Boar
             </div>
           </FormField>
 
-          <div className="card-sanctuary p-xl bg-container-low border-none">
+          <div className="card-planner p-xl bg-container-low border-none">
               <div className="flex justify-between items-center">
                   <div>
                       <h4 className="text-sm font-bold text-on-surface">Sprint Eligibility</h4>
@@ -106,7 +111,7 @@ export function BoardConfigEditor({ projectId, nodeType, isOpen, onClose }: Boar
           
           <div className="info-box-primary">
               <p className="text-xs text-primary leading-relaxed">
-                  Items like Legendaries that aren't eligible for sprints will show based on global project timelines.
+                  Items like Legendaries that aren&apos;t eligible for sprints will show based on global project timelines.
               </p>
           </div>
         </div>

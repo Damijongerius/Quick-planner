@@ -15,7 +15,7 @@ export function Card({
   className = "" 
 }: CardProps) {
   return (
-    <div className={`card-sanctuary card-${variant} card-p-${padding} ${className}`}>
+    <div className={`card-planner card-${variant} card-p-${padding} ${className}`}>
       {children}
     </div>
   );

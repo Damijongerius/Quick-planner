@@ -1,6 +1,6 @@
 # Deploying to ARM Devices
 
-This guide explains how to build and deploy Quick-planner for ARM architectures (e.g., Apple Silicon, Raspberry Pi, AWS Graviton).
+This guide explains how to build and deploy Planner for ARM architectures (e.g., Apple Silicon, Raspberry Pi, AWS Graviton).
 
 ## Prerequisites
 - Docker and Docker Compose installed.
@@ -28,7 +28,7 @@ docker buildx inspect --bootstrap
 ### Step 2b: Build the Image
 ```bash
 # From the project root
-docker buildx build --platform linux/arm64 -t your-username/quick-planner-app:arm64 ./services/app --push
+docker buildx build --platform linux/arm64 -t your-username/planner-app:arm64 ./services/app --push
 ```
 *Note: Using `--push` will push it to Docker Hub. If you want to load it locally, use `--load` (but this only works if host and target platforms match or if using a single platform).*
 
@@ -48,4 +48,4 @@ docker login
 ```
 
 ### Prisma Engines not found
-Ensure `npx prisma generate` runs inside the Docker container as specified in the [Dockerfile](file:///c:/Users/damia/WebstormProjects/Quick-planner/services/app/Dockerfile).
+Ensure `npx prisma generate` runs inside the Docker container as specified in the [Dockerfile](file:///c:/Users/damia/WebstormProjects/Planner/services/app/Dockerfile).

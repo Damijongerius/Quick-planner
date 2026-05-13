@@ -9,25 +9,25 @@ import { AuthLogo } from "@/components/auth/AuthLogo";
 import { AuthErrorBanner } from "@/components/auth/AuthErrorBanner";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { LegacyMigrationForm } from "@/components/auth/LegacyMigrationForm";
+import { Button } from "@/components/ui/Button";
 
 function SignInContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
 
   return (
-    <div className="flex items-center justify-center relative overflow-hidden" style={{ minHeight: '100vh', width: '100vw', background: '#0a0a0c' }}>
+    <div className="flex items-center justify-center relative overflow-hidden" style={{ minHeight: '100vh', width: '100vw', background: 'var(--surface)' }}>
       {/* Mesh Gradient Background */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[80vw] h-[80vw] bg-[radial-gradient(circle,rgba(70,86,184,0.15)_0%,rgba(0,0,0,0)_70%)]" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[80vw] h-[80vw] bg-[radial-gradient(circle,rgba(147,51,234,0.12)_0%,rgba(0,0,0,0)_70%)]" />
-        <div className="absolute top-[20%] left-[10%] w-[40vw] h-[40vw] bg-[radial-gradient(circle,rgba(56,189,248,0.08)_0%,rgba(0,0,0,0)_70%)]" />
+      <div className="absolute inset-0 z-0 opacity-40">
+        <div className="absolute top-[-10%] right-[-10%] w-[80vw] h-[80vw] bg-[radial-gradient(circle,rgba(70,86,184,0.08)_0%,rgba(0,0,0,0)_70%)]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[80vw] h-[80vw] bg-[radial-gradient(circle,rgba(147,51,234,0.05)_0%,rgba(0,0,0,0)_70%)]" />
       </div>
 
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8, ease: "circOut" }}
-        className="glass-dark"
+        className="glass"
         style={{ 
           padding: '48px', 
           width: '100%',
@@ -37,11 +37,11 @@ function SignInContent() {
           zIndex: 1,
           borderRadius: '40px',
           margin: '24px',
-          border: '1px solid rgba(255,255,255,0.08)',
-          boxShadow: '0 24px 80px rgba(0,0,0,0.4)'
+          border: '1px solid var(--outline-variant)',
+          boxShadow: 'var(--ambient-shadow)'
         }}
       >
-        <div className="mb-2xl flex justify-center">
+        <div className="mb-2xl flex flex-col items-center">
             <AuthLogo />
         </div>
 
@@ -49,27 +49,20 @@ function SignInContent() {
           {error && <AuthErrorBanner error={error} />}
         </AnimatePresence>
         
-        <div className="mb-2xl">
-            <h2 className="text-editorial text-4xl font-bold tracking-tight mb-md text-white">
-                Welcome Back
-            </h2>
-            <p className="text-meta text-xs opacity-50 uppercase tracking-[0.2em]">
-                Strategic Governance Interface
-            </p>
-        </div>
-        
-        <GoogleSignInButton />
+        <div className="flex flex-col gap-xl">
 
-        <div className="relative my-xl">
-            <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/5"></div>
+            <GoogleSignInButton />
+
+            <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-outline-variant/30"></div>
+                </div>
             </div>
-            <div className="relative flex justify-center text-[10px] uppercase tracking-widest">
-                <span className="bg-[#161618] px-md text-white/20">or utilize legacy migration</span>
-            </div>
+
+            <LegacyMigrationForm />
+
         </div>
 
-        <LegacyMigrationForm />
       </motion.div>
     </div>
   );

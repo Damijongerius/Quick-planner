@@ -70,7 +70,7 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
       />
 
       <div className="backlog-main-layout">
-        <div className="backlog-tree-container card-sanctuary">
+        <div className="backlog-tree-container card-planner">
           {nodes.map(node => (
             <BacklogTree key={node.id} projectId={projectId} node={node} nodeTypes={nodeTypes} onSelect={(n: any) => { setSelectedNode(n); setIsPanelOpen(true); }} selectedNodeId={selectedNode?.id} hideCompleted={hideCompleted} />
           ))}

@@ -1,6 +1,6 @@
 "use client";
 
-const SANCTUARY_PALETTE = [
+const PLANNER_PALETTE = [
   "#3b82f6", // Blue
   "#8b5cf6", // Violet
   "#ec4899", // Pink
@@ -15,18 +15,18 @@ const SANCTUARY_PALETTE = [
   "#64748b"  // Slate
 ];
 
-interface SanctuaryColorPickerProps {
+interface PlannerColorPickerProps {
   currentColor: string;
   onSelect: (color: string) => void;
 }
 
-export function SanctuaryColorPicker({ currentColor, onSelect }: SanctuaryColorPickerProps) {
-  const isCustomColor = !SANCTUARY_PALETTE.includes(currentColor);
+export function PlannerColorPicker({ currentColor, onSelect }: PlannerColorPickerProps) {
+  const isCustomColor = !PLANNER_PALETTE.includes(currentColor);
 
   return (
     <div className="flex items-center gap-md flex-wrap">
       <div className="grid grid-cols-6 gap-sm">
-        {SANCTUARY_PALETTE.map((color: any) => {
+        {PLANNER_PALETTE.map((color: any) => {
           const isActive = currentColor === color;
           return (
             <button

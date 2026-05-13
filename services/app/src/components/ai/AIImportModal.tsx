@@ -1,14 +1,22 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import { FileJson, Check, AlertCircle, Copy, X, ArrowRight } from 'lucide-react';
+import { FileJson, Check, AlertCircle, Copy, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { importProjectData } from '@/lib/actions';
 import { Button } from '../ui/Button';
 import { sanitizeAIContext, generatePromptText } from './aiUtils';
 import { AIImportReview } from './AIImportReview';
 
-export function AIImportModal({ projectId, isOpen, onClose, mode = 'FULL_PROJECT', context }: any) {
+interface AIImportModalProps {
+  projectId: string;
+  isOpen: boolean;
+  onClose: () => void;
+  mode?: 'FULL_PROJECT' | 'NODE_TYPES' | 'SUBTREE' | 'SPRINT';
+  context?: any;
+}
+
+export function AIImportModal({ projectId, isOpen, onClose, mode = 'FULL_PROJECT', context }: AIImportModalProps) {
   const [jsonInput, setJsonInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error' | 'review'>('idle');
   const [message, setMessage] = useState('');
@@ -26,7 +34,7 @@ export function AIImportModal({ projectId, isOpen, onClose, mode = 'FULL_PROJECT
     if (!parsedData) return;
     setStatus('loading');
     try {
-      let data = { ...parsedData };
+      const data = { ...parsedData };
       if (mode === 'SUBTREE' && context?.nodeId) {
           data.nodes = data.nodes.map((n: any) => (!n.parentId && !data.nodes.some((o: any) => o.children?.includes(n.id) || o.children?.includes(n.title))) ? { ...n, parentId: context.nodeId } : n);
       }
@@ -42,7 +50,7 @@ export function AIImportModal({ projectId, isOpen, onClose, mode = 'FULL_PROJECT
 
   return (
     <div className="modal-overlay" style={{ zIndex: 1100 }}>
-      <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} className="glass-sanctuary p-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-[32px] bg-surface/95 border border-outline-variant shadow-sanctuary">
+      <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} className="glass-planner p-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-[32px] bg-surface/95 border border-outline-variant shadow-planner">
         <div className="flex justify-between items-center mb-xl">
           <div className="flex items-center gap-md">
             <div className="icon-container-premium w-12 h-12"><FileJson size={24} /></div>
@@ -59,7 +67,7 @@ export function AIImportModal({ projectId, isOpen, onClose, mode = 'FULL_PROJECT
                 </div>
                 <div className="flex flex-col gap-md">
                     <label className="text-xs font-bold">Paste Implementation JSON</label>
-                    <textarea value={jsonInput} onChange={(e) => setJsonInput(e.target.value)} placeholder='{ "nodes": [ { "title": "...", "type": "..." } ] }' className="input-sanctuary flex-1 w-full min-h-[400px] font-mono text-xs p-md resize-none rounded-3xl" />
+                    <textarea value={jsonInput} onChange={(e) => setJsonInput(e.target.value)} placeholder='{ "nodes": [ { "title": "...", "type": "..." } ] }' className="input-planner flex-1 w-full min-h-[400px] font-mono text-xs p-md resize-none rounded-3xl" />
                 </div>
             </div>
         ) : (

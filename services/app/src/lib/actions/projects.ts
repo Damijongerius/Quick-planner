@@ -5,15 +5,16 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { serializeData } from "@/lib/utils";
 import { logHistoryEvent } from "./helpers";
+import { Project } from "@/lib/types";
 
-export async function getProjects() {
+export async function getProjects(): Promise<Project[]> {
   const session = await auth();
   if (!session?.user?.id) return [];
   const projects = await prisma.project.findMany({
     where: { userId: session.user.id },
     orderBy: { updatedAt: "desc" },
   });
-  return serializeData(projects);
+  return serializeData(projects) as Project[];
 }
 
 export async function getProject(id: string) {
@@ -27,9 +28,10 @@ export async function getProject(id: string) {
 
 export async function createProject(name: string) {
   const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
+  const userId = session?.user?.id;
+  if (!userId) throw new Error("Unauthorized");
   const project = await prisma.project.create({
-    data: { name, userId: session.user.id },
+    data: { name, userId },
   });
   await logHistoryEvent({ projectId: project.id, action: 'CREATE', entityType: 'PROJECT', entityName: name });
   revalidatePath("/projects");
@@ -40,6 +42,26 @@ export async function deleteProject(id: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
   await prisma.project.delete({ where: { id, userId: session.user.id } });
+  revalidatePath("/projects");
+}
+
+export async function archiveProject(id: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+  await prisma.project.update({
+    where: { id, userId: session.user.id },
+    data: { isArchived: true }
+  });
+  revalidatePath("/projects");
+}
+
+export async function unarchiveProject(id: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+  await prisma.project.update({
+    where: { id, userId: session.user.id },
+    data: { isArchived: false }
+  });
   revalidatePath("/projects");
 }
 

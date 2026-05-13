@@ -1,8 +1,8 @@
 .icon-picker-grid {
   display: grid; 
-  grid-template-columns: repeat(6, 1fr); 
-  gap: 8px; 
-  max-height: 200px; 
+  grid-template-columns: repeat(8, 1fr); 
+  gap: 4px; 
+  max-height: 180px; 
   overflow-y: auto; 
   padding-right: 4px;
 }

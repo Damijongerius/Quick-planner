@@ -5,7 +5,7 @@ import { ArrowRight, Calendar, Plus } from 'lucide-react';
 
 export function AIImportReview({ parsedData }: { parsedData: any }) {
   return (
-    <div className="card-sanctuary p-xl bg-surface-container-lowest">
+    <div className="card-planner p-xl bg-surface-container-lowest">
         <h3 className="text-editorial text-lg font-bold mb-md flex items-center gap-md">
             <ArrowRight size={20} className="text-primary" /> Ready to Implement
         </h3>

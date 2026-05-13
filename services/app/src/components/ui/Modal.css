@@ -10,9 +10,11 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 100;
-  background-color: rgba(44, 52, 55, 0.4);
-  backdrop-filter: blur(12px);
+  z-index: 1000;
+  background-color: var(--surface);
+  background-color: rgba(248, 249, 251, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -24,7 +26,7 @@
   width: 90%;
   max-width: var(--modal-max-width, 520px);
   border-radius: 32px;
-  box-shadow: var(--sanctuary-shadow);
+  box-shadow: var(--planner-shadow);
   border: 1px solid var(--outline-variant);
   display: flex;
   flex-direction: column;

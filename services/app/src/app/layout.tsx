@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope' });
 
 export const metadata: Metadata = {
-  title: "Sanctuary Planner",
+  title: "Planner",
   description: "Strategic Hierarchical Planning",
 };
 

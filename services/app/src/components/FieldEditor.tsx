@@ -8,9 +8,11 @@ import { Modal } from "./ui/Modal";
 import { FormField } from "./ui/FormField";
 import { Button } from "./ui/Button";
 
+import { NodeType } from "@/lib/types";
+
 interface FieldEditorProps {
   projectId: string;
-  nodeType: any;
+  nodeType: NodeType | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -29,7 +31,7 @@ export function FieldEditor({ projectId, nodeType, isOpen, onClose }: FieldEdito
 
   const handleAddField = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fieldName) return;
+    if (!fieldName || !nodeType) return;
     await addFieldDefinition(projectId, nodeType.id, fieldName, fieldType);
     setFieldName("");
     setIsAdding(false);
@@ -51,8 +53,8 @@ export function FieldEditor({ projectId, nodeType, isOpen, onClose }: FieldEdito
           <div>
             <label className="text-meta block mb-lg">Active Attributes</label>
             <div className="flex flex-col gap-md">
-              {nodeType?.fields.map((field: any) => {
-                const Icon = FIELD_TYPES.find((t: any) => t.type === field.type)?.icon || Type;
+              {nodeType?.fields?.map((field) => {
+                const Icon = FIELD_TYPES.find((t) => t.type === field.type)?.icon || Type;
                 return (
                   <div key={field.id} className="attribute-row">
                     <div className="flex items-center gap-lg">
@@ -71,7 +73,7 @@ export function FieldEditor({ projectId, nodeType, isOpen, onClose }: FieldEdito
                   </div>
                 );
               })}
-              {nodeType?.fields.length === 0 && (
+              {(nodeType?.fields?.length || 0) === 0 && (
                 <div className="attribute-empty-state">
                   <p className="text-on-surface-variant text-sm italic">No attributes defined yet.</p>
                 </div>

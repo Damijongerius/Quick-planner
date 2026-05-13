@@ -37,7 +37,7 @@ export function GanttChart({ nodes, sprints, currentSprintId }: any) {
   };
 
   return (
-    <div className="card-sanctuary gantt-container">
+    <div className="card-planner gantt-container">
       <header className="gantt-header">
         <div className="flex items-center gap-md">
             <div className="gantt-header-icon"><Milestone size={20} /></div>

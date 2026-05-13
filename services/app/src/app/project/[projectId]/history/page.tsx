@@ -27,7 +27,7 @@ export default async function HistoryPage({ params }: { params: Promise<{ projec
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
         {history.map((event: any) => (
-          <div key={event.id} className="card-sanctuary" style={{ 
+          <div key={event.id} className="card-planner" style={{ 
             padding: '20px 32px', 
             borderRadius: '12px',
             display: 'flex',

@@ -57,7 +57,7 @@ export function NodeSidePanel({ projectId, node, isOpen, onClose, sprints, allNo
   if (!node) return null;
 
   return (
-    <div className="side-panel-container card-sanctuary p-none">
+    <div className="side-panel-container card-planner p-none">
       <header className="side-panel-header">
         <div className="flex items-center gap-md">
           <div className="side-panel-icon-container" style={{ '--node-color': node.type?.color || 'var(--primary)' } as any}><IconRenderer name={node.type?.icon} size={18} /></div>
