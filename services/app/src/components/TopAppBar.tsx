@@ -6,6 +6,8 @@ import { useState, useRef, useEffect } from "react";
 import { Search, Bell, Settings, Calendar, Trees, LayoutGrid, ChevronRight, X, Clock, Menu } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { archiveProject } from "@/lib/actions";
 
 interface TopAppBarProps {
   projectId: string;
@@ -14,7 +16,9 @@ interface TopAppBarProps {
 
 export function TopAppBar({ projectId, onMenuClick }: TopAppBarProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   // Corrected click outside
   useEffect(() => {
@@ -26,6 +30,17 @@ export function TopAppBar({ projectId, onMenuClick }: TopAppBarProps) {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  const handleArchive = async () => {
+    try {
+      setIsArchiving(true);
+      await archiveProject(projectId);
+      router.push("/projects");
+    } catch (error) {
+      console.error("Failed to archive project:", error);
+      setIsArchiving(false);
+    }
+  };
 
   const settingsItems = [
     { name: "Sprints", href: `/project/${projectId}/sprints`, icon: Calendar, desc: "Manage milestones and dates" },
@@ -100,8 +115,10 @@ export function TopAppBar({ projectId, onMenuClick }: TopAppBarProps) {
                     <button 
                       className="button-ghost w-full justify-center text-error font-bold"
                       style={{ border: 'none', background: 'transparent' }}
+                      onClick={handleArchive}
+                      disabled={isArchiving}
                     >
-                        Archive Project
+                        {isArchiving ? "Archiving..." : "Archive Project"}
                     </button>
                 </div>
               </motion.div>

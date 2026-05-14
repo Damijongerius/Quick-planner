@@ -56,20 +56,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async session({ session, token }) {
       if (token.id && session.user) {
-        session.user.id = token.id as string;
-        
         // Fetch the latest user data from the database to ensure we have the Google profile info
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
           include: { accounts: true }
         });
         
-        if (dbUser) {
-            session.user.name = dbUser.name ?? "";
-            session.user.email = dbUser.email ?? "";
-            session.user.image = dbUser.image ?? "";
-            (session.user as any).isMigrated = dbUser.accounts.some((acc: any) => acc.provider === 'google');
+        if (!dbUser) {
+          // If the user was deleted from the database (e.g. local DB wipe),
+          // invalidate the session by returning an empty object.
+          return {} as any;
         }
+        
+        session.user.id = token.id as string;
+        session.user.name = dbUser.name ?? "";
+        session.user.email = dbUser.email ?? "";
+        session.user.image = dbUser.image ?? "";
+        (session.user as any).isMigrated = dbUser.accounts.some((acc: any) => acc.provider === 'google');
       }
       return session
     },
