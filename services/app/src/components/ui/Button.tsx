@@ -16,7 +16,7 @@ export function Button({
   loading, 
   className = "", 
   ...props 
-}: ButtonProps) {
+}: Readonly<ButtonProps>) {
   const baseClass = "button-base";
   const variantClass = `button-${variant}`;
   const sizeClass = `button-${size}`;

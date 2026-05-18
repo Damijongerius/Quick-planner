@@ -9,6 +9,7 @@ services:
     env_file:
       - ./services/app/.env
     environment:
+      - NODE_ENV=development
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/planner_db?schema=public
       - AUTH_URL=http://localhost:3000
       - AUTH_TRUST_HOST=true
@@ -19,6 +20,22 @@ services:
       - /app/node_modules
       - /app/.next
     command: ./dev.sh
+    depends_on:
+      - db
+    restart: always
+
+  mcp:
+    build:
+      context: .
+      dockerfile: services/mcp/Dockerfile
+    container_name: planner-mcp
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/planner_db?schema=public
+      - PORT=3001
+    volumes:
+      - ./services/mcp/src:/app/services/mcp/src
     depends_on:
       - db
     restart: always

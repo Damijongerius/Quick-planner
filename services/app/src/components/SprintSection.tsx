@@ -8,9 +8,10 @@ interface SprintSectionProps {
   title: string;
   icon: LucideIcon;
   iconColor: string;
-  sprints: Sprint[];
+  sprints: (Sprint & { _count?: { nodes: number } })[];
   projectId: string;
   className?: string;
+  isReadOnly?: boolean;
 }
 
 export function SprintSection({ 
@@ -19,8 +20,9 @@ export function SprintSection({
   iconColor, 
   sprints, 
   projectId, 
-  className = "" 
-}: SprintSectionProps) {
+  className = "",
+  isReadOnly
+}: Readonly<SprintSectionProps>) {
   if (sprints.length === 0) return null;
 
   return (
@@ -31,7 +33,7 @@ export function SprintSection({
       </div>
       <div className="flex flex-col gap-md">
         {sprints.map((sprint) => (
-          <SprintCard key={sprint.id} sprint={sprint} projectId={projectId} />
+          <SprintCard key={sprint.id} sprint={sprint} projectId={projectId} isReadOnly={isReadOnly} />
         ))}
       </div>
     </section>

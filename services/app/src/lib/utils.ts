@@ -3,5 +3,5 @@
  * Next.js Client Components (e.g., converts Date to string).
  */
 export function serializeData<T>(data: T): T {
-  return JSON.parse(JSON.stringify(data));
+  return structuredClone(data);
 }

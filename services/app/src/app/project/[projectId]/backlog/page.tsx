@@ -1,7 +1,7 @@
 import { getRootNodes, getNodeTypes, getSprints, getAllNodes } from "@/lib/actions";
 import { BacklogView } from "@/components/BacklogView";
 
-export default async function BacklogPage({ params }: { params: Promise<{ projectId: string }> }) {
+export default async function BacklogPage({ params }: Readonly<{ params: Promise<{ projectId: string }> }>) {
   const { projectId } = await params;
   const rootNodes = await getRootNodes(projectId);
   const nodeTypes = await getNodeTypes(projectId);

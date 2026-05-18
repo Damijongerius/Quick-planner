@@ -5,22 +5,19 @@ import "./ui/Avatar.css";
 import React from "react";
 import { User, ArrowRight, Clock } from "lucide-react";
 
-interface AuditEvent {
-  id: string;
-  action: string;
-  createdAt: string | Date;
-  oldValue: string | null;
-  newValue: string | null;
-  user: {
-    name: string | null;
-  };
-}
+import { AuditLogEvent } from "@/lib/types";
 
 interface AuditTrailProps {
-  history: AuditEvent[];
+  history: AuditLogEvent[];
 }
 
-export function AuditTrail({ history }: AuditTrailProps) {
+export function AuditTrail({ history }: Readonly<AuditTrailProps>) {
+  const getEventLabel = (event: AuditLogEvent) => {
+    if (event.action === 'UPDATE') return 'Title/Desc/Timeline updated';
+    if (event.action === 'MOVE') return 'Sprint changed';
+    return event.action;
+  };
+
   return (
     <div className="flex flex-col gap-lg">
       <h3 className="text-editorial" style={{ fontSize: '20px', fontWeight: 800 }}>Audit Trail</h3>
@@ -30,10 +27,10 @@ export function AuditTrail({ history }: AuditTrailProps) {
           <div className="timeline-content">
             <div className="flex items-center gap-sm" style={{ marginBottom: '4px' }}>
               <span className="timeline-event-action">{event.action}</span>
-              <span className="timeline-event-date">{new Date(event.createdAt).toLocaleString()}</span>
+              <span className="timeline-event-date" suppressHydrationWarning>{new Date(event.createdAt).toLocaleString()}</span>
             </div>
             <p className="timeline-event-title">
-              {event.action === 'UPDATE' ? 'Title/Desc/Timeline updated' : (event.action === 'MOVE' ? 'Sprint changed' : event.action)}
+              {getEventLabel(event)}
             </p>
             {event.oldValue && event.newValue && (
               <div className="timeline-event-diff">

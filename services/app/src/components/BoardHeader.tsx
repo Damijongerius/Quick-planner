@@ -5,9 +5,11 @@ import { IconRenderer } from "./IconPicker";
 import { SegmentedControl } from "./ui/SegmentedControl";
 import { Button } from "./ui/Button";
 
+import { Sprint, NodeType } from "@/lib/types";
+
 interface BoardHeaderProps {
-  sprints: any[];
-  nodeTypes: any[];
+  sprints: Sprint[];
+  nodeTypes: NodeType[];
   selectedSprintId: string | null;
   selectedNodeTypeIds: string[];
   viewMode: string;
@@ -25,7 +27,7 @@ export function BoardHeader({
   onSprintChange,
   onNodeTypeToggle,
   onViewModeChange
-}: BoardHeaderProps) {
+}: Readonly<BoardHeaderProps>) {
   const currentIndex = getSprintIndex(sprints, selectedSprintId);
   const selectedSprint = sprints[currentIndex];
 
@@ -69,15 +71,15 @@ export function BoardHeader({
 
 // --- Implementation Details (The Prose) ---
 
-function handlePrev(currentIndex: number, sprints: any[], onSprintChange: Function) {
+function handlePrev(currentIndex: number, sprints: Sprint[], onSprintChange: (id: string) => void) {
   if (currentIndex > 0) onSprintChange(sprints[currentIndex - 1].id);
 }
 
-function handleNext(currentIndex: number, sprints: any[], onSprintChange: Function) {
+function handleNext(currentIndex: number, sprints: Sprint[], onSprintChange: (id: string) => void) {
   if (currentIndex < sprints.length - 1) onSprintChange(sprints[currentIndex + 1].id);
 }
 
-function TypeFilterList({ nodeTypes, selectedNodeTypeIds, onToggle }: any) {
+function TypeFilterList({ nodeTypes, selectedNodeTypeIds, onToggle }: Readonly<{ nodeTypes: NodeType[], selectedNodeTypeIds: string[], onToggle: (id: string) => void }>) {
   return (
     <div className="chip-group">
       <Button 
@@ -86,7 +88,7 @@ function TypeFilterList({ nodeTypes, selectedNodeTypeIds, onToggle }: any) {
       >
           ALL TYPES
       </Button>
-      {nodeTypes.map((type: any) => (
+      {nodeTypes.map((type) => (
         <TypeChip 
           key={type.id} 
           type={type} 
@@ -98,21 +100,21 @@ function TypeFilterList({ nodeTypes, selectedNodeTypeIds, onToggle }: any) {
   );
 }
 
-function TypeChip({ type, isSelected, onToggle }: any) {
+function TypeChip({ type, isSelected, onToggle }: Readonly<{ type: NodeType, isSelected: boolean, onToggle: (id: string) => void }>) {
   return (
     <Button 
       variant="ghost" size="sm" onClick={() => onToggle(type.id)}
-      icon={<IconRenderer name={type.icon} size={14} color={isSelected ? type.color : 'var(--on-surface-variant)'} />}
+      icon={<IconRenderer name={type.icon || 'Target'} size={14} color={isSelected ? type.color || undefined : 'var(--on-surface-variant)'} />}
       className={`chip-item ${isSelected ? 'active' : ''}`}
-      style={isSelected ? { color: type.color } : {}}
+      style={isSelected ? { color: type.color || undefined } : {}}
     >
         {type.name.toUpperCase()}
     </Button>
   );
 }
 
-function getSprintIndex(sprints: any[], selectedId: string | null) {
-  return sprints.findIndex((s: any) => s.id === selectedId);
+function getSprintIndex(sprints: Sprint[], selectedId: string | null) {
+  return sprints.findIndex((s) => s.id === selectedId);
 }
 
 function isFirstSprint(index: number) {

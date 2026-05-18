@@ -7,12 +7,12 @@ import { Button } from "./ui/Button";
 import { FormField } from "./ui/FormField";
 import { createSprint } from "@/lib/actions";
 
-export function SprintCreationForm({ projectId, onCancel }: any) {
+export function SprintCreationForm({ projectId, onCancel }: Readonly<{ projectId: string; onCancel: () => void }>) {
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name) return;
     await createSprint(projectId, name, startDate || undefined, endDate || undefined);

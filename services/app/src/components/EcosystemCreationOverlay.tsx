@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from 'react';
 import { Button } from './ui/Button';
 import { createNodeType } from '@/lib/actions';
@@ -11,12 +9,12 @@ interface EcosystemCreationOverlayProps {
   onClose: () => void;
 }
 
-export function EcosystemCreationOverlay({ projectId, onClose }: EcosystemCreationOverlayProps) {
+export function EcosystemCreationOverlay({ projectId, onClose }: Readonly<EcosystemCreationOverlayProps>) {
   const [newName, setNewName] = useState("");
   const [color, setColor] = useState("#4656b8");
   const [icon, setIcon] = useState("Target");
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData();
     formData.append("name", newName);
@@ -35,8 +33,9 @@ export function EcosystemCreationOverlay({ projectId, onClose }: EcosystemCreati
           
           <form onSubmit={handleCreate} className="flex flex-col gap-lg">
             <div>
-                <label className="text-meta block text-xs mb-sm">TYPE NAME</label>
+                <label htmlFor="type-name" className="text-meta block text-xs mb-sm">TYPE NAME</label>
                 <input 
+                    id="type-name"
                     autoFocus
                     className="input-planner"
                     placeholder="e.g. Objective, Goal, Task..."
@@ -48,7 +47,7 @@ export function EcosystemCreationOverlay({ projectId, onClose }: EcosystemCreati
 
             <div className="flex flex-col gap-lg">
                 <div>
-                    <label className="text-meta block text-xs mb-sm">VISUAL IDENTITY</label>
+                    <span className="text-meta block text-xs mb-sm">VISUAL IDENTITY</span>
                     <div className="flex flex-col gap-md">
                         <p className="text-10px font-bold opacity-40 uppercase">Icon</p>
                         <IconPicker currentIcon={icon} onSelect={setIcon} color={color} />

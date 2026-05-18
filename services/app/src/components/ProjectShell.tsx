@@ -4,13 +4,19 @@ import { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { TopAppBar } from "./TopAppBar";
 
+interface Project {
+  id: string;
+  name: string;
+  [key: string]: unknown;
+}
+
 interface ProjectShellProps {
   children: React.ReactNode;
-  project: any;
+  project: Project;
   projectId: string;
 }
 
-export function ProjectShell({ children, project, projectId }: ProjectShellProps) {
+export function ProjectShell({ children, project, projectId }: Readonly<ProjectShellProps>) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -37,6 +43,12 @@ export function ProjectShell({ children, project, projectId }: ProjectShellProps
         <div 
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90] lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              setIsSidebarOpen(false);
+            }
+          }}
+          role="none"
         />
       )}
     </div>

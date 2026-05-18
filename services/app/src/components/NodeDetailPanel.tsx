@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Calendar, Tag, Box, AlertTriangle, Trash2, Save } from "lucide-react";
+import { X, Trash2, Save } from "lucide-react";
 import { getNode, deleteNode, updateNode } from "@/lib/actions";
-import { motion, AnimatePresence } from "framer-motion";
-import { IconRenderer } from "./IconPicker";
+import { Node } from "@/lib/types";
 import { Button } from "./ui/Button";
 
 interface NodeDetailPanelProps {
@@ -15,23 +14,28 @@ interface NodeDetailPanelProps {
   onUpdate?: () => void;
 }
 
-export function NodeDetailPanel({ projectId, nodeId, isOpen, onClose, onUpdate }: NodeDetailPanelProps) {
-  const [node, setNode] = useState<any>(null);
+export function NodeDetailPanel({ projectId, nodeId, isOpen, onClose, onUpdate }: Readonly<NodeDetailPanelProps>) {
+  const [node, setNode] = useState<Node | null>(null);
   const [title, setTitle] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (isOpen && nodeId) {
-      loadNode();
+      const fetchData = async () => {
+        setIsLoading(true);
+        const data = await getNode(projectId, nodeId);
+        setNode(data);
+        setTitle(data?.title || "");
+        setIsLoading(false);
+      };
+      fetchData();
     }
-  }, [isOpen, nodeId]);
+  }, [isOpen, nodeId, projectId]);
 
   const loadNode = async () => {
-    setIsLoading(true);
     const data = await getNode(projectId, nodeId);
     setNode(data);
     setTitle(data?.title || "");
-    setIsLoading(false);
   };
 
   const handleUpdate = async () => {
@@ -59,13 +63,14 @@ export function NodeDetailPanel({ projectId, nodeId, isOpen, onClose, onUpdate }
         </button>
       </header>
 
-      {isLoading ? (
-        <p className="text-secondary p-xl text-center">Loading...</p>
-      ) : node ? (
+      {isLoading && <p className="text-secondary p-xl text-center">Loading...</p>}
+      
+      {!isLoading && node && (
         <div className="flex flex-col gap-xl">
           <div>
-            <label className="text-meta block mb-sm">TITLE</label>
+            <label htmlFor="node-title" className="text-meta block mb-sm">TITLE</label>
             <input 
+              id="node-title"
               className="input-premium" 
               value={title} 
               onChange={(e) => setTitle(e.target.value)} 
@@ -81,7 +86,9 @@ export function NodeDetailPanel({ projectId, nodeId, isOpen, onClose, onUpdate }
             </Button>
           </div>
         </div>
-      ) : (
+      )}
+
+      {!isLoading && !node && (
         <p className="text-error p-xl text-center">Node not found</p>
       )}
     </div>

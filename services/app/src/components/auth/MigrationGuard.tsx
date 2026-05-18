@@ -4,7 +4,7 @@ import { useSession, signIn } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, ArrowRight, ShieldAlert } from "lucide-react";
 
-export function MigrationGuard({ children }: { children: React.ReactNode }) {
+export function MigrationGuard({ children }: Readonly<{ children: React.ReactNode }>) {
   const { data: session, status } = useSession();
 
   const showMigration = shouldShowMigrationGate(session, status);
@@ -30,10 +30,10 @@ export function MigrationGuard({ children }: { children: React.ReactNode }) {
 // --- Implementation Details (The Prose) ---
 
 function handleGoogleMigration() {
-  signIn("google", { callbackUrl: window.location.href });
+  signIn("google", { callbackUrl: globalThis.location.href });
 }
 
-function UpgradeRequiredCard({ onAction }: { onAction: () => void }) {
+function UpgradeRequiredCard({ onAction }: Readonly<{ onAction: () => void }>) {
   return (
     <motion.div
       initial={{ scale: 0.9, y: 20 }}
@@ -71,8 +71,8 @@ function UpgradeRequiredCard({ onAction }: { onAction: () => void }) {
   );
 }
 
-function shouldShowMigrationGate(session: any, status: string) {
-  const isMigrated = (session?.user as any)?.isMigrated;
+function shouldShowMigrationGate(session: unknown, status: string) {
+  const isMigrated = (session as { user?: { isMigrated?: boolean } })?.user?.isMigrated;
   return status === "authenticated" && !isMigrated;
 }
 

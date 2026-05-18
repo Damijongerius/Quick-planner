@@ -24,12 +24,12 @@ const FIELD_TYPES = [
     { type: "CHECKBOX", icon: CheckCircle2 }
 ];
 
-export function FieldEditor({ projectId, nodeType, isOpen, onClose }: FieldEditorProps) {
+export function FieldEditor({ projectId, nodeType, isOpen, onClose }: Readonly<FieldEditorProps>) {
   const [fieldName, setFieldName] = useState("");
   const [fieldType, setFieldType] = useState("TEXT");
   const [isAdding, setIsAdding] = useState(false);
 
-  const handleAddField = async (e: React.FormEvent) => {
+  const handleAddField = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!fieldName || !nodeType) return;
     await addFieldDefinition(projectId, nodeType.id, fieldName, fieldType);
@@ -51,7 +51,7 @@ export function FieldEditor({ projectId, nodeType, isOpen, onClose }: FieldEdito
     >
         <div className="flex flex-col gap-2xl">
           <div>
-            <label className="text-meta block mb-lg">Active Attributes</label>
+            <span className="text-meta block mb-lg">Active Attributes</span>
             <div className="flex flex-col gap-md">
               {nodeType?.fields?.map((field) => {
                 const Icon = FIELD_TYPES.find((t) => t.type === field.type)?.icon || Type;
@@ -73,7 +73,7 @@ export function FieldEditor({ projectId, nodeType, isOpen, onClose }: FieldEdito
                   </div>
                 );
               })}
-              {(nodeType?.fields?.length || 0) === 0 && (
+              {(nodeType?.fields?.length ?? 0) === 0 && (
                 <div className="attribute-empty-state">
                   <p className="text-on-surface-variant text-sm italic">No attributes defined yet.</p>
                 </div>
@@ -82,11 +82,7 @@ export function FieldEditor({ projectId, nodeType, isOpen, onClose }: FieldEdito
           </div>
 
           <AnimatePresence>
-            {!isAdding ? (
-              <Button onClick={() => setIsAdding(true)} className="w-full p-lg" icon={<Plus size={18} />}>
-                Add New Attribute
-              </Button>
-            ) : (
+            {isAdding ? (
               <motion.form 
                 initial={{ opacity: 0, height: 0 }} 
                 animate={{ opacity: 1, height: 'auto' }} 
@@ -113,6 +109,10 @@ export function FieldEditor({ projectId, nodeType, isOpen, onClose }: FieldEdito
                   <Button type="button" variant="ghost" onClick={() => setIsAdding(false)}>Discard</Button>
                 </div>
               </motion.form>
+            ) : (
+              <Button onClick={() => setIsAdding(true)} className="w-full p-lg" icon={<Plus size={18} />}>
+                Add New Attribute
+              </Button>
             )}
           </AnimatePresence>
         </div>

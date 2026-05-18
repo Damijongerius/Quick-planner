@@ -1,7 +1,7 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { signIn } from "next-auth/react";
 import { motion } from "framer-motion";
-import { Mail, Lock, LogIn, ChevronDown } from "lucide-react";
+import { Mail, Lock, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 export function LegacyMigrationForm() {
@@ -11,16 +11,16 @@ export function LegacyMigrationForm() {
 
   return (
     <div className="legacy-migration-container">
-      {!showLegacy ? (
-        <MigrationToggle onActivate={() => setShowLegacy(true)} />
-      ) : (
+      {showLegacy ? (
         <MigrationForm 
           email={email} 
           setEmail={setEmail} 
           password={password} 
           setPassword={setPassword} 
-          onSubmit={(e: React.FormEvent) => handleLegacyAuthentication(e, email, password)} 
+          onSubmit={(e: React.FormEvent<HTMLFormElement>) => handleLegacyAuthentication(e, email, password)} 
         />
+      ) : (
+        <MigrationToggle onActivate={() => setShowLegacy(true)} />
       )}
     </div>
   );
@@ -28,12 +28,12 @@ export function LegacyMigrationForm() {
 
 // --- Implementation Details (The Prose) ---
 
-function handleLegacyAuthentication(e: React.FormEvent, email: string, password: string) {
+function handleLegacyAuthentication(e: React.FormEvent<HTMLFormElement>, email: string, password: string) {
   e.preventDefault();
   performLegacySignIn(email, password);
 }
 
-function MigrationToggle({ onActivate }: { onActivate: () => void }) {
+function MigrationToggle({ onActivate }: Readonly<{ onActivate: () => void }>) {
   return (
     <Button 
       onClick={onActivate}
@@ -45,11 +45,11 @@ function MigrationToggle({ onActivate }: { onActivate: () => void }) {
 }
 
 interface MigrationFormProps {
-  email: string;
-  setEmail: (email: string) => void;
-  password: string;
-  setPassword: (password: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  readonly email: string;
+  readonly setEmail: (email: string) => void;
+  readonly password: string;
+  readonly setPassword: (password: string) => void;
+  readonly onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 }
 
 function MigrationForm({ email, setEmail, password, setPassword, onSubmit }: MigrationFormProps) {

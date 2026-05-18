@@ -13,7 +13,7 @@ export function Card({
   variant = "elevated", 
   padding = "md", 
   className = "" 
-}: CardProps) {
+}: Readonly<CardProps>) {
   return (
     <div className={`card-planner card-${variant} card-p-${padding} ${className}`}>
       {children}
@@ -21,10 +21,10 @@ export function Card({
   );
 }
 
-export function CardHeader({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+export function CardHeader({ children, className = "" }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <div className={`card-header ${className}`}>{children}</div>;
 }
 
-export function CardContent({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+export function CardContent({ children, className = "" }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <div className={`card-content ${className}`}>{children}</div>;
 }

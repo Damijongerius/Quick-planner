@@ -3,22 +3,24 @@ import "./TopAppBar.css";
 import "./ui/Button.css";
 
 import { useState, useRef, useEffect } from "react";
-import { Search, Bell, Settings, Calendar, Trees, LayoutGrid, ChevronRight, X, Clock, Menu } from "lucide-react";
+import { Bell, Settings, Calendar, Trees, ChevronRight, Clock, Menu, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { archiveProject } from "@/lib/actions";
+import { archiveProject, unarchiveProject } from "@/lib/actions";
+import { useProject } from "./ProjectContext";
 
 interface TopAppBarProps {
-  projectId: string;
-  onMenuClick?: () => void;
+  readonly projectId: string;
+  readonly onMenuClick?: () => void;
 }
 
-export function TopAppBar({ projectId, onMenuClick }: TopAppBarProps) {
+export function TopAppBar({ projectId, onMenuClick }: Readonly<TopAppBarProps>) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { isReadOnly } = useProject();
 
   // Corrected click outside
   useEffect(() => {
@@ -34,13 +36,25 @@ export function TopAppBar({ projectId, onMenuClick }: TopAppBarProps) {
   const handleArchive = async () => {
     try {
       setIsArchiving(true);
-      await archiveProject(projectId);
-      router.push("/projects");
+      if (isReadOnly) {
+        await unarchiveProject(projectId);
+        router.refresh();
+      } else {
+        await archiveProject(projectId);
+        router.push("/projects");
+      }
     } catch (error) {
-      console.error("Failed to archive project:", error);
+      console.error("Failed to archive/unarchive project:", error);
+    } finally {
       setIsArchiving(false);
+      setIsSettingsOpen(false);
     }
   };
+
+  let archiveActionLabel = isReadOnly ? "Restore Project" : "Archive Project";
+  if (isArchiving) {
+    archiveActionLabel = "Processing...";
+  }
 
   const settingsItems = [
     { name: "Sprints", href: `/project/${projectId}/sprints`, icon: Calendar, desc: "Manage milestones and dates" },
@@ -59,7 +73,13 @@ export function TopAppBar({ projectId, onMenuClick }: TopAppBarProps) {
         </button>
       </div>
 
-      <div className="flex-1" />
+      <div className="flex-1 flex items-center gap-md">
+        {isReadOnly && (
+          <div className="flex items-center gap-xs px-md py-xs bg-error/10 border border-error/20 rounded-full text-error font-bold text-[10px] tracking-widest uppercase">
+            <ShieldAlert size={12} /> Read-Only Workspace
+          </div>
+        )}
+      </div>
 
       <div className="flex items-center gap-sm shrink-0" ref={dropdownRef}>
         <div className="relative">
@@ -113,12 +133,12 @@ export function TopAppBar({ projectId, onMenuClick }: TopAppBarProps) {
                 
                 <div className="dropdown-footer" style={{ borderTop: '1px solid var(--outline-variant)', marginTop: '8px', paddingTop: '8px' }}>
                     <button 
-                      className="button-ghost w-full justify-center text-error font-bold"
+                      className={`button-ghost w-full justify-center font-bold ${isReadOnly ? 'text-primary' : 'text-error'}`}
                       style={{ border: 'none', background: 'transparent' }}
                       onClick={handleArchive}
                       disabled={isArchiving}
                     >
-                        {isArchiving ? "Archiving..." : "Archive Project"}
+                        {archiveActionLabel}
                     </button>
                 </div>
               </motion.div>

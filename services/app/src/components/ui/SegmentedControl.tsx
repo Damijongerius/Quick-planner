@@ -17,7 +17,7 @@ interface SegmentedControlProps {
   className?: string;
 }
 
-export function SegmentedControl({ options, value, onChange, className = "" }: SegmentedControlProps) {
+export function SegmentedControl({ options, value, onChange, className = "" }: Readonly<SegmentedControlProps>) {
   return (
     <div className={`segmented-control-container ${className}`}>
       {options.map((option) => {

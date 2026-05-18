@@ -4,19 +4,20 @@ import "./Backlog.css";
 import "./TopAppBar.css";
 
 import React from "react";
-import { PlusCircle, Archive, ArchiveRestore, FileJson, Plus, Search, X } from "lucide-react";
+import { Plus, Search, X, Archive, ArchiveRestore, FileJson } from "lucide-react";
 import { Button } from "./ui/Button";
 import { IconRenderer } from "./IconPicker";
 import { AnimatePresence, motion } from "framer-motion";
+import { NodeType } from "@/lib/types";
 
 interface BacklogToolbarProps {
-  availableRootTypes: any[];
+  availableRootTypes: NodeType[];
   onAddRoot: (typeId: string, typeName: string) => void;
   hideCompleted: boolean;
   onToggleHideCompleted: () => void;
   showArchived: boolean;
   onToggleShowArchived: () => void;
-  onOpenAIBuilder: () => void;
+  isReadOnly?: boolean;
 }
 
 export function BacklogToolbar({ 
@@ -26,8 +27,8 @@ export function BacklogToolbar({
   onToggleHideCompleted, 
   showArchived, 
   onToggleShowArchived,
-  onOpenAIBuilder 
-}: BacklogToolbarProps) {
+  isReadOnly
+}: Readonly<BacklogToolbarProps>) {
   const [showInitMenu, setShowInitMenu] = React.useState(false);
   const [showSearch, setShowSearch] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -36,19 +37,29 @@ export function BacklogToolbar({
     <div className="flex flex-col gap-md">
       <div className="flex justify-between items-center bg-surface-container-low p-md rounded-2xl border border-outline-variant shadow-sm backlog-toolbar-container">
         <div className="flex items-center gap-md relative">
-          <button 
-            onClick={() => availableRootTypes.length > 1 ? setShowInitMenu(!showInitMenu) : onAddRoot(availableRootTypes[0]?.id, availableRootTypes[0]?.name)}
-            className="button-planner"
-            style={{ padding: '12px 24px', fontSize: '13px', boxShadow: 'var(--primary-shadow)' }}
-          >
-            <Plus size={18} />
-            {availableRootTypes.length === 1 ? `Initialize ${availableRootTypes[0]?.name}` : 'Initialize Objective'}
-          </button>
+          {!isReadOnly && (
+            <button 
+              onClick={() => availableRootTypes.length > 1 ? setShowInitMenu(!showInitMenu) : onAddRoot(availableRootTypes[0]?.id, availableRootTypes[0]?.name)}
+              className="button-planner"
+              style={{ padding: '12px 24px', fontSize: '13px', boxShadow: 'var(--primary-shadow)' }}
+            >
+              <Plus size={18} />
+              {availableRootTypes.length === 1 ? `Initialize ${availableRootTypes[0]?.name}` : 'Initialize Objective'}
+            </button>
+          )}
 
           <button 
             className={`button-secondary rounded-full p-md ${showSearch ? 'active' : ''}`}
             onClick={() => setShowSearch(!showSearch)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setShowSearch(!showSearch);
+              }
+            }}
             style={{ width: '44px', height: '44px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            aria-label={showSearch ? "Close search" : "Open search"}
+            aria-expanded={showSearch}
           >
             {showSearch ? <X size={18} /> : <Search size={18} />}
           </button>
@@ -56,7 +67,17 @@ export function BacklogToolbar({
           <AnimatePresence>
             {showInitMenu && (
               <>
-                <div className="context-menu-overlay" onClick={() => setShowInitMenu(false)} />
+                <button 
+                  className="context-menu-overlay" 
+                  onClick={() => setShowInitMenu(false)} 
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setShowInitMenu(false);
+                    }
+                  }}
+                  aria-label="Close menu"
+                  style={{ background: 'transparent', border: 'none', padding: 0 }}
+                />
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95, y: 10 }} 
                   animate={{ opacity: 1, scale: 1, y: 0 }} 
@@ -73,7 +94,7 @@ export function BacklogToolbar({
                         key={type.id}
                         onClick={() => { onAddRoot(type.id, type.name); setShowInitMenu(false); }}
                         className="button-ghost justify-start w-full gap-md hover:bg-surface-container-low"
-                        style={{ '--node-color': type.color, padding: '12px 16px', borderRadius: '12px' } as any}
+                        style={{ '--node-color': type.color || 'var(--primary)', padding: '12px 16px', borderRadius: '12px' } as React.CSSProperties}
                       >
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-surface-container-high" style={{ color: 'var(--node-color)' }}>
                           <IconRenderer name={type.icon || 'Folder'} size={16} />
@@ -108,9 +129,6 @@ export function BacklogToolbar({
             {showArchived ? "BACK TO ACTIVE" : "VIEW ARCHIVE"}
           </Button>
 
-          <Button size="sm" onClick={onOpenAIBuilder} icon={<FileJson size={14} />}>
-            AI BUILDER
-          </Button>
         </div>
       </div>
 

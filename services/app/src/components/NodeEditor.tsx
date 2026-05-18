@@ -5,38 +5,41 @@ import { X, Save } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "./ui/Button";
 
+import { Node, FieldDefinition } from "@/lib/types";
+
 interface NodeEditorProps {
-  node: any;
+  node: Node;
   onClose: () => void;
 }
 
-export function NodeEditor({ node, onClose }: NodeEditorProps) {
-  const [data, setData] = useState(node.content || {});
+const AutoGrowingTextarea = ({ id, value, onChange, placeholder }: { id: string, value: string, onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void, placeholder?: string }) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = '0px';
+      const scrollHeight = textareaRef.current.scrollHeight;
+      textareaRef.current.style.height = scrollHeight + 'px';
+    }
+  }, [value]);
+
+  return (
+    <textarea
+      id={id}
+      ref={textareaRef}
+      className="input-premium node-editor-textarea"
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+    />
+  );
+};
+
+export function NodeEditor({ node, onClose }: Readonly<NodeEditorProps>) {
+  const [data, setData] = useState<Record<string, unknown>>((node.content as Record<string, unknown>) || {});
   
-  const AutoGrowingTextarea = ({ value, onChange, placeholder, style }: any) => {
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-    useEffect(() => {
-      if (textareaRef.current) {
-        textareaRef.current.style.height = '0px';
-        const scrollHeight = textareaRef.current.scrollHeight;
-        textareaRef.current.style.height = scrollHeight + 'px';
-      }
-    }, [value]);
-
-    return (
-      <textarea
-        ref={textareaRef}
-        className="input-premium node-editor-textarea"
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-      />
-    );
-  };
-
-  const handleChange = (name: string, value: any) => {
-    setData((prev: any) => ({ ...prev, [name]: value }));
+  const handleChange = (name: string, value: unknown) => {
+    setData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSave = async () => {
@@ -45,7 +48,16 @@ export function NodeEditor({ node, onClose }: NodeEditorProps) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div 
+      className="modal-overlay" 
+      onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      }}
+      role="none"
+    >
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -60,42 +72,46 @@ export function NodeEditor({ node, onClose }: NodeEditorProps) {
         </header>
 
         <div className="flex flex-col gap-lg">
-          {node.type?.fields?.map((field: any) => (
+          {node.type?.fields?.map((field: FieldDefinition) => (
             <div key={field.id}>
-              <label className="text-meta block text-sm mb-sm text-on-surface-variant">
+              <label htmlFor={`field-${field.id}`} className="text-meta block text-sm mb-sm text-on-surface-variant">
                 {field.name} {field.required && <span className="text-error">*</span>}
               </label>
               
               {field.type === 'TEXT' && (
                 <AutoGrowingTextarea 
-                  value={data[field.name] || ''} 
-                  onChange={(e: any) => handleChange(field.name, e.target.value)}
+                  id={`field-${field.id}`}
+                  value={(data[field.name] as string) || ''} 
+                  onChange={(e) => handleChange(field.name, e.target.value)}
                   placeholder={`Enter ${field.name.toLowerCase()}...`}
                 />
               )}
               
               {field.type === 'NUMBER' && (
                 <input 
+                  id={`field-${field.id}`}
                   type="number"
                   className="input-premium" 
-                  value={data[field.name] || ''} 
+                  value={(data[field.name] as string | number) || ''} 
                   onChange={(e) => handleChange(field.name, e.target.value)}
                 />
               )}
 
               {field.type === 'DATE' && (
                 <input 
+                  id={`field-${field.id}`}
                   type="date"
                   className="input-premium" 
-                  value={data[field.name] || ''} 
+                  value={(data[field.name] as string) || ''} 
                   onChange={(e) => handleChange(field.name, e.target.value)}
                 />
               )}
 
               {field.type === 'CHECKBOX' && (
                 <input 
+                  id={`field-${field.id}`}
                   type="checkbox"
-                  checked={data[field.name] || false} 
+                  checked={(data[field.name] as boolean) || false} 
                   onChange={(e) => handleChange(field.name, e.target.checked)}
                 />
               )}

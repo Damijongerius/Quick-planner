@@ -4,23 +4,7 @@ import React from "react";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { KanbanCard } from "./KanbanCard";
 
-interface Node {
-  id: string;
-  title: string;
-  status: string;
-  content: any;
-  nodeTypeId: string;
-  type: {
-    id: string;
-    name: string;
-    color: string;
-    icon: string;
-    boardConfig?: any;
-    fields: any[];
-  };
-  blockedBy?: { blockingNode: any }[];
-  parentLinks?: { parentNode: { title: string } }[];
-}
+import { Node } from "@/lib/types";
 
 interface ColumnProps {
   id: string;
@@ -28,14 +12,39 @@ interface ColumnProps {
   tasks: Node[];
   color: string;
   onNodeClick: (id: string) => void;
+  isReadOnly?: boolean;
 }
 
-export function KanbanColumn({ id, title, tasks, color, onNodeClick }: ColumnProps) {
+function DraggableTask({ task, index, onNodeClick, isReadOnly }: Readonly<{ task: Node; index: number; onNodeClick: (id: string) => void; isReadOnly?: boolean }>) {
+  return (
+    <Draggable draggableId={task.id} index={index} isDragDisabled={isReadOnly}>
+      {(provided, snapshot) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          style={{
+            ...provided.draggableProps.style,
+            opacity: snapshot.isDragging ? 0.8 : 1,
+          }}
+        >
+          <KanbanCard 
+            task={task} 
+            onClick={() => onNodeClick(task.id)}
+            isDragging={snapshot.isDragging}
+          />
+        </div>
+      )}
+    </Draggable>
+  );
+}
+
+export function KanbanColumn({ id, title, tasks, color, onNodeClick, isReadOnly }: Readonly<ColumnProps>) {
   return (
     <div className="kanban-column">
       <header className="kanban-column-header">
         <div className="flex items-center gap-md">
-          <div className="status-dot" style={{ '--dot-color': color } as any}></div>
+          <div className="status-dot" style={{ '--dot-color': color } as React.CSSProperties}></div>
           <h3 className="kanban-column-title">{title}</h3>
           <span className="kanban-column-count">{tasks.length}</span>
         </div>
@@ -49,25 +58,13 @@ export function KanbanColumn({ id, title, tasks, color, onNodeClick }: ColumnPro
             className={`kanban-drop-zone ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
           >
             {tasks.map((task, index) => (
-              <Draggable key={task.id} draggableId={task.id} index={index}>
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    {...provided.dragHandleProps}
-                    style={{
-                      ...provided.draggableProps.style,
-                      opacity: snapshot.isDragging ? 0.8 : 1,
-                    }}
-                  >
-                    <KanbanCard 
-                      task={task} 
-                      onClick={() => onNodeClick(task.id)}
-                      isDragging={snapshot.isDragging}
-                    />
-                  </div>
-                )}
-              </Draggable>
+              <DraggableTask 
+                key={task.id} 
+                task={task} 
+                index={index} 
+                onNodeClick={onNodeClick} 
+                isReadOnly={isReadOnly} 
+              />
             ))}
             {provided.placeholder}
             <EmptyState isVisible={tasks.length === 0 && !snapshot.isDraggingOver} />
@@ -80,7 +77,7 @@ export function KanbanColumn({ id, title, tasks, color, onNodeClick }: ColumnPro
 
 // --- Implementation Details ---
 
-function EmptyState({ isVisible }: { isVisible: boolean }) {
+function EmptyState({ isVisible }: Readonly<{ isVisible: boolean }>) {
   if (!isVisible) return null;
   return (
     <div className="kanban-empty-state">

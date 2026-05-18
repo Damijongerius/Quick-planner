@@ -3,6 +3,7 @@
 import prisma from "@/lib/db";
 import { auth } from "@/auth";
 import { serializeData } from "@/lib/utils";
+import { Node } from "@/lib/types";
 
 export async function getNode(projectId: string, id: string) {
   const session = await auth();
@@ -13,12 +14,12 @@ export async function getNode(projectId: string, id: string) {
       type: { include: { fields: true } },
       parentLinks: { include: { parentNode: { include: { type: true } } } },
       childLinks: { include: { childNode: { include: { type: true } } } },
-      blockedBy: { include: { blockingNode: true } },
-      blocking: { include: { blockedNode: true } }
+      blockedBy: { include: { blockingNode: { include: { type: true } } } },
+      blocking: { include: { blockedNode: { include: { type: true } } } }
     }
   });
   if (!node) return null;
-  return serializeData(node);
+  return serializeData(node) as Node;
 }
 
 export async function getNodeChildren(projectId: string, nodeId: string) {
@@ -39,8 +40,8 @@ export async function getNodeChildren(projectId: string, nodeId: string) {
       }
     }
   });
-  const children = node?.childLinks.map((l: any) => l.childNode) || [];
-  return serializeData(children);
+  const children = node?.childLinks.map((l) => l.childNode) || [];
+  return serializeData(children) as Node[];
 }
 
 export async function getRootNodes(projectId: string, showArchived: boolean = false) {
@@ -51,15 +52,15 @@ export async function getRootNodes(projectId: string, showArchived: boolean = fa
     include: {
       type: { include: { fields: true } },
       childLinks: { include: { childNode: { include: { type: { include: { fields: true } }, sprint: true } } } },
-      blockedBy: { include: { blockingNode: true } },
-      blocking: { include: { blockedNode: true } },
+      blockedBy: { include: { blockingNode: { include: { type: true } } } },
+      blocking: { include: { blockedNode: { include: { type: true } } } },
       sprint: true
     }
   });
-  return serializeData(nodes);
+  return serializeData(nodes) as Node[];
 }
 
-export async function getAllNodes(projectId: string) {
+export async function getAllNodes(projectId: string): Promise<Node[]> {
   const session = await auth();
   if (!session?.user?.id) return [];
   const nodes = await prisma.node.findMany({
@@ -67,9 +68,9 @@ export async function getAllNodes(projectId: string) {
     include: {
       type: { include: { fields: true } },
       parentLinks: { include: { parentNode: true } },
-      blockedBy: { include: { blockingNode: true } },
+      blockedBy: { include: { blockingNode: { include: { type: true } } } },
       sprint: true
     }
   });
-  return serializeData(nodes);
+  return serializeData(nodes) as Node[];
 }

@@ -52,7 +52,7 @@ export function ProjectCard({ project, isArchived, availableImages }: Readonly<P
         <div className="flex flex-col h-full justify-between">
           <div className="project-card-content transition-transform duration-500 group-hover:translate-x-1">
             <h3 className="text-editorial text-2xl font-bold mb-xs">{project.name}</h3>
-            <p className="text-meta text-[10px] opacity-40 uppercase tracking-widest">
+            <p className="text-meta text-[10px] opacity-40 uppercase tracking-widest" suppressHydrationWarning>
               Established {new Date(project.createdAt).toLocaleDateString()}
             </p>
           </div>

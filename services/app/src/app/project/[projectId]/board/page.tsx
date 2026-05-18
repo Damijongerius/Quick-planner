@@ -1,14 +1,14 @@
 import { getSprints, getNodeTypes, getAllNodes } from "@/lib/actions";
 import { BoardView } from "@/components/BoardView";
 
-export default async function BoardPage({ params }: { params: Promise<{ projectId: string }> }) {
+export default async function BoardPage({ params }: Readonly<{ params: Promise<{ projectId: string }> }>) {
   const { projectId } = await params;
   const sprints = await getSprints(projectId);
   const nodeTypes = await getNodeTypes(projectId);
   const allNodes = await getAllNodes(projectId);
 
   // Find active sprint
-  const activeSprint = sprints.find((s: any) => s.status === 'ACTIVE') || sprints[0];
+  const activeSprint = sprints.find((s) => s.status === 'ACTIVE') || sprints[0];
 
   return (
     <div className="canvas-content">

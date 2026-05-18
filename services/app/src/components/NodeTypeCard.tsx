@@ -6,22 +6,27 @@ import { Button } from './ui/Button';
 import { IconRenderer } from './IconPicker';
 import { deleteNodeType } from '@/lib/actions';
 
+import { NodeType, FieldDefinition } from '@/lib/types';
+
 interface NodeTypeCardProps {
   projectId: string;
-  type: any;
-  onOpenBoardConfig: (type: any) => void;
-  onOpenFieldEditor: (type: any) => void;
+  type: NodeType;
+  onOpenBoardConfig: (type: NodeType) => void;
+  onOpenFieldEditor: (type: NodeType) => void;
 }
 
-export function NodeTypeCard({ projectId, type, onOpenBoardConfig, onOpenFieldEditor }: NodeTypeCardProps) {
+export function NodeTypeCard({ projectId, type, onOpenBoardConfig, onOpenFieldEditor }: Readonly<NodeTypeCardProps>) {
+  const accentColor = type.color || 'var(--primary)';
+  const iconName = type.icon || 'Target';
+
   return (
     <div className="card-planner p-xl relative overflow-hidden">
-      <div className="node-accent-strip" style={{ backgroundColor: type.color }} />
+      <div className="node-accent-strip" style={{ backgroundColor: type.color || undefined }} />
       
       <div className="flex justify-between items-start mb-lg">
         <div className="flex items-center gap-md">
-          <div className="node-icon-box" style={{ backgroundColor: `${type.color}15`, borderColor: `${type.color}30` }}>
-            <IconRenderer name={type.icon} color={type.color} size={24} />
+          <div className="node-icon-box" style={{ backgroundColor: `${accentColor}15`, borderColor: `${accentColor}30` }}>
+            <IconRenderer name={iconName} color={type.color || undefined} size={24} />
           </div>
           <div>
             <h3 className="text-editorial text-lg font-bold">{type.name}</h3>
@@ -34,10 +39,10 @@ export function NodeTypeCard({ projectId, type, onOpenBoardConfig, onOpenFieldEd
       <div className="mb-xl">
         <p className="node-section-label">Fields</p>
         <div className="flex flex-wrap gap-sm">
-          {type.fields.map((field: any) => (
+          {type.fields?.map((field: FieldDefinition) => (
             <span key={field.id} className="node-field-pill">{field.name}</span>
           ))}
-          {type.fields.length === 0 && <span className="text-xs text-on-surface-variant">No fields defined</span>}
+          {(!type.fields || type.fields.length === 0) && <span className="text-xs text-on-surface-variant">No fields defined</span>}
         </div>
       </div>
 

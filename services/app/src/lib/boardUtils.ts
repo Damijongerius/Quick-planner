@@ -1,9 +1,11 @@
-export function getActiveSprint(sprints: any[], selectedSprintId: string | null) {
-  return sprints.find((s: any) => s.id === selectedSprintId) || sprints[0];
+import { Node, NodeType, Sprint } from "./types";
+
+export function getActiveSprint(sprints: Sprint[], selectedSprintId: string | null) {
+  return sprints.find((s) => s.id === selectedSprintId) || sprints[0];
 }
 
-export function getFilteredNodes(nodes: any[], viewMode: string, selectedSprintId: string | null, selectedNodeTypeIds: string[]) {
-  return nodes.filter((node: any) => {
+export function getFilteredNodes(nodes: Node[], viewMode: string, selectedSprintId: string | null, selectedNodeTypeIds: string[]) {
+  return nodes.filter((node) => {
     const boardConfig = node.type?.boardConfig;
     if (viewMode === 'KANBAN' && boardConfig?.showOnKanban === false) return false;
     if (viewMode === 'GANTT' && boardConfig?.showOnGantt === false) return false;
@@ -23,14 +25,14 @@ export function getFilteredNodes(nodes: any[], viewMode: string, selectedSprintI
   });
 }
 
-export function getSortedNodes(nodes: any[], nodeTypes: any[]) {
+export function getSortedNodes(nodes: Node[], nodeTypes: NodeType[]) {
   return [...nodes].sort((a, b) => {
-    const indexA = nodeTypes.findIndex((t: any) => t.id === a.nodeTypeId);
-    const indexB = nodeTypes.findIndex((t: any) => t.id === b.nodeTypeId);
+    const indexA = nodeTypes.findIndex((t) => t.id === a.nodeTypeId);
+    const indexB = nodeTypes.findIndex((t) => t.id === b.nodeTypeId);
     return indexA - indexB;
   });
 }
 
-export function findNodeById(nodes: any[], id: string) {
-  return nodes.find((n: any) => n.id === id);
+export function findNodeById(nodes: Node[], id: string) {
+  return nodes.find((n) => n.id === id);
 }

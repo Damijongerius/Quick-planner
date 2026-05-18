@@ -20,9 +20,9 @@ const ICON_LIST = [
 ];
 
 interface IconPickerProps {
-  currentIcon: string;
-  onSelect: (iconName: string) => void;
-  color?: string;
+  readonly currentIcon: string;
+  readonly onSelect: (iconName: string) => void;
+  readonly color?: string;
 }
 
 export function IconPicker({ currentIcon, onSelect, color = "#3b82f6" }: IconPickerProps) {
@@ -46,7 +46,7 @@ export function IconPicker({ currentIcon, onSelect, color = "#3b82f6" }: IconPic
 
       <div className="icon-picker-grid">
         {filteredIcons.map(iconName => {
-          const Icon = (Icons as any)[iconName] || Icons.HelpCircle;
+          const Icon = (Icons as unknown as Record<string, Icons.LucideIcon>)[iconName] || Icons.HelpCircle;
           const isActive = currentIcon === iconName;
 
           return (
@@ -56,7 +56,7 @@ export function IconPicker({ currentIcon, onSelect, color = "#3b82f6" }: IconPic
               onClick={() => onSelect(iconName)}
               title={iconName}
               className={`icon-picker-button ${isActive ? 'active' : ''}`}
-              style={{ '--node-color': color } as any}
+              style={{ '--node-color': color } as React.CSSProperties}
             >
               <Icon size={16} />
             </button>
@@ -68,7 +68,7 @@ export function IconPicker({ currentIcon, onSelect, color = "#3b82f6" }: IconPic
 }
 
 // Helper to render icon by name
-export function IconRenderer({ name, size = 20, color }: { name: string; size?: number; color?: string }) {
-  const Icon = (Icons as any)[name] || Icons.HelpCircle;
+export function IconRenderer({ name, size = 20, color }: Readonly<{ name: string; size?: number; color?: string }>) {
+  const Icon = (Icons as unknown as Record<string, Icons.LucideIcon>)[name] || Icons.HelpCircle;
   return <Icon size={size} color={color} />;
 }

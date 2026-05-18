@@ -1,27 +1,51 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { getNodeChildren } from "@/lib/actions";
 import { motion, AnimatePresence } from "framer-motion";
-import { AIImportModal } from "./ai/AIImportModal";
+
 import { BacklogNodeRow } from "./BacklogNodeRow";
 import { BacklogContextMenu } from "./BacklogContextMenu";
 import { BacklogChildCreation } from "./BacklogChildCreation";
+import { Node, NodeType } from "@/lib/types";
 import "./Backlog.css";
 
-export function BacklogTree({ projectId, node, nodeTypes, onSelect, selectedNodeId, depth = 0, hideCompleted = false }: any) {
+interface BacklogTreeProps {
+  projectId: string;
+  node: Node;
+  nodeTypes: NodeType[];
+  onSelect: (node: Node) => void;
+  selectedNodeId: string | null;
+  depth?: number;
+  hideCompleted?: boolean;
+  isReadOnly?: boolean;
+}
+
+export function BacklogTree({ 
+  projectId, 
+  node, 
+  nodeTypes, 
+  onSelect, 
+  selectedNodeId, 
+  depth = 0, 
+  hideCompleted = false, 
+  isReadOnly = false 
+}: Readonly<BacklogTreeProps>) {
+  const nodeType = nodeTypes.find((t) => t.id === node.nodeTypeId) || node.type;
+  const allowedChildren = nodeType?.allowedChildren?.map((ac) => ac.childNodeTypeType) || [];
+  const initialChildren = node.childLinks?.map((l) => l.childNode) || [];
+
   const [isOpen, setIsOpen] = useState(depth < 1);
-  const [children, setChildren] = useState<any[]>([]);
+  const [children, setChildren] = useState<Node[]>(initialChildren);
   const [isLoadingChildren, setIsLoadingChildren] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number } | null>(null);
-  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [prevNodeId, setPrevNodeId] = useState(node.id);
 
-  const nodeType = nodeTypes.find((t: any) => t.id === node.nodeTypeId) || node.type;
-  const allowedChildren = nodeType?.allowedChildren?.map((ac: any) => ac.childNodeTypeType) || [];
-  const initialChildren = node.childLinks?.map((l: any) => l.childNode) || [];
-
-  useEffect(() => { if (initialChildren.length > 0 && children.length === 0) setChildren(initialChildren); }, [node.id]);
+  if (node.id !== prevNodeId) {
+    setPrevNodeId(node.id);
+    setChildren(initialChildren);
+  }
 
   const loadChildren = async () => {
     setIsLoadingChildren(true);
@@ -31,29 +55,80 @@ export function BacklogTree({ projectId, node, nodeTypes, onSelect, selectedNode
 
   const progress = (() => {
     const target = children.length > 0 ? children : initialChildren;
-    if (target.length === 0) return node.status === 'DONE' ? 100 : 0;
-    return Math.round(target.reduce((acc: number, c: any) => acc + (c.status === 'DONE' ? 100 : (c.status === 'IN_PROGRESS' ? 50 : 0)), 0) / target.length);
+    if (target.length === 0) {
+      return node.status === 'DONE' ? 100 : 0;
+    }
+    
+    const totalProgress = target.reduce((acc: number, c: Node) => {
+      let nodeProgress = 0;
+      if (c.status === 'DONE') {
+        nodeProgress = 100;
+      } else if (c.status === 'IN_PROGRESS') {
+        nodeProgress = 50;
+      }
+      return acc + nodeProgress;
+    }, 0);
+
+    return Math.round(totalProgress / target.length);
   })();
 
-  if (hideCompleted && node.status === 'DONE') return null;
+  if (hideCompleted && node.status === 'DONE') {
+    return null;
+  }
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isOpen) {
+      setIsOpen(false);
+    } else {
+      setIsOpen(true);
+      if (children.length === 0) {
+        loadChildren();
+      }
+    }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    if (isReadOnly) return;
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  };
 
   return (
-    <div className="w-full" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-      <BacklogNodeRow node={node} nodeType={nodeType} depth={depth} isOpen={isOpen} isSelected={selectedNodeId === node.id} isLoadingChildren={isLoadingChildren} hasChildren={children.length > 0 || initialChildren.length > 0} onToggle={(e) => { e.stopPropagation(); setIsOpen(!isOpen); if (!isOpen && children.length === 0) loadChildren(); }} onSelect={() => onSelect(node)} onContextMenu={(e) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY }); }} progress={progress} isHovered={isHovered} />
+    <div 
+      className="w-full" 
+      role="group"
+      onMouseEnter={() => setIsHovered(true)} 
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <BacklogNodeRow 
+        node={node} 
+        nodeType={nodeType} 
+        depth={depth} 
+        isOpen={isOpen} 
+        isSelected={selectedNodeId === node.id} 
+        isLoadingChildren={isLoadingChildren} 
+        hasChildren={children.length > 0 || initialChildren.length > 0} 
+        onToggle={handleToggle} 
+        onSelect={() => onSelect(node)} 
+        onContextMenu={handleContextMenu} 
+        progress={progress} 
+        isHovered={isHovered} 
+      />
       
-      <BacklogContextMenu projectId={projectId} node={node} contextMenu={contextMenu} onClose={() => setContextMenu(null)} />
+      {isReadOnly ? null : <BacklogContextMenu projectId={projectId} node={node} contextMenu={contextMenu} onClose={() => setContextMenu(null)} />}
 
       <AnimatePresence>
         {isOpen && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-            {children.map((child: any) => (
-              <BacklogTree key={child.id} projectId={projectId} node={child} nodeTypes={nodeTypes} onSelect={onSelect} selectedNodeId={selectedNodeId} depth={depth + 1} hideCompleted={hideCompleted} />
+            {children.map((child: Node) => (
+              <BacklogTree key={child.id} projectId={projectId} node={child} nodeTypes={nodeTypes} onSelect={onSelect} selectedNodeId={selectedNodeId} depth={depth + 1} hideCompleted={hideCompleted} isReadOnly={isReadOnly} />
             ))}
-            {allowedChildren.length > 0 && <BacklogChildCreation projectId={projectId} node={node} allowedChildren={allowedChildren} depth={depth} onChildCreated={loadChildren} onOpenAI={() => setIsAIModalOpen(true)} />}
+            {(allowedChildren.length > 0 && !isReadOnly) && <BacklogChildCreation projectId={projectId} node={node} allowedChildren={allowedChildren} depth={depth} onChildCreated={loadChildren} />}
           </motion.div>
         )}
       </AnimatePresence>
-      <AIImportModal projectId={projectId} isOpen={isAIModalOpen} onClose={() => setIsAIModalOpen(false)} mode="SUBTREE" context={{ nodeId: node.id, nodeTypes: allowedChildren, title: node.title }} />
+
     </div>
   );
 }

@@ -1,41 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { 
-  AlertCircle, 
-  Calendar, 
-  ChevronRight, 
-  ChevronLeft, 
-  Clock, 
-  Play, 
-  CheckCircle2, 
-  MoreHorizontal,
-  FileText,
-  Check,
-  Layers
-} from "lucide-react";
-import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import { useState } from "react";
+import { DragDropContext, DropResult, DraggableLocation } from "@hello-pangea/dnd";
 import { updateNodeStatus } from "@/lib/actions";
-import { IconRenderer } from "./IconPicker";
+import { useProject } from "./ProjectContext";
+import { Node, Sprint, NodeType } from "@/lib/types";
 
-interface Node {
-  id: string;
-  title: string;
-  status: string;
-  content: any;
-  nodeTypeId: string;
-  type: {
-    id: string;
-    name: string;
-    color: string;
-    icon: string;
-    boardConfig?: any;
-    fields: any[];
-  };
-  blockedBy?: { blockingNode: any }[];
-  parentLinks?: { parentNode: { title: string } }[];
-}
 
 import { KanbanColumn } from "./kanban/KanbanColumn";
 
@@ -45,26 +15,29 @@ export function KanbanBoard({
     initialNodes, 
     onRefresh, 
     onNodeClick 
-}: { 
+}: Readonly<{ 
     projectId: string, 
-    initialSprint: any, 
-    initialNodes: any[], 
-    nodeTypes: any[],
+    initialSprint: Sprint | null, 
+    initialNodes: Node[], 
+    nodeTypes: NodeType[],
     onRefresh: () => void, 
     onNodeClick: (id: string) => void 
-}) {
-  const [nodes, setNodes] = useState(initialNodes);
+}>) {
+  const [nodes, setNodes] = useState<Node[]>(initialNodes);
+  const [prevInitialNodes, setPrevInitialNodes] = useState(initialNodes);
+  const { isReadOnly } = useProject();
 
-  useEffect(() => {
+  if (initialNodes !== prevInitialNodes) {
+    setPrevInitialNodes(initialNodes);
     setNodes(initialNodes);
-  }, [initialNodes]);
+  }
 
   if (!initialSprint) {
     return <NoActiveSprintState />;
   }
 
   return (
-    <DragDropContext onDragEnd={(result) => handleDragEnd(result, { projectId, nodes, setNodes, initialNodes, onRefresh })}>
+    <DragDropContext onDragEnd={(result) => !isReadOnly && handleDragEnd(result, { projectId, nodes, setNodes, initialNodes, onRefresh })}>
         <div className="kanban-grid">
           {getKanbanColumns().map((col) => (
             <KanbanColumn 
@@ -73,7 +46,8 @@ export function KanbanBoard({
               title={col.title} 
               color={col.color} 
               onNodeClick={onNodeClick}
-              tasks={nodes.filter((t: any) => t.status === col.id)} 
+              tasks={nodes.filter((t) => t.status === col.id)} 
+              isReadOnly={isReadOnly}
             />
           ))}
         </div>
@@ -83,7 +57,15 @@ export function KanbanBoard({
 
 // --- Implementation Details (The Prose) ---
 
-async function handleDragEnd(result: DropResult, params: any) {
+interface DragEndParams {
+  projectId: string;
+  nodes: Node[];
+  setNodes: (nodes: Node[]) => void;
+  initialNodes: Node[];
+  onRefresh: () => void;
+}
+
+async function handleDragEnd(result: DropResult, params: DragEndParams) {
   const { projectId, nodes, setNodes, initialNodes, onRefresh } = params;
   const { destination, source, draggableId } = result;
 
@@ -96,15 +78,14 @@ async function handleDragEnd(result: DropResult, params: any) {
   try {
       await updateNodeStatus(projectId, draggableId, destination!.droppableId);
       onRefresh();
-  } catch (error) {
+  } catch {
       setNodes(initialNodes);
   }
 }
 
 function NoActiveSprintState() {
   return (
-    <div className="kanban-no-sprint">
-      <Calendar size={48} className="mb-xl" />
+    <div className="flex flex-col items-center justify-center h-full">
       <h3 className="text-xl mb-sm">No Active Sprint</h3>
       <p className="text-sm">Select or create a strategic cycle in Workspace Settings.</p>
     </div>
@@ -120,17 +101,17 @@ function getKanbanColumns() {
   ];
 }
 
-function isInvalidDrop(destination: any, source: any) {
+function isInvalidDrop(destination: DraggableLocation | null | undefined, source: DraggableLocation) {
   if (!destination) return true;
   if (destination.droppableId === source.droppableId && destination.index === source.index) return true;
   return false;
 }
 
-function updateLocalNodeStatus(nodes: any[], setNodes: Function, nodeId: string, newStatus: string) {
+function updateLocalNodeStatus(nodes: Node[], setNodes: (nodes: Node[]) => void, nodeId: string, newStatus: string) {
   const updatedNodes = [...nodes];
-  const nodeIndex = updatedNodes.findIndex((n: any) => n.id === nodeId);
+  const nodeIndex = updatedNodes.findIndex((n) => n.id === nodeId);
   if (nodeIndex !== -1) {
-      updatedNodes[nodeIndex].status = newStatus;
+      updatedNodes[nodeIndex] = { ...updatedNodes[nodeIndex], status: newStatus };
       setNodes(updatedNodes);
   }
 }

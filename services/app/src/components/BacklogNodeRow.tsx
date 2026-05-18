@@ -6,10 +6,11 @@ import "./ui/Badge.css";
 import React from "react";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { IconRenderer } from "./IconPicker";
+import { Node, NodeType } from "@/lib/types";
 
 interface BacklogNodeRowProps {
-  node: any;
-  nodeType: any;
+  node: Node & { isArchived?: boolean };
+  nodeType: NodeType | null;
   depth: number;
   isOpen: boolean;
   isSelected: boolean;
@@ -35,24 +36,34 @@ export function BacklogNodeRow({
   onSelect,
   onContextMenu,
   progress
-}: BacklogNodeRowProps) {
+}: Readonly<BacklogNodeRowProps>) {
   return (
     <div 
-      className={`backlog-row ${isSelected ? 'selected' : ''} ${node.isArchived ? 'archived' : ''}`}
-      onClick={onSelect}
+      className={`backlog-row-container ${isSelected ? 'selected' : ''} ${node.isArchived ? 'archived' : ''}`}
       onContextMenu={onContextMenu}
       style={{ 
         '--depth-padding': `${depth * 40 + 24}px`,
         borderLeft: depth === 0 ? `4px solid ${nodeType?.color || 'var(--primary)'}` : 'none'
-      } as any}
+      } as React.CSSProperties}
     >
-      <div className="flex items-center gap-md flex-1 min-w-0">
-        <div 
+      <button 
+        className="backlog-row-main-action"
+        onClick={onSelect}
+        aria-label={`Select ${node.title}`}
+      />
+      
+      <div className="backlog-row-content flex items-center gap-md flex-1 min-w-0 pointer-events-none">
+        <button 
           onClick={(e) => { e.stopPropagation(); onToggle(e); }}
-          className={`backlog-row-toggle ${isOpen ? 'open' : ''} ${hasChildren || isHovered ? 'visible' : ''}`}
+          className={`backlog-row-toggle pointer-events-auto border-none bg-transparent p-0 cursor-pointer ${isOpen ? 'open' : ''} ${hasChildren || isHovered ? 'visible' : ''}`}
+          aria-label={isOpen ? "Collapse" : "Expand"}
         >
-          {isLoadingChildren ? <Loader2 size={14} className="animate-spin" /> : <ChevronRight size={18} />}
-        </div>
+          {isLoadingChildren ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <ChevronRight size={18} />
+          )}
+        </button>
         
         <div 
           className={`backlog-row-icon ${depth === 0 ? 'root' : ''}`} 
@@ -62,7 +73,7 @@ export function BacklogNodeRow({
             color: 'var(--node-color)',
             padding: '8px',
             borderRadius: '8px'
-          } as any}
+          } as React.CSSProperties}
         >
           <IconRenderer name={nodeType?.icon || (depth === 0 ? 'Folder' : 'Circle')} size={depth === 0 ? 20 : 16} />
         </div>
@@ -83,12 +94,14 @@ export function BacklogNodeRow({
           {/* Custom Fields Preview */}
           {Object.keys(node.content || {}).length > 0 && (
             <div className="flex flex-wrap gap-xs mt-xs">
-              {Object.entries(node.content || {}).map(([key, value]) => {
+              {Object.entries(node.content || {})
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([key, value]) => {
                   if (!value || key.toLowerCase() === 'priority' || key.toLowerCase() === 'status') return null;
                   return (
                       <div key={key} className="node-badge" style={{ fontSize: '9px', padding: '1px 6px' }}>
                           <span className="node-badge-key">{key.toUpperCase()}</span>
-                          <span className="node-badge-value">{String(value)}</span>
+                          <span className="node-badge-value">{typeof value === 'object' ? JSON.stringify(value) : String(value)}</span>
                       </div>
                   )
               })}
@@ -97,7 +110,7 @@ export function BacklogNodeRow({
         </div>
       </div>
 
-      <div className="flex items-center gap-xl ml-xl">
+      <div className="flex items-center gap-xl ml-xl pointer-events-none">
         {node.status === 'DONE' ? (
           <div className="status-done-badge">
              <div className="w-2 h-2 rounded-full bg-tertiary" />
@@ -107,7 +120,7 @@ export function BacklogNodeRow({
           <div className="flex items-center gap-sm">
             <span className="text-10px font-bold opacity-40">{progress}%</span>
             <div className="progress-container" style={{ width: '80px', height: '4px' }}>
-               <div className="progress-bar" style={{ '--progress-width': `${progress}%` } as any} />
+               <div className="progress-bar" style={{ '--progress-width': `${progress}%` } as React.CSSProperties} />
             </div>
           </div>
         )}

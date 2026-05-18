@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,7 +7,6 @@ import { AuthLogo } from "@/components/auth/AuthLogo";
 import { AuthErrorBanner } from "@/components/auth/AuthErrorBanner";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { LegacyMigrationForm } from "@/components/auth/LegacyMigrationForm";
-import { Button } from "@/components/ui/Button";
 
 function SignInContent() {
   const searchParams = useSearchParams();

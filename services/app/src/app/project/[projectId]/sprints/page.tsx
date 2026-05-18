@@ -1,7 +1,7 @@
 import { getSprints, getNodeTypes } from "@/lib/actions";
 import { SprintPage } from "@/components/SprintPage";
 
-export default async function Sprints({ params }: { params: Promise<{ projectId: string }> }) {
+export default async function Sprints({ params }: Readonly<{ params: Promise<{ projectId: string }> }>) {
   const { projectId } = await params;
   const [sprints, nodeTypes] = await Promise.all([
     getSprints(projectId),

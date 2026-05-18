@@ -5,7 +5,7 @@ interface AuthErrorBannerProps {
   error: string;
 }
 
-export function AuthErrorBanner({ error }: AuthErrorBannerProps) {
+export function AuthErrorBanner({ error }: Readonly<AuthErrorBannerProps>) {
   const getErrorMessage = (err: string) => {
     switch (err) {
       case "MIGRATED_TO_GOOGLE":

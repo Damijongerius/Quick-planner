@@ -6,40 +6,54 @@ import { createNode, getRootNodes } from "@/lib/actions";
 import { BacklogTree } from "./BacklogTree";
 import { NodeSidePanel } from "./NodeSidePanel";
 import { AnimatePresence, motion } from "framer-motion";
-import { AIImportModal } from "./ai/AIImportModal";
+
 import { BacklogToolbar } from "./BacklogToolbar";
+import { useProject } from "./ProjectContext";
+
+import { Node, NodeType, Sprint } from "@/lib/types";
 
 interface BacklogViewProps {
-  projectId: string;
-  rootNodes: any[];
-  nodeTypes: any[];
-  sprints: any[];
-  allNodes: any[];
+  readonly projectId: string;
+  readonly rootNodes: Node[];
+  readonly nodeTypes: NodeType[];
+  readonly sprints: Sprint[];
+  readonly allNodes: Node[];
 }
 
 export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, sprints, allNodes }: BacklogViewProps) {
-  const [nodes, setNodes] = useState(initialNodes);
-  const [selectedNode, setSelectedNode] = useState<any>(null);
+  const [nodes, setNodes] = useState<Node[]>(initialNodes);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [prevInitialNodes, setPrevInitialNodes] = useState(initialNodes);
+
+  if (initialNodes !== prevInitialNodes) {
+    setPrevInitialNodes(initialNodes);
+    setNodes(initialNodes);
+  }
+
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [hideCompleted, setHideCompleted] = useState(true);
-  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const searchParams = useSearchParams();
+  const { isReadOnly } = useProject();
 
-  const childTypeIds = new Set(nodeTypes.flatMap((t: any) => t.allowedChildren?.map((ac: any) => ac.childNodeTypeId) || []));
-  const availableRootTypes = nodeTypes.filter((t: any) => !childTypeIds.has(t.id)).length > 0 
-    ? nodeTypes.filter((t: any) => !childTypeIds.has(t.id)) 
+  const childTypeIds = new Set(nodeTypes.flatMap((t) => t.allowedChildren?.map((ac) => ac.childNodeTypeId) || []));
+  const availableRootTypes = nodeTypes.some((t) => !childTypeIds.has(t.id))
+    ? nodeTypes.filter((t) => !childTypeIds.has(t.id)) 
     : nodeTypes;
 
-  useEffect(() => {
-    const nodeId = searchParams.get('nodeId');
-    if (nodeId && allNodes.length > 0) {
-      const node = allNodes.find((n: any) => n.id === nodeId);
-      if (node) { setSelectedNode(node); setIsPanelOpen(true); }
-    }
-  }, [searchParams, allNodes]);
+  const urlNodeId = searchParams.get('nodeId');
+  const [prevUrlNodeId, setPrevUrlNodeId] = useState<string | null>(null);
 
-  useEffect(() => { setNodes(initialNodes); }, [initialNodes]);
+  if (urlNodeId !== prevUrlNodeId) {
+    setPrevUrlNodeId(urlNodeId);
+    if (urlNodeId && allNodes.length > 0) {
+      const node = allNodes.find((n) => n.id === urlNodeId);
+      if (node) {
+        setSelectedNode(node);
+        setIsPanelOpen(true);
+      }
+    }
+  }
 
   useEffect(() => {
     const refresh = async () => { const data = await getRootNodes(projectId, showArchived); setNodes(data); };
@@ -47,6 +61,7 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
   }, [showArchived, projectId]);
 
   const handleCreateRoot = async (typeId: string, typeName: string) => {
+    if (isReadOnly) return;
     await createNode(projectId, null, typeId, `New ${typeName}`);
     const data = await getRootNodes(projectId, showArchived);
     setNodes(data);
@@ -61,18 +76,15 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
         onToggleHideCompleted={() => setHideCompleted(!hideCompleted)}
         showArchived={showArchived}
         onToggleShowArchived={() => setShowArchived(!showArchived)}
-        onOpenAIBuilder={() => setIsAIModalOpen(true)}
+        isReadOnly={isReadOnly}
       />
 
-      <AIImportModal 
-        projectId={projectId} isOpen={isAIModalOpen} onClose={() => setIsAIModalOpen(false)}
-        context={{ nodes: allNodes.slice(0, 50), allNodeTypes: nodeTypes, allSprints: sprints }} 
-      />
+
 
       <div className="backlog-main-layout">
         <div className="backlog-tree-container card-planner">
           {nodes.map(node => (
-            <BacklogTree key={node.id} projectId={projectId} node={node} nodeTypes={nodeTypes} onSelect={(n: any) => { setSelectedNode(n); setIsPanelOpen(true); }} selectedNodeId={selectedNode?.id} hideCompleted={hideCompleted} />
+            <BacklogTree key={node.id} projectId={projectId} node={node} nodeTypes={nodeTypes} onSelect={(n) => { setSelectedNode(n); setIsPanelOpen(true); }} selectedNodeId={selectedNode?.id || null} hideCompleted={hideCompleted} isReadOnly={isReadOnly} />
           ))}
 
           {nodes.length === 0 && (
@@ -84,9 +96,9 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
         </div>
 
         <AnimatePresence mode="wait">
-          {isPanelOpen && (
+          {isPanelOpen && selectedNode && (
             <motion.div 
-                key={selectedNode?.id} 
+                key={selectedNode.id} 
                 initial={{ width: 0, opacity: 0 }} 
                 animate={{ width: '450px', opacity: 1 }} 
                 exit={{ width: 0, opacity: 0 }} 

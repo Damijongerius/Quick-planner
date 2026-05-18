@@ -4,11 +4,13 @@ import prisma from "@/lib/db";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { serializeData } from "@/lib/utils";
-import { logHistoryEvent } from "./helpers";
+import { logHistoryEvent, ensureProjectNotArchived } from "./helpers";
+import { NodeType, BoardConfig } from "@/lib/types";
 
 export async function createNodeType(projectId: string, formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
+  await ensureProjectNotArchived(projectId);
   const name = formData.get("name") as string;
   const color = formData.get("color") as string;
   const icon = formData.get("icon") as string || "Target";
@@ -22,6 +24,7 @@ export async function createNodeType(projectId: string, formData: FormData) {
 export async function updateNodeType(projectId: string, id: string, name: string, color: string, icon: string, isSprintEligible: boolean = true) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
+  await ensureProjectNotArchived(projectId);
   await prisma.nodeType.update({
     where: { id, userId: session.user.id, projectId },
     data: { name, color, icon, isSprintEligible },
@@ -32,33 +35,37 @@ export async function updateNodeType(projectId: string, id: string, name: string
 export async function deleteNodeType(projectId: string, id: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
+  await ensureProjectNotArchived(projectId);
   try {
     await prisma.nodeType.delete({ where: { id, userId: session.user.id, projectId } });
-  } catch (error: any) {
-    if (error.code !== 'P2025') throw error;
+  } catch (error: unknown) {
+    if (error && typeof error === 'object' && 'code' in error && error.code !== 'P2025') throw error;
   }
   revalidatePath(`/project/${projectId}/settings/nodes`);
 }
 
-export async function addFieldDefinition(projectId: string, nodeTypeId: string, name: string, type: string) {
+export async function addFieldDefinition(projectId: string, nodeTypeId: string, name: string, type: string, options?: string[]) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
-  await prisma.fieldDefinition.create({ data: { nodeTypeId, name, type } });
+  await ensureProjectNotArchived(projectId);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await prisma.fieldDefinition.create({ data: { nodeTypeId, name, type, options: options || [] } as any });
   revalidatePath(`/project/${projectId}/settings/nodes`);
 }
 
 export async function removeFieldDefinition(projectId: string, id: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
+  await ensureProjectNotArchived(projectId);
   try {
     await prisma.fieldDefinition.delete({ where: { id } });
-  } catch (error: any) {
-    if (error.code !== 'P2025') throw error;
+  } catch (error: unknown) {
+    if (error && typeof error === 'object' && 'code' in error && error.code !== 'P2025') throw error;
   }
   revalidatePath(`/project/${projectId}/settings/nodes`);
 }
 
-export async function getNodeTypes(projectId: string) {
+export async function getNodeTypes(projectId: string): Promise<NodeType[]> {
   const session = await auth();
   if (!session?.user?.id) return [];
   const nodeTypes = await prisma.nodeType.findMany({
@@ -66,14 +73,16 @@ export async function getNodeTypes(projectId: string) {
     include: { fields: true, allowedChildren: { include: { childNodeTypeType: true } } },
     orderBy: { createdAt: "asc" },
   });
-  return serializeData(nodeTypes);
+  return serializeData(nodeTypes) as NodeType[];
 }
 
-export async function updateNodeTypeBoardConfig(projectId: string, id: string, boardConfig: any) {
+
+export async function updateNodeTypeBoardConfig(projectId: string, id: string, boardConfig: BoardConfig) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
+  await ensureProjectNotArchived(projectId);
   
-  const updates: any = { boardConfig };
+  const updates: Record<string, unknown> = { boardConfig };
   if (boardConfig.isSprintEligible !== undefined) {
       updates.isSprintEligible = boardConfig.isSprintEligible;
   }

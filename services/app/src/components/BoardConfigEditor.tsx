@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { LayoutGrid, Calendar, Save } from "lucide-react";
 import { updateNodeTypeBoardConfig } from "@/lib/actions";
 import { motion } from "framer-motion";
@@ -8,7 +8,7 @@ import { Modal } from "./ui/Modal";
 import { FormField } from "./ui/FormField";
 import { Button } from "./ui/Button";
 
-import { NodeType } from "@/lib/types";
+import { NodeType, BoardConfig } from "@/lib/types";
 
 interface BoardConfigEditorProps {
   projectId: string;
@@ -17,23 +17,24 @@ interface BoardConfigEditorProps {
   onClose: () => void;
 }
 
-export function BoardConfigEditor({ projectId, nodeType, isOpen, onClose }: BoardConfigEditorProps) {
+export function BoardConfigEditor({ projectId, nodeType, isOpen, onClose }: Readonly<BoardConfigEditorProps>) {
   const [showOnKanban, setShowOnKanban] = useState(true);
   const [showOnGantt, setShowOnGantt] = useState(true);
   const [isSprintEligible, setIsSprintEligible] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    if (nodeType) {
-      const config = nodeType.boardConfig || {};
-      setShowOnKanban(config.showOnKanban !== false);
-      setShowOnGantt(config.showOnGantt !== false);
-      setIsSprintEligible(nodeType.isSprintEligible);
-    }
-  }, [nodeType]);
+  const [prevNodeId, setPrevNodeId] = useState<string | null>(nodeType?.id || null);
+
+  if (nodeType?.id !== prevNodeId) {
+    setPrevNodeId(nodeType?.id || null);
+    const config = (nodeType?.boardConfig as BoardConfig) || {};
+    setShowOnKanban(config.showOnKanban !== false);
+    setShowOnGantt(config.showOnGantt !== false);
+    setIsSprintEligible(nodeType?.isSprintEligible ?? true);
+  }
 
   const handleSave = async () => {
-    if (!nodeType || !nodeType.id) return;
+    if (!nodeType?.id) return;
     const nodeId = nodeType.id;
     setIsSaving(true);
     try {
@@ -100,12 +101,18 @@ export function BoardConfigEditor({ projectId, nodeType, isOpen, onClose }: Boar
                       <h4 className="text-sm font-bold text-on-surface">Sprint Eligibility</h4>
                       <p className="text-xs text-on-surface-variant mt-xs">Allow assignment to strategic cycles.</p>
                   </div>
-                  <div 
-                    onClick={() => setIsSprintEligible(!isSprintEligible)}
-                    className={`toggle-track ${isSprintEligible ? 'active' : ''}`}
-                  >
-                      <motion.div animate={{ x: isSprintEligible ? 24 : 0 }} className="toggle-thumb" />
-                  </div>
+                  <label className="flex items-center cursor-pointer">
+                      <span className="sr-only">Enable Sprint Eligibility</span>
+                      <input 
+                        type="checkbox"
+                        checked={isSprintEligible}
+                        onChange={(e) => setIsSprintEligible(e.target.checked)}
+                        className="sr-only"
+                      />
+                      <div className={`toggle-track ${isSprintEligible ? 'active' : ''}`}>
+                          <motion.div animate={{ x: isSprintEligible ? 24 : 0 }} className="toggle-thumb" />
+                      </div>
+                  </label>
               </div>
           </div>
           

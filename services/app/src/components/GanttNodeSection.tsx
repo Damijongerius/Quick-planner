@@ -1,11 +1,15 @@
-"use client";
+import { Node } from "@/lib/types";
 
-import React from 'react';
+interface GanttNodeSectionProps {
+  nodes: Node[];
+  days: Date[];
+  getDayOffset: (date: string | Date | null | undefined) => number | null;
+}
 
-export function GanttNodeSection({ nodes, days, getDayOffset }: any) {
+export function GanttNodeSection({ nodes, days, getDayOffset }: Readonly<GanttNodeSectionProps>) {
   return (
     <div className="flex flex-col">
-      {nodes.map((node: any) => {
+      {nodes.map((node) => {
         const startCol = getDayOffset(node.startDate || node.createdAt);
         const endCol = getDayOffset(node.endDate);
         const nodeColor = node.type?.color || 'var(--primary)';
@@ -20,13 +24,13 @@ export function GanttNodeSection({ nodes, days, getDayOffset }: any) {
             
             <div className="flex-1 relative h-full">
               <div className="gantt-bg-grid">
-                  {days.map((day: any, i: number) => (
-                      <div key={i} className={`gantt-grid-cell ${day.getDay() === 0 || day.getDay() === 6 ? 'weekend' : ''}`} />
+                  {days.map((day) => (
+                      <div key={day.toISOString()} className={`gantt-grid-cell ${day.getDay() === 0 || day.getDay() === 6 ? 'weekend' : ''}`} />
                   ))}
               </div>
 
               {startCol !== null && (
-                <div className="gantt-node-bar" style={{ '--left': `${startCol * 40 + 4}px`, '--width': `${width}px`, '--color': nodeColor } as any}>
+                <div className="gantt-node-bar" style={{ '--left': `${startCol * 40 + 4}px`, '--width': `${width}px`, '--color': nodeColor } as React.CSSProperties}>
                   {node.status}
                 </div>
               )}

@@ -20,13 +20,13 @@ interface PlannerColorPickerProps {
   onSelect: (color: string) => void;
 }
 
-export function PlannerColorPicker({ currentColor, onSelect }: PlannerColorPickerProps) {
+export function PlannerColorPicker({ currentColor, onSelect }: Readonly<PlannerColorPickerProps>) {
   const isCustomColor = !PLANNER_PALETTE.includes(currentColor);
 
   return (
     <div className="flex items-center gap-md flex-wrap">
       <div className="grid grid-cols-6 gap-sm">
-        {PLANNER_PALETTE.map((color: any) => {
+        {PLANNER_PALETTE.map((color: string) => {
           const isActive = currentColor === color;
           return (
             <button
@@ -34,7 +34,7 @@ export function PlannerColorPicker({ currentColor, onSelect }: PlannerColorPicke
               type="button"
               onClick={() => onSelect(color)}
               className={`color-swatch ${isActive ? 'active' : ''}`}
-              style={{ backgroundColor: color, '--node-color': color } as any}
+              style={{ backgroundColor: color, '--node-color': color } as React.CSSProperties}
             />
           );
         })}
@@ -42,7 +42,7 @@ export function PlannerColorPicker({ currentColor, onSelect }: PlannerColorPicke
 
       <div
         className={`custom-color-trigger ${isCustomColor ? 'active' : ''}`}
-        style={{ '--node-color': currentColor } as any}
+        style={{ '--node-color': currentColor } as React.CSSProperties}
         title="Custom Color"
       >
         <div

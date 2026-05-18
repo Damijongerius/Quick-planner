@@ -7,6 +7,7 @@ import { IconRenderer } from './IconPicker';
 import { PropertyPill } from './ui/PropertyPill';
 
 import { FieldDefinition } from '@/lib/types';
+import { Button } from './ui/Button';
 
 interface NodeTypeNodeProps {
   data: {
@@ -19,16 +20,22 @@ interface NodeTypeNodeProps {
   };
 }
 
-export const NodeTypeNode = ({ data }: NodeTypeNodeProps) => {
+export const NodeTypeNode = ({ data }: Readonly<NodeTypeNodeProps>) => {
+
   return (
     <div 
       className={`blueprint-flow-node ${data.isSelected ? 'selected' : ''}`} 
       style={{ '--node-color': data.color || 'var(--primary)' } as CSSProperties}
-      onClick={data.onClick}
     >
-      <Handle type="target" position={Position.Top} className="flow-handle-target" />
+      <button 
+        className="blueprint-node-main-action"
+        onClick={data.onClick}
+        aria-label={`Blueprint: ${data.label}`}
+      />
       
-      <div className="blueprint-node-header">
+      <Handle type="target" position={Position.Top} className="flow-handle-target z-10" />
+      
+      <div className="blueprint-node-header relative z-[2] pointer-events-none">
         <div className="blueprint-node-icon" style={{ backgroundColor: `color-mix(in srgb, ${data.color}, transparent 80%)`, color: data.color }}>
           <IconRenderer name={data.icon} size={20} />
         </div>
@@ -36,12 +43,14 @@ export const NodeTypeNode = ({ data }: NodeTypeNodeProps) => {
           <div className="text-10px font-bold opacity-40 uppercase tracking-widest">Blueprint</div>
           <div className="text-editorial text-sm font-black leading-tight">{data.label}</div>
         </div>
-        <div 
-          className="blueprint-node-settings hover:bg-white/10" 
+        <Button 
+          variant="ghost"
+          className="blueprint-node-settings hover:bg-white/10 pointer-events-auto" 
           onClick={(e) => { e.stopPropagation(); data.onClick(); }}
+          aria-label="Open Settings"
         >
           <Settings size={14} className="opacity-40" />
-        </div>
+        </Button>
       </div>
 
       {data.fields && data.fields.length > 0 && (

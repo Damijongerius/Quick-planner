@@ -1,9 +1,11 @@
 import { getProjectHistory } from "@/lib/actions";
-import { Clock, User, ArrowRight, Tag, Database, Layers } from "lucide-react";
+import { Clock, User, ArrowRight, Database } from "lucide-react";
+import Image from "next/image";
+import { AuditLogEvent } from "@/lib/types";
 
-export default async function HistoryPage({ params }: { params: Promise<{ projectId: string }> }) {
+export default async function HistoryPage({ params }: Readonly<{ params: Promise<{ projectId: string }> }>) {
   const { projectId } = await params;
-  const history = await getProjectHistory(projectId);
+  const history = (await getProjectHistory(projectId)) as unknown as AuditLogEvent[];
 
   const getActionColor = (action: string) => {
     switch (action) {
@@ -26,7 +28,7 @@ export default async function HistoryPage({ params }: { params: Promise<{ projec
       </header>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-        {history.map((event: any) => (
+        {history.map((event: AuditLogEvent) => (
           <div key={event.id} className="card-planner" style={{ 
             padding: '20px 32px', 
             borderRadius: '12px',
@@ -85,7 +87,7 @@ export default async function HistoryPage({ params }: { params: Promise<{ projec
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', backgroundColor: 'var(--surface-container-low)', borderRadius: '9999px' }}>
                 <div style={{ width: '20px', height: '20px', borderRadius: '50%', overflow: 'hidden' }}>
                     {event.user.image ? (
-                        <img src={event.user.image} style={{ width: '100%', height: '100%' }} />
+                        <Image src={event.user.image} alt={event.user.name || "User"} width={20} height={20} style={{ borderRadius: '50%' }} />
                     ) : (
                         <User size={14} style={{ margin: '3px' }} />
                     )}

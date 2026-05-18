@@ -9,7 +9,7 @@ interface AvatarProps {
   className?: string;
 }
 
-export function Avatar({ src, name, size = "md", className = "" }: AvatarProps) {
+export function Avatar({ src, name, size = "md", className = "" }: Readonly<AvatarProps>) {
   const sizeMap = {
     xs: 24,
     sm: 32,

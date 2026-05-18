@@ -2,7 +2,7 @@
 
 import React from "react";
 import "./Modal.css";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { X } from "lucide-react";
 import { Button } from "./Button";
 
@@ -24,17 +24,26 @@ export function Modal({
   children, 
   footer,
   maxWidth = "520px" 
-}: ModalProps) {
+}: Readonly<ModalProps>) {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div 
+      className="modal-overlay" 
+      onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      }}
+      role="none"
+    >
       <motion.div 
         initial={{ scale: 0.95, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.95, opacity: 0, y: 20 }}
         className="modal-content"
-        style={{ '--modal-max-width': maxWidth } as any}
+        style={{ '--modal-max-width': maxWidth } as React.CSSProperties}
         onClick={(e) => e.stopPropagation()}
       >
         <header className="modal-header">

@@ -18,16 +18,19 @@ export function UserMenu() {
 
   return (
     <>
-      <div 
-        className={`user-menu-container ${isDamian ? 'cursor-pointer hover:bg-surface-container-high transition-colors' : ''}`}
+    <div className="user-menu-wrapper flex items-center gap-sm pr-sm">
+      <button 
+        className={`user-menu-container flex-1 ${isDamian ? 'cursor-pointer hover:bg-surface-container-high transition-colors' : ''}`}
         onClick={() => isDamian && setIsWakeModalOpen(true)}
+        disabled={!isDamian}
+        aria-label={isDamian ? "Open Wake PC Menu" : undefined}
       >
         <Avatar 
           src={session.user.image} 
           name={session.user.name} 
           size="md" 
         />
-        <div className="user-info">
+        <div className="user-info text-left">
           <span className="user-name">
               {session.user.name}
           </span>
@@ -35,15 +38,16 @@ export function UserMenu() {
               {session.user.email}
           </span>
         </div>
-        <Button 
-          variant="ghost" 
-          onClick={(e) => { e.stopPropagation(); handleUserSignOut(); }}
-          title="Sign Out"
-          size="sm"
-        >
-          <LogOut size={16} />
-        </Button>
-      </div>
+      </button>
+      <Button 
+        variant="ghost" 
+        onClick={() => handleUserSignOut()}
+        title="Sign Out"
+        size="sm"
+      >
+        <LogOut size={16} />
+      </Button>
+    </div>
 
       {isDamian && (
         <WakePcModal isOpen={isWakeModalOpen} onClose={() => setIsWakeModalOpen(false)} />

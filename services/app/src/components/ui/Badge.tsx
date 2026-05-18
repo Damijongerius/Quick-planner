@@ -15,7 +15,7 @@ export function Badge({
   size = "sm", 
   className = "",
   style
-}: BadgeProps) {
+}: Readonly<BadgeProps>) {
   return (
     <span 
       className={`badge-base badge-${variant} badge-${size} ${className}`}

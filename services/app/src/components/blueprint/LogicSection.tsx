@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Milestone, LayoutGrid } from 'lucide-react';
+import { Milestone, LayoutGrid, Calendar, LucideIcon, Info } from 'lucide-react';
 
 interface LogicSectionProps {
     isSprintEligible: boolean;
@@ -9,6 +9,7 @@ interface LogicSectionProps {
     showOnGantt: boolean;
     onToggleSprint: () => Promise<void>;
     onToggleVisibility: (key: 'showOnKanban' | 'showOnGantt') => Promise<void>;
+    isReadOnly?: boolean;
 }
 
 export function LogicSection({ 
@@ -16,55 +17,84 @@ export function LogicSection({
     showOnKanban, 
     showOnGantt, 
     onToggleSprint, 
-    onToggleVisibility 
-}: LogicSectionProps) {
+    onToggleVisibility,
+    isReadOnly
+}: Readonly<LogicSectionProps>) {
     return (
         <section className="flex flex-col gap-md">
-            <label className="text-meta text-10px opacity-60 uppercase">Logic</label>
-            <div className="flex flex-col gap-md">
-                <div className="flex items-center justify-between p-lg bg-surface-container-low border border-outline-variant rounded-2xl">
-                    <div className="flex items-center gap-md">
-                        <Milestone size={18} className="text-primary" />
-                        <div>
-                            <p className="text-xs font-bold">Sprint Eligibility</p>
-                            <p className="text-10px opacity-50">Can be assigned to cycles.</p>
-                        </div>
-                    </div>
-                    <div 
-                        onClick={onToggleSprint}
-                        className={`toggle-track ${isSprintEligible ? 'active' : ''}`}
-                    >
-                        <div className={`toggle-thumb ${isSprintEligible ? 'translate-x-5' : 'translate-x-0'} transition-transform duration-200`} />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-md">
-                    <div className="flex items-center justify-between p-md bg-surface-container-low border border-outline-variant rounded-xl">
-                        <div className="flex items-center gap-sm">
-                            <LayoutGrid size={16} className="opacity-60" />
-                            <span className="text-xs font-bold">Kanban</span>
-                        </div>
-                        <div 
-                            onClick={() => onToggleVisibility('showOnKanban')}
-                            className={`toggle-track scale-75 ${showOnKanban ? 'active' : ''}`}
-                        >
-                            <div className={`toggle-thumb ${showOnKanban ? 'translate-x-5' : 'translate-x-0'} transition-transform duration-200`} />
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-between p-md bg-surface-container-low border border-outline-variant rounded-xl">
-                        <div className="flex items-center gap-sm">
-                            <LayoutGrid size={16} className="opacity-60 rotate-90" />
-                            <span className="text-xs font-bold">Gantt</span>
-                        </div>
-                        <div 
-                            onClick={() => onToggleVisibility('showOnGantt')}
-                            className={`toggle-track scale-75 ${showOnGantt ? 'active' : ''}`}
-                        >
-                            <div className={`toggle-thumb ${showOnGantt ? 'translate-x-5' : 'translate-x-0'} transition-transform duration-200`} />
-                        </div>
-                    </div>
-                </div>
+            <span className="text-meta text-10px opacity-60 uppercase">Logic</span>
+            <div className="flex flex-col gap-sm">
+                <LogicToggle 
+                    label="Sprint Eligibility" 
+                    description="Allows nodes of this type to be assigned to specific sprints."
+                    icon={Milestone} 
+                    active={isSprintEligible} 
+                    onToggle={onToggleSprint} 
+                    isReadOnly={isReadOnly} 
+                />
+                <LogicToggle 
+                    label="Kanban Visibility" 
+                    description="Shows nodes of this type as cards on the Kanban board."
+                    icon={LayoutGrid} 
+                    active={showOnKanban} 
+                    onToggle={() => onToggleVisibility('showOnKanban')} 
+                    isReadOnly={isReadOnly} 
+                />
+                <LogicToggle 
+                    label="Gantt Visibility" 
+                    description="Displays nodes of this type on the timeline Gantt chart."
+                    icon={Calendar} 
+                    active={showOnGantt} 
+                    onToggle={() => onToggleVisibility('showOnGantt')} 
+                    isReadOnly={isReadOnly} 
+                />
             </div>
         </section>
+    );
+}
+
+interface LogicToggleProps {
+    label: string;
+    description?: string;
+    icon: LucideIcon;
+    active: boolean;
+    onToggle: () => void;
+    isReadOnly?: boolean;
+}
+
+
+function LogicToggle({ label, description, icon: Icon, active, onToggle, isReadOnly }: Readonly<LogicToggleProps>) {
+    return (
+        <div className="flex items-center justify-between p-md bg-surface-container-low border border-outline-variant rounded-xl transition-colors hover:bg-surface-container-medium">
+            <div className="flex items-center gap-md">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${active ? 'bg-primary/10 text-primary' : 'bg-surface-container-high opacity-60'}`}>
+                    <Icon size={16} />
+                </div>
+                <div className="flex items-center gap-xs">
+                    <span className="text-xs font-bold">{label}</span>
+                    {description && (
+                        <div title={description} className="cursor-help opacity-40 hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Info size={14} />
+                        </div>
+                    )}
+                </div>
+            </div>
+            <label className={`flex items-center ${isReadOnly ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                <span className="sr-only">Toggle {label}</span>
+                <input 
+                    type="checkbox"
+                    className="sr-only"
+                    checked={active}
+                    onChange={() => !isReadOnly && onToggle()}
+                    disabled={isReadOnly}
+                />
+                <div 
+                    className={`toggle-track scale-75 ${active ? 'active' : ''} ${isReadOnly ? 'opacity-50' : ''}`}
+                    aria-hidden="true"
+                >
+                    <div className={`toggle-thumb ${active ? 'translate-x-5' : 'translate-x-0'} transition-transform duration-200`} />
+                </div>
+            </label>
+        </div>
     );
 }

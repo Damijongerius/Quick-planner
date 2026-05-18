@@ -1,16 +1,14 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import Image from "next/image";
 import { 
   User, 
-  MapPin, 
   Calendar, 
   Verified,
   Palette,
   Lock,
-  Bell,
-  Globe,
   ChevronRight,
-  MessageSquare
+  Globe
 } from "lucide-react";
 
 export default async function ProfilePage() {
@@ -35,7 +33,7 @@ export default async function ProfilePage() {
             boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)'
           }}>
             {session.user.image ? (
-              <img src={session.user.image} alt={session.user.name || "User"} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '36px' }} />
+              <Image src={session.user.image} alt={session.user.name || "User"} width={160} height={160} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '36px' }} />
             ) : (
               <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--surface-container-high)', borderRadius: '36px' }}>
                 <User size={64} color="var(--on-surface-variant)" />
@@ -82,7 +80,7 @@ export default async function ProfilePage() {
             <div className="card-planner" style={{ padding: '40px', borderRadius: '40px' }}>
                 <h3 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--on-surface)', marginBottom: '24px' }}>Manifesto</h3>
                 <p style={{ fontSize: '18px', color: 'var(--on-surface-variant)', fontStyle: 'italic', lineHeight: 1.6 }}>
-                    "Architecting clarity from complexity. In the Planner, we don't just manage time; we master attention."
+                    &quot;Architecting clarity from complexity. In the Planner, we don&apos;t just manage time; we master attention.&quot;
                 </p>
             </div>
         </div>
@@ -96,8 +94,8 @@ export default async function ProfilePage() {
                         { label: 'Interface Theme', value: 'Default', icon: Palette },
                         { label: 'Privacy & Security', icon: Lock, arrow: true },
                         { label: 'Cloud Syncing', icon: Globe, toggle: true }
-                    ].map((pref, i) => (
-                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    ].map((pref) => (
+                        <div key={pref.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--surface-container-lowest)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--on-surface-variant)' }}>
                                     <pref.icon size={20} />

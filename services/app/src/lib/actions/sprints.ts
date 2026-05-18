@@ -4,11 +4,13 @@ import prisma from "@/lib/db";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { serializeData } from "@/lib/utils";
-import { logHistoryEvent } from "./helpers";
+import { logHistoryEvent, ensureProjectNotArchived } from "./helpers";
+import { Sprint } from "@/lib/types";
 
 export async function createSprint(projectId: string, name: string, startDate?: string, endDate?: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
+  await ensureProjectNotArchived(projectId);
   const sprint = await prisma.sprint.create({
     data: { name, startDate: startDate ? new Date(startDate) : null, endDate: endDate ? new Date(endDate) : null, userId: session.user.id, projectId },
   });
@@ -25,12 +27,13 @@ export async function getSprints(projectId: string) {
     include: { _count: { select: { nodes: true } } },
     orderBy: [{ startDate: 'asc' }, { createdAt: 'asc' }],
   });
-  return serializeData(sprints);
+  return serializeData(sprints) as (Sprint & { _count: { nodes: number } })[];
 }
 
 export async function updateSprintStatus(projectId: string, id: string, status: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
+  await ensureProjectNotArchived(projectId);
   const oldSprint = await prisma.sprint.findUnique({ where: { id } });
   if (status === "ACTIVE") {
     await prisma.sprint.updateMany({ where: { userId: session.user.id, projectId, status: "ACTIVE" }, data: { status: "PLANNED" } });
@@ -44,6 +47,7 @@ export async function updateSprintStatus(projectId: string, id: string, status: 
 export async function deleteSprint(projectId: string, id: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
+  await ensureProjectNotArchived(projectId);
   
   const sprint = await prisma.sprint.findUnique({ where: { id } });
   
@@ -65,6 +69,7 @@ export async function deleteSprint(projectId: string, id: string) {
 export async function assignNodeToSprint(projectId: string, nodeId: string, sprintId: string | null) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
+  await ensureProjectNotArchived(projectId);
   const node = await prisma.node.findUnique({ where: { id: nodeId } });
   const sprint = sprintId ? await prisma.sprint.findUnique({ where: { id: sprintId } }) : null;
   await prisma.node.update({ where: { id: nodeId, userId: session.user.id, projectId }, data: { sprintId }, });

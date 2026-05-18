@@ -1,7 +1,8 @@
 import { getNodeTypes, getRelations } from "@/lib/actions";
 import { RelationEditor } from "@/components/RelationEditor";
+import { AllowedRelation } from "@/lib/types";
 
-export default async function RelationsPage({ params }: { params: Promise<{ projectId: string }> }) {
+export default async function RelationsPage({ params }: Readonly<{ params: Promise<{ projectId: string }> }>) {
   const { projectId } = await params;
   const nodeTypes = await getNodeTypes(projectId);
   const relations = await getRelations(projectId);
@@ -20,7 +21,7 @@ export default async function RelationsPage({ params }: { params: Promise<{ proj
       <section style={{ marginTop: '64px' }}>
         <h3 style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(89, 96, 100, 0.4)', marginBottom: '24px' }}>Active Governance Rules</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
-          {relations.map((rel: any) => (
+          {relations.map((rel: AllowedRelation) => (
             <div key={rel.id} className="card-planner" style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: rel.parentNodeType.color || 'var(--primary)' }}>{rel.parentNodeType.name}</span>

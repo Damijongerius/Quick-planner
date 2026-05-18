@@ -1,12 +1,19 @@
 "use client";
 
 import React from 'react';
-import { Play, CheckCircle2, Trash2, Clock, Calendar } from "lucide-react";
+import { Play, CheckCircle2, Trash2, Clock, Calendar, LucideIcon } from "lucide-react";
 import { Button } from "./ui/Button";
 import { updateSprintStatus, deleteSprint } from "@/lib/actions";
+import { Sprint } from "@/lib/types";
 
-export function SprintCard({ sprint, projectId }: any) {
-  const getStatusConfig = (status: string) => {
+interface SprintCardProps {
+  sprint: Sprint & { _count?: { nodes: number } };
+  projectId: string;
+  isReadOnly?: boolean;
+}
+
+export function SprintCard({ sprint, projectId, isReadOnly }: Readonly<SprintCardProps>) {
+  const getStatusConfig = (status: string): { color: string, bg: string, icon: LucideIcon } => {
     switch (status) {
       case 'ACTIVE': return { color: 'var(--primary)', bg: 'rgba(70, 86, 184, 0.1)', icon: Play };
       case 'COMPLETED': return { color: 'var(--tertiary)', bg: 'rgba(0, 107, 96, 0.1)', icon: CheckCircle2 };
@@ -33,7 +40,7 @@ export function SprintCard({ sprint, projectId }: any) {
           </div>
           <div className="flex items-center gap-sm sprint-dates">
             <Calendar size={14} className="opacity-60" />
-            <span>
+            <span suppressHydrationWarning>
               {sprint.startDate && new Date(sprint.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               {sprint.endDate && ` — ${new Date(sprint.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
               {!sprint.startDate && "No timeline set"}
@@ -54,34 +61,36 @@ export function SprintCard({ sprint, projectId }: any) {
           </div>
         </div>
 
-        <div className="flex gap-sm">
-          {sprint.status === 'PLANNED' && (
+        {!isReadOnly && (
+          <div className="flex gap-sm">
+            {sprint.status === 'PLANNED' && (
+              <Button 
+                onClick={() => updateSprintStatus(projectId, sprint.id, 'ACTIVE')} 
+                size="sm" 
+                icon={<Play size={16} fill="currentColor" />}
+              >
+                Activate
+              </Button>
+            )}
+            {sprint.status === 'ACTIVE' && (
+              <Button 
+                onClick={() => updateSprintStatus(projectId, sprint.id, 'COMPLETED')} 
+                size="sm" 
+                variant="success" 
+                icon={<CheckCircle2 size={16} />}
+              >
+                Finalize
+              </Button>
+            )}
             <Button 
-              onClick={() => updateSprintStatus(projectId, sprint.id, 'ACTIVE')} 
+              variant="ghost" 
               size="sm" 
-              icon={<Play size={16} fill="currentColor" />}
-            >
-              Activate
-            </Button>
-          )}
-          {sprint.status === 'ACTIVE' && (
-            <Button 
-              onClick={() => updateSprintStatus(projectId, sprint.id, 'COMPLETED')} 
-              size="sm" 
-              variant="success" 
-              icon={<CheckCircle2 size={16} />}
-            >
-              Finalize
-            </Button>
-          )}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-error hover:bg-error/10"
-            onClick={() => confirm('Are you sure you want to delete this strategic cycle?') && deleteSprint(projectId, sprint.id)} 
-            icon={<Trash2 size={18} />} 
-          />
-        </div>
+              className="text-error hover:bg-error/10"
+              onClick={() => confirm('Are you sure you want to delete this strategic cycle?') && deleteSprint(projectId, sprint.id)} 
+              icon={<Trash2 size={18} />} 
+            />
+          </div>
+        )}
       </div>
     </div>
   );

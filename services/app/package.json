@@ -11,8 +11,10 @@
   "dependencies": {
     "@ai-sdk/react": "^1.1.0",
     "@auth/prisma-adapter": "^2.11.2",
+    "@google/genai": "^2.3.0",
     "@hello-pangea/dnd": "^18.0.1",
     "@hookform/resolvers": "^5.2.2",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.7.0",
     "ai": "^4.1.0",
@@ -37,8 +39,10 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/wake_on_lan": "^0.0.33",
+    "concurrently": "^9.2.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "tsx": "^4.22.0",
     "typescript": "^5"
   }
 }

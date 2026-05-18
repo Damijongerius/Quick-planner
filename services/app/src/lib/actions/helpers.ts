@@ -3,6 +3,17 @@
 import prisma from "@/lib/db";
 import { auth } from "@/auth";
 
+// Internal Helper for Authorization
+export async function ensureProjectNotArchived(projectId: string) {
+    const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        select: { isArchived: true }
+    });
+    if (project?.isArchived) {
+        throw new Error("Cannot modify a decommissioned project");
+    }
+}
+
 // Internal Helper for History Logging
 export async function logHistoryEvent({
     projectId,
@@ -64,7 +75,7 @@ export async function propagateStatusUpwards(projectId: string, nodeId: string, 
                 where: { parentNodeId: parent.id },
                 include: { childNode: true }
             });
-            const allDone = siblings.every((s: any) => s.childNode.status === 'DONE');
+            const allDone = siblings.every((s) => s.childNode.status === 'DONE');
             if (allDone && parent.status !== 'DONE') {
                 await prisma.node.update({
                     where: { id: parent.id },
@@ -84,7 +95,7 @@ export async function propagateTimelineShift(projectId: string, nodeId: string) 
         include: { blocking: { include: { blockedNode: true } } }
     });
 
-    if (!currentNode || !currentNode.endDate) return;
+    if (!currentNode?.endDate) return;
 
     for (const dep of currentNode.blocking) {
         const blockedNode = dep.blockedNode;

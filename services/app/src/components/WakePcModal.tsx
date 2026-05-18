@@ -6,7 +6,7 @@ import { Button } from "./ui/Button";
 import { Power, Check, AlertCircle } from "lucide-react";
 import { wakePc } from "@/app/profile/actions";
 
-export function WakePcModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+export function WakePcModal({ isOpen, onClose }: Readonly<{ isOpen: boolean, onClose: () => void }>) {
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
     const handleWake = async () => {
@@ -20,7 +20,7 @@ export function WakePcModal({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                     onClose();
                 }, 2000);
             }
-        } catch (e) {
+        } catch {
             setStatus('error');
         }
     };

@@ -3,6 +3,8 @@
 import React from "react";
 import { Trash } from "lucide-react";
 
+import { Node } from "@/lib/types";
+
 interface Dependency {
   id: string;
   blockingNode: {
@@ -13,16 +15,16 @@ interface Dependency {
 
 interface DependencyManagerProps {
   dependencies: Dependency[];
-  allNodes: any[];
+  allNodes: Node[];
   currentNodeId: string;
   onAdd: (blockingId: string) => void;
   onRemove: (depId: string) => void;
 }
 
-export function DependencyManager({ dependencies, allNodes, currentNodeId, onAdd, onRemove }: DependencyManagerProps) {
+export function DependencyManager({ dependencies, allNodes, currentNodeId, onAdd, onRemove }: Readonly<DependencyManagerProps>) {
   return (
     <div className="timeline-container">
-      <label className="text-meta block mb-lg">Dependencies</label>
+      <label htmlFor="dependency-select" className="text-meta block mb-lg">Dependencies</label>
       
       <div className="flex flex-col gap-sm mb-lg">
         {dependencies?.map((dep) => (
@@ -36,20 +38,25 @@ export function DependencyManager({ dependencies, allNodes, currentNodeId, onAdd
             </button>
           </div>
         ))}
-        {(!dependencies || dependencies.length === 0) && (
+        {dependencies?.length > 0 ? null : (
           <p className="dependency-empty-text">No active dependencies.</p>
         )}
       </div>
 
       <select 
+        id="dependency-select"
         className="dependency-selector button-secondary w-full text-meta"
         value="none"
         onChange={(e) => onAdd(e.target.value)}
       >
         <option value="none">+ ADD BLOCKING NODE</option>
         {allNodes
-          .filter((n: any) => n.id !== currentNodeId && !dependencies?.some((d: any) => d.blockingNode?.id === n.id))
-          .map((n: any) => (
+          .filter((n: Node) => {
+              const isSelf = n.id === currentNodeId;
+              const isAlreadyDep = dependencies?.some((d: Dependency) => d.blockingNode?.id === n.id);
+              return !isSelf && !isAlreadyDep;
+          })
+          .map((n: Node) => (
             <option key={n.id} value={n.id}>{n.title}</option>
           ))
         }

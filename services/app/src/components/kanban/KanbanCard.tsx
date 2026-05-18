@@ -5,23 +5,7 @@ import { motion } from "framer-motion";
 import { Check, Clock, Layers } from "lucide-react";
 import { IconRenderer } from "../IconPicker";
 
-interface Node {
-  id: string;
-  title: string;
-  status: string;
-  content: any;
-  nodeTypeId: string;
-  type: {
-    id: string;
-    name: string;
-    color: string;
-    icon: string;
-    boardConfig?: any;
-    fields: any[];
-  };
-  blockedBy?: { blockingNode: any }[];
-  parentLinks?: { parentNode: { title: string } }[];
-}
+import { Node } from "@/lib/types";
 
 interface KanbanCardProps {
   task: Node;
@@ -29,22 +13,33 @@ interface KanbanCardProps {
   isDragging?: boolean;
 }
 
-export function KanbanCard({ task, onClick, isDragging }: KanbanCardProps) {
+export function KanbanCard({ task, onClick, isDragging }: Readonly<KanbanCardProps>) {
   const isDone = task.status === 'DONE';
   const isInProgress = task.status === 'IN_PROGRESS';
   const parentNode = task.parentLinks?.[0]?.parentNode;
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
   return (
     <motion.div 
-      whileHover={!isDragging ? { y: -4, boxShadow: 'var(--ambient-shadow)' } : {}}
+      whileHover={isDragging ? {} : { y: -4, boxShadow: 'var(--ambient-shadow)' }}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
       className={`kanban-card ${isDone ? 'done' : ''} ${isDragging ? 'dragging' : ''} ${isInProgress ? 'in-progress' : ''}`}
-      style={{ '--node-color': task.type.color } as any}
+      style={{ '--node-color': task.type.color } as React.CSSProperties}
+      role="button"
+      tabIndex={0}
+      aria-label={`Task: ${task.title}`}
     >
       <div className="flex justify-between items-start mb-md">
         <div className="flex gap-sm items-center">
             <div className="text-node-color">
-                <IconRenderer name={task.type.icon} size={14} />
+                <IconRenderer name={task.type.icon || 'Target'} size={14} />
             </div>
             <span className="kanban-card-type text-node-color">
                 {task.type.name}
@@ -67,7 +62,7 @@ export function KanbanCard({ task, onClick, isDragging }: KanbanCardProps) {
 
 // --- Implementation Details ---
 
-function CardAvatar({ isDone }: { isDone: boolean }) {
+function CardAvatar({ isDone }: Readonly<{ isDone: boolean }>) {
   if (isDone) {
     return (
       <div className="kanban-card-check">
@@ -82,7 +77,7 @@ function CardAvatar({ isDone }: { isDone: boolean }) {
   );
 }
 
-function ParentLink({ title }: { title: string }) {
+function ParentLink({ title }: Readonly<{ title: string }>) {
   return (
     <div className="kanban-card-parent">
       <Layers size={10} />
@@ -91,8 +86,13 @@ function ParentLink({ title }: { title: string }) {
   );
 }
 
-function CardFooter({ status }: { status: string }) {
-  const statusLabel = status === 'DONE' ? 'Finished' : (status === 'IN_PROGRESS' ? 'Active' : 'Queued');
+function CardFooter({ status }: Readonly<{ status: string }>) {
+  let statusLabel = 'Queued';
+  if (status === 'DONE') {
+    statusLabel = 'Finished';
+  } else if (status === 'IN_PROGRESS') {
+    statusLabel = 'Active';
+  }
   
   return (
     <div className="kanban-card-footer">

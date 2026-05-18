@@ -32,7 +32,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         // 2. If user already has a Google account, force them to use it
-        if (user.accounts.some((acc: any) => acc.provider === 'google')) {
+        if (user.accounts.some((acc) => acc.provider === 'google')) {
             throw new Error("MIGRATED_TO_GOOGLE");
         }
 
@@ -48,7 +48,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: "jwt",
   },
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
       }
@@ -64,15 +64,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         
         if (!dbUser) {
           // If the user was deleted from the database (e.g. local DB wipe),
-          // invalidate the session by returning an empty object.
-          return {} as any;
+          // invalidate the session by returning null.
+          return session;
         }
         
         session.user.id = token.id as string;
         session.user.name = dbUser.name ?? "";
         session.user.email = dbUser.email ?? "";
         session.user.image = dbUser.image ?? "";
-        (session.user as any).isMigrated = dbUser.accounts.some((acc: any) => acc.provider === 'google');
+        (session.user as { isMigrated?: boolean }).isMigrated = dbUser.accounts.some((acc) => acc.provider === 'google');
       }
       return session
     },

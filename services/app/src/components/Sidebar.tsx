@@ -4,28 +4,28 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, 
-  User, 
   KanbanSquare, 
   ChevronLeft,
   X
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 
 import { UserMenu } from "@/components/UserMenu";
+import { useProject } from "./ProjectContext";
 import "./Sidebar.css";
 
 interface SidebarProps {
-  project: {
-    id: string;
-    name: string;
+  readonly project: {
+    readonly id: string;
+    readonly name: string;
   };
-  isOpen?: boolean;
-  onClose?: () => void;
+  readonly isOpen?: boolean;
+  readonly onClose?: () => void;
 }
 
 export function Sidebar({ project, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
 
+  const { isReadOnly } = useProject();
   const menuItems = [
     { name: "Sprint Board", href: `/project/${project.id}/board`, icon: KanbanSquare },
     { name: "Hierarchical Backlog", href: `/project/${project.id}/backlog`, icon: LayoutDashboard },
@@ -51,7 +51,9 @@ export function Sidebar({ project, isOpen, onClose }: SidebarProps) {
         <h1 className="sidebar-project-name">
             {project.name}
         </h1>
-        <p className="text-meta sidebar-workspace-label">Active Workspace</p>
+        <p className={`text-meta sidebar-workspace-label ${isReadOnly ? 'text-error font-bold' : ''}`}>
+          {isReadOnly ? 'DECOMMISSIONED' : 'Active Workspace'}
+        </p>
       </div>
 
       <nav className="sidebar-nav">
