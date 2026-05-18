@@ -27,23 +27,67 @@ export function NodeSidePanel({ projectId, node, onClose, sprints, allNodes }: R
   
   const isInitialMount = useRef(true);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastNodeIdRef = useRef(node.id);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
+  // Reset local states when a different node is selected
   useEffect(() => {
-    if (activeTab === 'history' && node?.id) loadHistoryData(projectId, node.id, setHistory);
-  }, [activeTab, node?.id, projectId]);
+    setTitle(node.title || "");
+    setDescription(node.description || "");
+    setStartDate(node.startDate ? new Date(node.startDate).toISOString().split('T')[0] : "");
+    setEndDate(node.endDate ? new Date(node.endDate).toISOString().split('T')[0] : "");
+    setContent((node.content as Record<string, unknown>) || {});
+    setSprintId(node.sprintId || null);
+    setStatus(node.status || "TODO");
+    lastNodeIdRef.current = node.id;
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = 0;
+    }
+  }, [node.id]);
 
+  // Debounced auto-save effect
   useEffect(() => {
-    if (isInitialMount.current) { isInitialMount.current = false; return; }
+    if (isInitialMount.current) { 
+      isInitialMount.current = false; 
+      return; 
+    }
+
+    // Skip saving if we are just loading a newly clicked node
+    if (lastNodeIdRef.current !== node.id) {
+      lastNodeIdRef.current = node.id;
+      return;
+    }
+
+    // Only save if a field was actually modified by the user
+    const originalStartDate = node.startDate ? new Date(node.startDate).toISOString().split('T')[0] : "";
+    const originalEndDate = node.endDate ? new Date(node.endDate).toISOString().split('T')[0] : "";
+    const isUnchanged = 
+      title === (node.title || "") &&
+      description === (node.description || "") &&
+      startDate === originalStartDate &&
+      endDate === originalEndDate &&
+      JSON.stringify(content) === JSON.stringify(node.content || {});
+
+    if (isUnchanged) return;
+
     setSavingStatus('saving');
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(async () => {
       try {
         await updateNode(projectId, node.id, { title, description, content, startDate: startDate || null, endDate: endDate || null });
-        setSavingStatus('saved'); setTimeout(() => setSavingStatus('idle'), 2000);
-      } catch { setSavingStatus('idle'); }
+        setSavingStatus('saved'); 
+        setTimeout(() => setSavingStatus('idle'), 2000);
+      } catch { 
+        setSavingStatus('idle'); 
+      }
     }, 500);
+
     return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
-  }, [title, description, content, startDate, endDate, projectId, node?.id]);
+  }, [title, description, content, startDate, endDate, projectId, node]);
+
+  useEffect(() => {
+    if (activeTab === 'history' && node?.id) loadHistoryData(projectId, node.id, setHistory);
+  }, [activeTab, node?.id, projectId]);
 
   if (!node) return null;
 
@@ -68,7 +112,7 @@ export function NodeSidePanel({ projectId, node, onClose, sprints, allNodes }: R
         <SegmentedControl options={[{ id: 'details', label: 'DETAILS' }, { id: 'history', label: 'HISTORY', icon: <Clock size={14} /> }]} value={activeTab} onChange={(id) => setActiveTab(id as 'details' | 'history')} />
       </div>
 
-      <div className="side-panel-scroll-area flex-1 overflow-y-auto">
+      <div ref={scrollAreaRef} className="side-panel-scroll-area flex-1 overflow-y-auto">
         {activeTab === 'details' ? (
           <NodeDetailsTab node={node} title={title} setTitle={setTitle} description={description} setDescription={setDescription} status={status} setStatus={setStatus} sprintId={sprintId} setSprintId={setSprintId} startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate} content={content} setContent={setContent} sprints={sprints} allNodes={allNodes} projectId={projectId} />
         ) : (

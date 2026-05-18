@@ -2,12 +2,14 @@ import { GoogleGenAI, Type, FunctionDeclaration, ThinkingLevel } from "@google/g
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
+import prisma from "@/lib/db";
 
 export async function POST(req: Request) {
   let transport: SSEClientTransport | null = null;
   
   try {
-    const { messages } = await req.json();
+    const { messages, projectId } = await req.json();
 
     const ai = new GoogleGenAI({
       apiKey: process.env.GEMINI_API_KEY,
@@ -56,22 +58,55 @@ export async function POST(req: Request) {
       };
     });
 
-    const formattedMessages = messages.map((m: any) => ({
-      role: m.role === 'user' ? 'user' : 'model',
-      parts: [{ text: m.content }]
-    }));
+    const cleanMessages = messages.filter((m: any) => m.role !== 'system' && m.content && m.content.trim() !== '');
+    const formattedMessages: any[] = [];
+    
+    for (const msg of cleanMessages) {
+      const role = msg.role === 'user' ? 'user' : 'model';
+      if (formattedMessages.length > 0 && formattedMessages[formattedMessages.length - 1].role === role) {
+        formattedMessages[formattedMessages.length - 1].parts[0].text += "\n" + msg.content;
+      } else {
+        formattedMessages.push({
+          role,
+          parts: [{ text: msg.content }]
+        });
+      }
+    }
 
-    const systemInstruction = `You are the QuickPlanner AI Assistant, an intelligent and helpful agent integrated directly into the QuickPlanner platform. Your role is to help the user manage their projects and answer their questions. You have access to local MCP tools to modify project settings, create nodes, and even search the web. Use your tools proactively when the user asks you to perform actions. Keep your responses concise, friendly, and professional.`;
+    console.log("Formatted Messages Payload:", JSON.stringify(formattedMessages, null, 2));
+
+    const modelName = process.env.AI_MODEL || "gemini-2.5-flash";
+    const supportsThinking = modelName.includes("thinking");
+    const supportsTools = modelName.includes("gemini");
+
+    let systemInstruction = `You are the QuickPlanner AI Assistant, an intelligent and helpful agent integrated directly into the QuickPlanner platform. Your role is to help the user manage their projects and answer their questions. You have access to local MCP tools to modify project settings, create nodes, and even search the web. Use your tools proactively when the user asks you to perform actions. Keep your responses concise, friendly, and professional.`;
+
+    // Inject real-time calendar context for exact date calculations
+    const now = new Date();
+    systemInstruction += `\n\nCURRENT TIME: Today's date is ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. The current time is ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}. When the user specifies relative terms like "today", "tomorrow", "next Monday", "next week", or "in 2 weeks", use this active calendar timestamp to calculate the exact calendar dates for tool arguments (sprint start/end dates or task deadlines).`;
+
+    if (projectId) {
+      try {
+        const project = await prisma.project.findUnique({
+          where: { id: projectId }
+        });
+        if (project) {
+          systemInstruction += `\n\nCURRENT CONTEXT: The user is currently active in the project "${project.name}" (ID: ${project.id}). When the user asks you to perform actions like creating a node, updating task settings, listing sprints, or modifying configuration preferences, default to this project context ("${project.name}") unless they explicitly request a different project.`;
+        }
+      } catch (err) {
+        console.error("Failed to query project context:", err);
+      }
+    }
 
     const response = await ai.models.generateContent({
-      model: "gemma4:31b",
+      model: modelName,
       contents: formattedMessages,
       config: {
         systemInstruction,
-        tools: functionDeclarations.length > 0 ? [{ functionDeclarations }] : undefined,
-        thinkingConfig: {
+        tools: (supportsTools && functionDeclarations.length > 0) ? [{ functionDeclarations }] : undefined,
+        thinkingConfig: supportsThinking ? {
           thinkingLevel: ThinkingLevel.LOW,
-        },
+        } : undefined,
       }
     });
 
@@ -84,9 +119,16 @@ export async function POST(req: Request) {
       let result;
       if (call.name) {
         try {
+            const session = await auth();
+            const userId = session?.user?.id;
+            const args = { ...call.args } as Record<string, unknown>;
+            if (userId) {
+              args.userId = userId;
+            }
+
             result = await mcpClient.callTool({
               name: call.name,
-              arguments: call.args as Record<string, unknown>,
+              arguments: args,
             });
         } catch (err: any) {
             result = { error: err.message };
@@ -97,7 +139,7 @@ export async function POST(req: Request) {
 
       // Pass result back to Gemini
       const secondResponse = await ai.models.generateContent({
-        model: "gemma4:31b",
+        model: modelName,
         contents: [
           ...formattedMessages,
           { role: 'model', parts: [{ functionCall: call }] },
@@ -105,9 +147,9 @@ export async function POST(req: Request) {
         ],
         config: {
           systemInstruction,
-          thinkingConfig: {
+          thinkingConfig: supportsThinking ? {
             thinkingLevel: ThinkingLevel.LOW,
-          },
+          } : undefined,
         }
       });
       finalText = secondResponse.text;

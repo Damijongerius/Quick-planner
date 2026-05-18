@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import { FormField } from "./ui/FormField";
+import { AutoGrowingTextarea } from "./ui/AutoGrowingTextarea";
 
 import { FieldDefinition } from "@/lib/types";
 
@@ -12,36 +13,6 @@ interface CustomFieldRendererProps {
   readonly onChange: (fieldName: string, value: string | number | boolean) => void;
   readonly disabled?: boolean;
 }
-
-interface AutoGrowingTextareaProps {
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  placeholder?: string;
-  disabled?: boolean;
-}
-
-const AutoGrowingTextarea = ({ value, onChange, placeholder, disabled }: AutoGrowingTextareaProps) => {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = '0px';
-      const scrollHeight = textareaRef.current.scrollHeight;
-      textareaRef.current.style.height = Math.max(44, scrollHeight) + 'px';
-    }
-  }, [value]);
-
-  return (
-    <textarea
-      ref={textareaRef}
-      className="input-premium auto-growing-textarea"
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      disabled={disabled}
-    />
-  );
-};
 
 export function CustomFieldRenderer({ fields, content, onChange, disabled }: Readonly<CustomFieldRendererProps>) {
   if (!fields || fields.length === 0) return null;

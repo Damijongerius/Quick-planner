@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/Button";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { ProjectGrid } from "@/components/projects/ProjectGrid";
 
+import { Providers } from "@/components/Providers";
+
+export const dynamic = 'force-dynamic';
+
 async function handleCreateProject(formData: FormData) {
   "use server";
   const name = formData.get("name") as string;
@@ -38,7 +42,8 @@ export default async function ProjectsPage() {
   }
 
   return (
-    <div className="canvas-content py-2xl px-xl" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+    <Providers>
+      <div className="canvas-content py-2xl px-xl" style={{ maxWidth: '1600px', margin: '0 auto' }}>
       <header className="flex justify-between items-end mb-2xl pb-xl border-b border-outline-variant">
         <div>
             <h1 className="text-editorial text-6xl font-bold tracking-tight">Welcome to your projects</h1>
@@ -96,6 +101,7 @@ export default async function ProjectsPage() {
           </ProjectGrid>
         </div>
       )}
-    </div>
+      </div>
+    </Providers>
   );
 }

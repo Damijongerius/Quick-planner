@@ -3,6 +3,8 @@ import { Clock, User, ArrowRight, Database } from "lucide-react";
 import Image from "next/image";
 import { AuditLogEvent } from "@/lib/types";
 
+export const dynamic = 'force-dynamic';
+
 export default async function HistoryPage({ params }: Readonly<{ params: Promise<{ projectId: string }> }>) {
   const { projectId } = await params;
   const history = (await getProjectHistory(projectId)) as unknown as AuditLogEvent[];

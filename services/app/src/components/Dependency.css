@@ -32,6 +32,22 @@
 }
 
 .dependency-selector {
-  background-color: var(--surface-container-lowest) !important; 
-  border: none !important;
+  border: 1px solid var(--outline-variant) !important;
+  background-color: var(--surface-container-lowest) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase;
+  color: var(--on-surface-variant) !important;
+  transition: all 0.2s ease;
+}
+
+.dependency-selector:hover {
+  background-color: var(--surface-container-low) !important;
+  border-color: rgba(70, 86, 184, 0.3) !important;
+}
+
+.dependency-selector:focus {
+  border-color: var(--primary) !important;
+  box-shadow: var(--primary-shadow) !important;
 }

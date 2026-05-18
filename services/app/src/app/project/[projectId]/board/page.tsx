@@ -1,6 +1,8 @@
 import { getSprints, getNodeTypes, getAllNodes } from "@/lib/actions";
 import { BoardView } from "@/components/BoardView";
 
+export const dynamic = 'force-dynamic';
+
 export default async function BoardPage({ params }: Readonly<{ params: Promise<{ projectId: string }> }>) {
   const { projectId } = await params;
   const sprints = await getSprints(projectId);

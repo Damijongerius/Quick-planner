@@ -64,8 +64,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         
         if (!dbUser) {
           // If the user was deleted from the database (e.g. local DB wipe),
-          // invalidate the session by returning null.
-          return session;
+          // invalidate the session by returning an empty session to force re-auth.
+          return {
+            ...session,
+            user: undefined
+          } as any;
         }
         
         session.user.id = token.id as string;

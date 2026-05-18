@@ -41,33 +41,18 @@
 }
 
 .backlog-row-container {
-  display: flex; 
+  display: grid !important; 
   align-items: center; 
-  justify-content: space-between; 
+  gap: 16px;
   padding: 12px 24px; 
-  padding-left: var(--depth-padding, 24px);
   border-bottom: 1px solid var(--outline-variant); 
   position: relative;
   background-color: var(--surface-container-lowest);
   transition: all 0.2s;
-}
-
-.backlog-row-main-action {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  background: transparent;
-  border: none;
   cursor: pointer;
-  z-index: 1;
 }
 
-.backlog-row-main-action:hover + .backlog-row-content {
-  background-color: var(--surface-container-low);
-}
-
-.backlog-row-container.selected .backlog-row-content {
+.backlog-row-container:hover {
   background-color: var(--surface-container-low);
 }
 
@@ -76,7 +61,6 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  z-index: 2;
   transition: all 0.2s;
 }
 
@@ -89,16 +73,27 @@
 }
 
 .backlog-row-toggle {
+  background: transparent;
+  border: none;
+  padding: 0;
   color: var(--on-surface-variant); 
-  transition: transform 0.2s;
-  width: 16px;
-  margin-top: 4px;
+  transition: transform 0.2s, background-color 0.2s, color 0.2s;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
   display: none;
   cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+.backlog-row-toggle:hover {
+  background-color: var(--surface-container-high);
+  color: var(--on-surface);
 }
 
 .backlog-row-toggle.visible {
-  display: block;
+  display: inline-flex;
 }
 
 .backlog-row-toggle.open {
@@ -259,3 +254,102 @@
   color: var(--tertiary);
   letter-spacing: 0.05em;
 }
+
+/* Premium Table View Styles */
+.backlog-table-wrapper {
+  flex: 1;
+  border: 1px solid var(--outline-variant);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--planner-shadow);
+}
+
+.backlog-table {
+  border-collapse: collapse;
+  text-align: left;
+  background-color: var(--surface-container-lowest);
+}
+
+.backlog-table th {
+  padding: 16px 20px;
+  background-color: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  font-weight: 700;
+}
+
+.backlog-table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: middle;
+}
+
+.backlog-table-row {
+  transition: background-color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.backlog-table-row:hover {
+  background-color: var(--surface-container-low) !important;
+}
+
+.backlog-table-row.active {
+  background-color: var(--surface-container-low) !important;
+  box-shadow: inset 4px 0 0 var(--primary);
+}
+
+/* Status Pills */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-pill.status-todo {
+  background-color: color-mix(in srgb, var(--outline) 12%, transparent);
+  color: var(--on-surface-variant);
+  border: 1px solid color-mix(in srgb, var(--outline) 20%, transparent);
+}
+
+.status-pill.status-progress {
+  background-color: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.status-pill.status-done {
+  background-color: color-mix(in srgb, var(--tertiary) 12%, transparent);
+  color: var(--tertiary);
+  border: 1px solid color-mix(in srgb, var(--tertiary) 20%, transparent);
+}
+
+/* Table Header Grid configuration */
+.backlog-table-header {
+  display: grid !important;
+  align-items: center;
+  gap: 16px;
+  background-color: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: 16px;
+  padding: 12px 24px;
+}
+
+/* Constrained Cell Text wrapping rules */
+.backlog-cell-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--on-surface-variant);
+  line-height: 1.4;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Limit values (like User Stories) to at most 2 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+

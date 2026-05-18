@@ -6,7 +6,7 @@ import "./ui/Badge.css";
 import React from "react";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { IconRenderer } from "./IconPicker";
-import { Node, NodeType } from "@/lib/types";
+import { Node, NodeType, Sprint } from "@/lib/types";
 
 interface BacklogNodeRowProps {
   node: Node & { isArchived?: boolean };
@@ -19,8 +19,10 @@ interface BacklogNodeRowProps {
   isHovered: boolean;
   onToggle: (e: React.MouseEvent) => void;
   onSelect: () => void;
-  onContextMenu: (e: React.MouseEvent) => void;
   progress: number;
+  selectedColumns?: string[];
+  sprints?: Sprint[];
+  selectedNodeType?: NodeType | null;
 }
 
 export function BacklogNodeRow({
@@ -34,28 +36,36 @@ export function BacklogNodeRow({
   isHovered,
   onToggle,
   onSelect,
-  onContextMenu,
-  progress
+  progress,
+  selectedColumns,
+  sprints,
+  selectedNodeType
 }: Readonly<BacklogNodeRowProps>) {
   return (
     <div 
       className={`backlog-row-container ${isSelected ? 'selected' : ''} ${node.isArchived ? 'archived' : ''}`}
-      onContextMenu={onContextMenu}
+      onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
+      role="button"
+      tabIndex={0}
       style={{ 
-        '--depth-padding': `${depth * 40 + 24}px`,
-        borderLeft: depth === 0 ? `4px solid ${nodeType?.color || 'var(--primary)'}` : 'none'
+        '--depth-padding': `${depth * 28 + 24}px`,
+        borderLeft: depth === 0 ? `4px solid ${nodeType?.color || 'var(--primary)'}` : 'none',
+        gridTemplateColumns: getGridTemplate(selectedColumns?.length || 1),
+        paddingLeft: '24px',
+        paddingRight: '24px'
       } as React.CSSProperties}
     >
-      <button 
-        className="backlog-row-main-action"
-        onClick={onSelect}
-        aria-label={`Select ${node.title}`}
-      />
-      
-      <div className="backlog-row-content flex items-center gap-md flex-1 min-w-0 pointer-events-none">
+      {/* Column 1: Title Hierarchy */}
+      <div className="backlog-row-content flex items-center gap-md min-w-0">
         <button 
           onClick={(e) => { e.stopPropagation(); onToggle(e); }}
-          className={`backlog-row-toggle pointer-events-auto border-none bg-transparent p-0 cursor-pointer ${isOpen ? 'open' : ''} ${hasChildren || isHovered ? 'visible' : ''}`}
+          className={`backlog-row-toggle ${isOpen ? 'open' : ''} ${hasChildren || isHovered ? 'visible' : ''}`}
           aria-label={isOpen ? "Collapse" : "Expand"}
         >
           {isLoadingChildren ? (
@@ -72,7 +82,8 @@ export function BacklogNodeRow({
             backgroundColor: depth === 0 ? 'transparent' : 'color-mix(in srgb, var(--node-color) 10%, transparent)',
             color: 'var(--node-color)',
             padding: '8px',
-            borderRadius: '8px'
+            borderRadius: '8px',
+            marginLeft: `calc(var(--depth-padding) - 24px)`
           } as React.CSSProperties}
         >
           <IconRenderer name={nodeType?.icon || (depth === 0 ? 'Folder' : 'Circle')} size={depth === 0 ? 20 : 16} />
@@ -90,41 +101,67 @@ export function BacklogNodeRow({
                 {nodeType?.name || 'Node'}
               </span>
           )}
-
-          {/* Custom Fields Preview */}
-          {Object.keys(node.content || {}).length > 0 && (
-            <div className="flex flex-wrap gap-xs mt-xs">
-              {Object.entries(node.content || {})
-                .sort(([a], [b]) => a.localeCompare(b))
-                .map(([key, value]) => {
-                  if (!value || key.toLowerCase() === 'priority' || key.toLowerCase() === 'status') return null;
-                  return (
-                      <div key={key} className="node-badge" style={{ fontSize: '9px', padding: '1px 6px' }}>
-                          <span className="node-badge-key">{key.toUpperCase()}</span>
-                          <span className="node-badge-value">{typeof value === 'object' ? JSON.stringify(value) : String(value)}</span>
-                      </div>
-                  )
-              })}
-            </div>
-          )}
         </div>
       </div>
 
-      <div className="flex items-center gap-xl ml-xl pointer-events-none">
-        {node.status === 'DONE' ? (
-          <div className="status-done-badge">
-             <div className="w-2 h-2 rounded-full bg-tertiary" />
-             DONE
-          </div>
-        ) : (
-          <div className="flex items-center gap-sm">
-            <span className="text-10px font-bold opacity-40">{progress}%</span>
-            <div className="progress-container" style={{ width: '80px', height: '4px' }}>
-               <div className="progress-bar" style={{ '--progress-width': `${progress}%` } as React.CSSProperties} />
-            </div>
-          </div>
-        )}
-      </div>
+      {/* Columns 2-4: Direct Children Grid Cells */}
+      {selectedColumns?.filter(c => c !== 'title').map((colKey) => (
+        <div key={colKey} className="min-w-0 w-full text-left flex items-center">
+          {getRowCellContent(node, colKey, sprints || [], progress)}
+        </div>
+      ))}
     </div>
   );
+}
+
+// ==========================================
+// PURE HELPER FUNCTIONS (Code as Prose)
+// ==========================================
+
+function getGridTemplate(numCols: number): string {
+  if (numCols <= 1) return "1fr";
+  if (numCols === 2) return "3fr 1.2fr";
+  if (numCols === 3) return "3fr 1.2fr 1.2fr";
+  return "3fr 1.2fr 1.2fr 1.2fr"; // Synchronized left-connected grid widths
+}
+
+function getRowCellContent(node: Node, colKey: string, sprints: Sprint[], progress: number) {
+  if (colKey === 'status') {
+    const label = node.status === 'DONE' ? 'Completed' : node.status === 'IN_PROGRESS' ? 'In Progress' : 'To Do';
+    const statusClass = node.status === 'DONE' ? 'status-done' : node.status === 'IN_PROGRESS' ? 'status-progress' : 'status-todo';
+    return (
+      <span className={`status-pill ${statusClass}`} style={{ fontSize: '10px', padding: '3px 10px' }}>
+        {label}
+      </span>
+    );
+  }
+
+  if (colKey === 'sprintId') {
+    const sprintName = !node.sprintId ? "Backlog" : sprints.find(s => s.id === node.sprintId)?.name || "Backlog";
+    return <span className="text-sm font-semibold text-on-surface-variant truncate block">{sprintName}</span>;
+  }
+
+  if (colKey === 'startDate') {
+    return <span className="text-sm text-on-surface-variant">{node.startDate ? new Date(node.startDate).toLocaleDateString() : "-"}</span>;
+  }
+
+  if (colKey === 'endDate') {
+    return <span className="text-sm text-on-surface-variant">{node.endDate ? new Date(node.endDate).toLocaleDateString() : "-"}</span>;
+  }
+
+  // Custom Fields
+  const value = node.content ? (node.content as Record<string, unknown>)[colKey] : undefined;
+  if (value === undefined || value === null || value === "") {
+    return <span className="text-sm opacity-35">-</span>;
+  }
+
+  if (typeof value === 'boolean') {
+    return (
+      <span className={`status-pill ${value ? 'status-done' : 'status-todo'}`} style={{ fontSize: '9px', padding: '2px 8px' }}>
+        {value ? "YES" : "NO"}
+      </span>
+    );
+  }
+
+  return <span className="backlog-cell-text">{String(value)}</span>;
 }

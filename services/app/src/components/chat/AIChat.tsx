@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { useParams } from "next/navigation";
 import "./AIChat.css";
 
 interface Message {
@@ -15,6 +16,8 @@ export function AIChat() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const params = useParams();
+  const projectId = params?.projectId as string | undefined;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -32,25 +35,52 @@ export function AIChat() {
     setInput("");
     setIsLoading(true);
 
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [...messages, userMessage] }),
-      });
+    let attempts = 0;
+    const maxAttempts = 3;
+    let success = false;
+    let errorMessage = "Failed to connect to the AI server.";
 
-      const data = await response.json();
-      
-      if (data.error) {
-        setMessages((prev) => [...prev, { role: "model", content: `Error: ${data.error}` }]);
-      } else {
-        setMessages((prev) => [...prev, { role: "model", content: data.text }]);
+    while (attempts < maxAttempts && !success) {
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [...messages, userMessage],
+            projectId: projectId || null,
+          }),
+        });
+
+        if (response.status === 500) {
+          throw new Error("500 Internal Server Error");
+        }
+
+        const data = await response.json();
+        
+        if (data.error) {
+          if (response.status === 500 || data.error.includes("500") || data.status === 500) {
+            throw new Error(data.error);
+          }
+          setMessages((prev) => [...prev, { role: "model", content: `Error: ${data.error}` }]);
+          success = true;
+        } else {
+          setMessages((prev) => [...prev, { role: "model", content: data.text }]);
+          success = true;
+        }
+      } catch (error: any) {
+        attempts++;
+        errorMessage = error.message || "Failed to connect to the AI server.";
+        if (attempts < maxAttempts) {
+          // Wait 3 seconds before retrying
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+        }
       }
-    } catch (error: any) {
-      setMessages((prev) => [...prev, { role: "model", content: "Failed to connect to the AI server." }]);
-    } finally {
-      setIsLoading(false);
     }
+
+    if (!success) {
+      setMessages((prev) => [...prev, { role: "model", content: `Error: ${errorMessage} (Failed after ${maxAttempts} attempts)` }]);
+    }
+    setIsLoading(false);
   };
 
   return (

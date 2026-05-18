@@ -4,7 +4,11 @@
   display: flex;
   flex-direction: column;
   border-radius: 32px 0 0 32px;
-  background-color: var(--surface-container-lowest);
+  background: color-mix(in srgb, var(--surface-container-lowest) 85%, transparent) !important;
+  backdrop-filter: blur(24px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+  border-left: 1px solid var(--outline-variant) !important;
+  box-shadow: -10px 0 50px rgba(0, 0, 0, 0.05) !important;
   overflow: hidden;
 }
 
@@ -25,8 +29,9 @@
 
 .side-panel-desc {
   width: 100%;
-  min-height: 120px;
-  resize: vertical;
+  min-height: 80px;
+  resize: none !important;
+  overflow: hidden !important;
 }
 
 .side-panel-icon-container {
@@ -125,4 +130,38 @@
 
 .timeline-empty-text {
   font-size: 13px;
+}
+
+/* Strategic Timeline & Dependency Cards styling inside Side Panel */
+.timeline-container {
+  display: grid;
+  grid-template-columns: var(--grid-columns, 1fr 1fr);
+  gap: 16px;
+  padding: 24px;
+  background-color: color-mix(in srgb, var(--surface-container-low) 40%, transparent);
+  border-radius: 20px;
+  border: 1px solid var(--outline-variant);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.01);
+  margin-top: 8px;
+}
+
+.timeline-container .col-span-2 {
+  grid-column: span 2;
+}
+
+.dependency-item {
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  padding: 12px 16px; 
+  background-color: var(--surface-container-lowest); 
+  border-radius: 12px; 
+  border: 1px solid var(--outline-variant);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.dependency-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }

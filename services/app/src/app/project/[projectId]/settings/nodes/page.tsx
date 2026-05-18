@@ -1,6 +1,8 @@
 import { getNodeTypes, getRelations } from "@/lib/actions";
 import { NodeEcosystemEditor } from "@/components/NodeEcosystemEditor";
 
+export const dynamic = 'force-dynamic';
+
 export default async function NodeArchitecturePage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
   const nodeTypes = await getNodeTypes(projectId);

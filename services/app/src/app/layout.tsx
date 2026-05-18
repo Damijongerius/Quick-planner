@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Inter, Manrope } from 'next/font/google';
-import { Providers } from "@/components/Providers";
-import { GlobalAIChat } from "@/components/chat/GlobalAIChat";
 import "./globals.css";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -20,10 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${manrope.variable}`}>
       <body className={inter.className}>
-        <Providers>
-          {children}
-        </Providers>
-        <GlobalAIChat />
+        {children}
       </body>
     </html>
   );

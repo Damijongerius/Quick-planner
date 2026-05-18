@@ -19,7 +19,7 @@ export async function getProjects(): Promise<Project[]> {
 
 export async function getProject(id: string) {
   const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
+  if (!session?.user?.id) return null;
   const project = await prisma.project.findUnique({
     where: { id, userId: session.user.id },
   });

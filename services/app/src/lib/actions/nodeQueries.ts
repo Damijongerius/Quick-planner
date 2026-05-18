@@ -41,6 +41,7 @@ export async function getNodeChildren(projectId: string, nodeId: string) {
     }
   });
   const children = node?.childLinks.map((l) => l.childNode) || [];
+  children.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   return serializeData(children) as Node[];
 }
 
@@ -49,6 +50,7 @@ export async function getRootNodes(projectId: string, showArchived: boolean = fa
   if (!session?.user?.id) return [];
   const nodes = await prisma.node.findMany({
     where: { userId: session.user.id, projectId, parentLinks: { none: {} }, isArchived: showArchived ? undefined : false },
+    orderBy: { createdAt: 'asc' },
     include: {
       type: { include: { fields: true } },
       childLinks: { include: { childNode: { include: { type: { include: { fields: true } }, sprint: true } } } },

@@ -20,12 +20,12 @@ interface BacklogToolbarProps {
   isReadOnly?: boolean;
 }
 
-export function BacklogToolbar({ 
-  availableRootTypes, 
-  onAddRoot, 
-  hideCompleted, 
-  onToggleHideCompleted, 
-  showArchived, 
+export function BacklogToolbar({
+  availableRootTypes,
+  onAddRoot,
+  hideCompleted,
+  onToggleHideCompleted,
+  showArchived,
   onToggleShowArchived,
   isReadOnly
 }: Readonly<BacklogToolbarProps>) {
@@ -38,18 +38,18 @@ export function BacklogToolbar({
       <div className="flex justify-between items-center bg-surface-container-low p-md rounded-2xl border border-outline-variant shadow-sm backlog-toolbar-container">
         <div className="flex items-center gap-md relative">
           {!isReadOnly && (
-            <button 
+            <Button
+              variant="primary"
               onClick={() => availableRootTypes.length > 1 ? setShowInitMenu(!showInitMenu) : onAddRoot(availableRootTypes[0]?.id, availableRootTypes[0]?.name)}
-              className="button-planner"
-              style={{ padding: '12px 24px', fontSize: '13px', boxShadow: 'var(--primary-shadow)' }}
+              icon={<Plus size={18} />}
             >
-              <Plus size={18} />
               {availableRootTypes.length === 1 ? `Initialize ${availableRootTypes[0]?.name}` : 'Initialize Objective'}
-            </button>
+            </Button>
           )}
 
-          <button 
-            className={`button-secondary rounded-full p-md ${showSearch ? 'active' : ''}`}
+          <Button
+            variant="secondary"
+            className={`rounded-full p-md ${showSearch ? 'active' : ''}`}
             onClick={() => setShowSearch(!showSearch)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -60,16 +60,15 @@ export function BacklogToolbar({
             style={{ width: '44px', height: '44px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             aria-label={showSearch ? "Close search" : "Open search"}
             aria-expanded={showSearch}
-          >
-            {showSearch ? <X size={18} /> : <Search size={18} />}
-          </button>
+            icon={showSearch ? <X size={18} /> : <Search size={18} />}
+          />
 
           <AnimatePresence>
             {showInitMenu && (
               <>
-                <button 
-                  className="context-menu-overlay" 
-                  onClick={() => setShowInitMenu(false)} 
+                <button
+                  className="context-menu-overlay"
+                  onClick={() => setShowInitMenu(false)}
                   onKeyDown={(e) => {
                     if (e.key === 'Escape') {
                       setShowInitMenu(false);
@@ -79,8 +78,8 @@ export function BacklogToolbar({
                   style={{ background: 'transparent', border: 'none', padding: 0 }}
                 />
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: 10 }} 
-                  animate={{ opacity: 1, scale: 1, y: 0 }} 
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: 10 }}
                   className="glass dropdown-menu backlog-init-menu"
                   style={{ top: 'calc(100% + 12px)', left: 0, width: '280px', padding: '12px' }}
@@ -90,17 +89,18 @@ export function BacklogToolbar({
                   </div>
                   <div className="dropdown-body flex flex-col gap-xs">
                     {availableRootTypes.map(type => (
-                      <button
+                      <Button
                         key={type.id}
+                        variant="ghost"
                         onClick={() => { onAddRoot(type.id, type.name); setShowInitMenu(false); }}
-                        className="button-ghost justify-start w-full gap-md hover:bg-surface-container-low"
+                        className="justify-start w-full gap-md hover:bg-surface-container-low"
                         style={{ '--node-color': type.color || 'var(--primary)', padding: '12px 16px', borderRadius: '12px' } as React.CSSProperties}
                       >
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-surface-container-high" style={{ color: 'var(--node-color)' }}>
                           <IconRenderer name={type.icon || 'Folder'} size={16} />
                         </div>
                         <span className="font-bold text-sm" style={{ color: 'var(--on-surface)' }}>{type.name}</span>
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </motion.div>
@@ -110,18 +110,18 @@ export function BacklogToolbar({
         </div>
 
         <div className="flex gap-md items-center backlog-toolbar-actions">
-          <Button 
-            variant={hideCompleted ? 'secondary' : 'ghost'} 
-            size="sm" 
+          <Button
+            variant={hideCompleted ? 'secondary' : 'ghost'}
+            size="sm"
             onClick={onToggleHideCompleted}
             className={hideCompleted ? 'filter-active-tertiary' : ''}
           >
             {hideCompleted ? "SHOW COMPLETED" : "HIDE COMPLETED"}
           </Button>
-          
-          <Button 
-            variant={showArchived ? 'secondary' : 'ghost'} 
-            size="sm" 
+
+          <Button
+            variant={showArchived ? 'secondary' : 'ghost'}
+            size="sm"
             onClick={onToggleShowArchived}
             icon={showArchived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
             className={showArchived ? 'filter-active-primary' : ''}
@@ -134,21 +134,21 @@ export function BacklogToolbar({
 
       <AnimatePresence>
         {showSearch && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, height: 0, y: -10 }}
             animate={{ opacity: 1, height: 'auto', y: 0 }}
             exit={{ opacity: 0, height: 0, y: -10 }}
             className="overflow-hidden"
           >
             <div className="bg-surface-container-low p-sm rounded-2xl border border-outline-variant shadow-sm flex items-center gap-md">
-                <Search size={18} className="text-on-surface-variant ml-sm" />
-                <input 
-                  autoFocus
-                  className="input-planner flex-1 border-none bg-transparent h-12 text-base" 
-                  placeholder="Search objectives, tasks, and requirements..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+              <Search size={18} className="text-on-surface-variant ml-sm" />
+              <input
+                autoFocus
+                className="input-planner flex-1 border-none bg-transparent h-12 text-base"
+                placeholder="Search objectives, tasks, and requirements..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
           </motion.div>
         )}

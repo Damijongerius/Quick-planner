@@ -2,6 +2,8 @@ import { getNodeTypes, getRelations } from "@/lib/actions";
 import { RelationEditor } from "@/components/RelationEditor";
 import { AllowedRelation } from "@/lib/types";
 
+export const dynamic = 'force-dynamic';
+
 export default async function RelationsPage({ params }: Readonly<{ params: Promise<{ projectId: string }> }>) {
   const { projectId } = await params;
   const nodeTypes = await getNodeTypes(projectId);

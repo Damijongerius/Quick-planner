@@ -45,7 +45,7 @@ export function DependencyManager({ dependencies, allNodes, currentNodeId, onAdd
 
       <select 
         id="dependency-select"
-        className="dependency-selector button-secondary w-full text-meta"
+        className="dependency-selector input-premium w-full text-meta"
         value="none"
         onChange={(e) => onAdd(e.target.value)}
       >
