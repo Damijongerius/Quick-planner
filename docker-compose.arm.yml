@@ -21,6 +21,7 @@ services:
     platform: linux/arm64
     container_name: planner-db-arm64
     restart: always
+
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -30,5 +31,19 @@ services:
     volumes:
       - postgres_data_arm64:/var/lib/postgresql/data
 
+  mcp:
+    build:
+      context: .
+      dockerfile: services/mcp/Dockerfile
+    platform: linux/arm64
+    container_name: planner-mcp-arm64
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/quickplanner?schema=public
+      - PORT=3001
+    depends_on:
+      - db
+    restart: always
 volumes:
   postgres_data_arm64:
