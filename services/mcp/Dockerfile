@@ -2,6 +2,9 @@ FROM node:22-alpine
 
 WORKDIR /app
 
+# Install dependencies needed for Prisma/Native builds
+RUN apk add --no-cache openssl libc6-compat
+
 # Copy package files
 COPY services/mcp/package.json services/mcp/package-lock.json* ./services/mcp/
 COPY services/app/prisma/schema.prisma ./services/app/prisma/

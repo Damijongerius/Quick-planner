@@ -2,8 +2,8 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 
-# Install dependencies needed for Prisma/Native builds
-RUN apk add --no-cache openssl
+# Install dependencies needed for Prisma/Native builds and Next.js SWC
+RUN apk add --no-cache openssl libc6-compat
 
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
@@ -14,15 +14,17 @@ COPY . .
 RUN npx prisma generate
 
 # Build the application
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # Production stage
 FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Install openssl for Prisma
-RUN apk add --no-cache openssl
+# Install openssl for Prisma and libc6-compat for Next.js/Prisma binaries
+RUN apk add --no-cache openssl libc6-compat
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
