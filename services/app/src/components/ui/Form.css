@@ -32,7 +32,7 @@
 }
 
 .toggle-track.active {
-  background-color: var(--tertiary);
+  background-color: var(--primary);
 }
 
 .toggle-thumb {

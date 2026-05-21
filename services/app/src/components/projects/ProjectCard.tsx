@@ -48,10 +48,12 @@ export function ProjectCard({ project, isArchived, availableImages }: Readonly<P
       <div className="project-card-image" style={{ backgroundImage: `url(${bgImage})` }}></div>
       <div className="project-card-overlay"></div>
 
-      <div className="card-planner glass h-full p-2xl transition-all duration-500 group-hover:border-primary/30 group-hover:shadow-planner relative z-10">
+      <div className="h-full p-2xl transition-all duration-500 group-hover:border-primary/30 group-hover:shadow-planner relative z-10 rounded-2xl border border-transparent">
         <div className="flex flex-col h-full justify-between">
           <div className="project-card-content transition-transform duration-500 group-hover:translate-x-1">
-            <h3 className="text-editorial text-2xl font-bold mb-xs">{project.name}</h3>
+            <div className="w-12 h-1.5 bg-[#f97316] mb-md transition-all duration-500 group-hover:w-full" />
+            <h3 className="text-editorial text-2xl font-bold">{project.name}</h3>
+            <div className="w-full h-px bg-outline-variant mt-sm mb-md" />
             <p className="text-meta text-[10px] opacity-40 uppercase tracking-widest" suppressHydrationWarning>
               Established {new Date(project.createdAt).toLocaleDateString()}
             </p>

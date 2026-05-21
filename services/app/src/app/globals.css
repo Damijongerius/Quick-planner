@@ -287,19 +287,28 @@ h1, h2, h3, h4, h5, h6 {
 .project-card-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to right, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(to right, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.9) 40%, rgba(255, 255, 255, 0) 100%);
   z-index: 2;
+  opacity: 1;
+}
+
+.project-card-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: white;
   opacity: 0;
   transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: -1;
+}
+
+.group:hover .project-card-overlay::after {
+  opacity: 1;
 }
 
 .group:hover .project-card-image {
   transform: scale(1.05);
   opacity: 0 !important;
-}
-
-.group:hover .project-card-overlay {
-  opacity: 1 !important;
 }
 
 .card-planner {

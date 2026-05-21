@@ -64,10 +64,12 @@ export default async function ProjectsPage() {
             <div className="project-card-image opacity-10" style={{ backgroundImage: `url(${projectImages[0]})` }}></div>
             <div className="project-card-overlay"></div>
             
-            <div className="card-planner glass p-2xl transition-all duration-300 hover:border-primary/50 relative z-10">
+            <div className="h-full p-2xl transition-all duration-500 relative z-10 rounded-2xl border border-transparent">
                 <div className="flex flex-col h-full justify-between">
-                    <div>
-                        <h3 className="text-editorial text-2xl font-bold mb-xs">Create New Project</h3>
+                    <div className="project-card-content transition-transform duration-500 group-hover:translate-x-1">
+                        <div className="w-12 h-1.5 bg-[#f97316] mb-md transition-all duration-500 group-hover:w-full" />
+                        <h3 className="text-editorial text-2xl font-bold">Create New Project</h3>
+                        <div className="w-full h-px bg-outline-variant mt-sm mb-md" />
 
                         <form action={handleCreateProject} className="flex flex-col gap-lg">
                             <input 

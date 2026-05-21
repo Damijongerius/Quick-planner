@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { getNodeChildren } from "@/lib/actions";
+import { useState, useEffect, useRef } from "react";
+import { getNodeChildren, getNode } from "@/lib/actions";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { BacklogNodeRow } from "./BacklogNodeRow";
@@ -23,6 +23,7 @@ interface BacklogTreeProps {
   selectedNodeType?: NodeType | null;
   showArchived?: boolean;
   onNodeUpdated?: () => void;
+  syncStamp?: number;
 }
 
 export function BacklogTree({ 
@@ -38,7 +39,8 @@ export function BacklogTree({
   sprints,
   selectedNodeType,
   showArchived = false,
-  onNodeUpdated
+  onNodeUpdated,
+  syncStamp
 }: Readonly<BacklogTreeProps>) {
   const nodeType = nodeTypes.find((t) => t.id === node.nodeTypeId) || node.type;
   const allowedChildren = nodeType?.allowedChildren?.map((ac) => ac.childNodeTypeType) || [];
@@ -61,6 +63,16 @@ export function BacklogTree({
     setPrevChildLinks(node.childLinks);
     setChildren(initialChildren);
   }
+
+  const prevSyncStamp = useRef(syncStamp);
+  useEffect(() => {
+    if (syncStamp !== prevSyncStamp.current) {
+      prevSyncStamp.current = syncStamp;
+      if (isOpen && depth > 0) {
+        loadChildren();
+      }
+    }
+  }, [syncStamp, isOpen, depth]);
 
   const progress = calculateNodeProgress(node.status, children, initialChildren);
 
@@ -121,10 +133,20 @@ export function BacklogTree({
                 selectedNodeType={selectedNodeType}
                 showArchived={showArchived}
                 onNodeUpdated={handleLocalNodeUpdate}
+                syncStamp={syncStamp}
               />
             ))}
             {(allowedChildren.length > 0 && !isReadOnly && selectedNodeId === node.id) && (
-              <BacklogChildCreation projectId={projectId} node={node} allowedChildren={allowedChildren} depth={depth} onChildCreated={loadChildren} />
+              <BacklogChildCreation 
+                projectId={projectId} 
+                node={node} 
+                allowedChildren={allowedChildren} 
+                depth={depth} 
+                onChildCreated={async (newNode) => {
+                  await loadChildren();
+                  onSelect(newNode);
+                }} 
+              />
             )}
           </motion.div>
         )}

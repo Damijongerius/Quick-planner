@@ -36,7 +36,7 @@ export function Sidebar({ project, isOpen, onClose }: SidebarProps) {
       <div className="sidebar-header">
         <div className="flex justify-between items-center mb-md lg:hidden">
           <span className="text-meta">MENU</span>
-          <button onClick={onClose} className="p-sm hover:bg-surface-container-high rounded-full">
+          <button onClick={onClose} className="md:hidden w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-high transition-colors text-on-surface-variant hover:text-on-surface shrink-0">
             <X size={20} />
           </button>
         </div>

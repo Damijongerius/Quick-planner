@@ -7,12 +7,12 @@ import { revalidatePath } from "next/cache";
 import { serializeData } from "@/lib/utils";
 import { logHistoryEvent, propagateStatusUpwards, propagateTimelineShift, ensureProjectNotArchived } from "./helpers";
 
-export async function createNode(projectId: string, parentNodeId: string | null, nodeTypeId: string, title: string, content: Record<string, unknown> = {}) {
+export async function createNode(projectId: string, parentNodeId: string | null, nodeTypeId: string, title: string, content: Record<string, unknown> = {}, sprintId?: string | null) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
   await ensureProjectNotArchived(projectId);
   const newNode = await prisma.node.create({
-    data: { userId: session.user.id, projectId, nodeTypeId, title, content: content as Prisma.JsonObject },
+    data: { userId: session.user.id, projectId, nodeTypeId, title, content: content as Prisma.JsonObject, sprintId },
     include: { type: true }
   });
   if (parentNodeId) {

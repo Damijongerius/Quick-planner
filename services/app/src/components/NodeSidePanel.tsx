@@ -123,7 +123,7 @@ export function NodeSidePanel({
             </div>
           </div>
         </div>
-        <Button variant="ghost" onClick={onClose} size="sm"><X size={20} /></Button>
+        <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface p-0 border-none outline-none shrink-0 bg-transparent cursor-pointer"><X size={20} /></button>
       </header>
  
       <div className="side-panel-tabs-wrapper border-b">

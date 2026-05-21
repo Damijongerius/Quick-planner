@@ -124,9 +124,12 @@ export function EcosystemSidePanel({
   return (
     <div className="fixed inset-0 z-1000 flex items-center justify-center bg-surface/80 backdrop-blur-md animate-in fade-in overflow-y-auto p-xl">
       <div className="card-planner p-2xl w-full max-w-4xl shadow-planner my-auto flex flex-col gap-xl">
-        <div className="flex justify-between items-start">
+        <div className="flex flex-row justify-between items-center mb-md">
           <div className="flex items-center gap-md">
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-surface-container-high shadow-sm" style={{ color: activeNodeType.color || undefined }}>
+              <div 
+                className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" 
+                style={{ backgroundColor: `${activeNodeType.color}15`, color: activeNodeType.color }}
+              >
                   <IconRenderer name={activeNodeType.icon || ""} size={28} />
               </div>
               <div className="flex-1">
@@ -144,7 +147,8 @@ export function EcosystemSidePanel({
           </div>
           <button 
             onClick={onClose} 
-            className="w-10 h-10 rounded-full flex items-center justify-center transition-all bg-transparent hover:bg-surface-container-high opacity-40 hover:opacity-100 p-0 border-none outline-none shrink-0 self-start"
+            className="rounded-full flex items-center justify-center transition-all bg-transparent hover:bg-surface-container-high opacity-40 hover:opacity-100 p-0 border-none outline-none shrink-0 ml-md"
+            style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px' }}
           >
               <X size={20} />
           </button>

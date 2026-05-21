@@ -51,9 +51,9 @@ export function Modal({
             <h3 className="text-editorial text-2xl font-bold">{title}</h3>
             {subtitle && <p className="text-secondary">{subtitle}</p>}
           </div>
-          <Button variant="ghost" onClick={onClose} size="sm">
+          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface p-0 border-none outline-none shrink-0 bg-transparent cursor-pointer">
             <X size={20} />
-          </Button>
+          </button>
         </header>
 
         <div className="modal-body">

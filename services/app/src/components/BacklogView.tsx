@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { createNode, getRootNodes } from "@/lib/actions";
 import { BacklogTree } from "./BacklogTree";
 import { NodeSidePanel } from "./NodeSidePanel";
@@ -31,10 +31,12 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
     setNodes(initialNodes);
   }
 
+  const [syncStamp, setSyncStamp] = useState(Date.now());
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [hideCompleted, setHideCompleted] = useState(true);
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { isReadOnly } = useProject();
 
   // Premium Custom targeted Tree-Table view states (Initializes with max 4 columns)
@@ -82,6 +84,8 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
   const refreshNodes = async () => {
     const data = await getRootNodes(projectId, showArchived);
     setNodes(data);
+    setSyncStamp(Date.now());
+    router.refresh();
   };
 
   useEffect(() => {
@@ -90,9 +94,12 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
 
   const handleCreateRoot = async (typeId: string, typeName: string) => {
     if (isReadOnly) return;
-    await createNode(projectId, null, typeId, `New ${typeName}`);
+    const newNode = await createNode(projectId, null, typeId, `New ${typeName}`);
     const data = await getRootNodes(projectId, showArchived);
     setNodes(data);
+    router.refresh();
+    setSelectedNode(newNode);
+    setIsPanelOpen(true);
   };
 
   const handleColumnToggle = (colId: string) => {
@@ -243,6 +250,7 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
                 selectedNodeType={selectedNodeType}
                 showArchived={showArchived}
                 onNodeUpdated={refreshNodes}
+                syncStamp={syncStamp}
               />
             ))}
 

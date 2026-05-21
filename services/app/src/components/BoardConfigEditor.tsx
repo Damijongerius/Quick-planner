@@ -110,7 +110,7 @@ export function BoardConfigEditor({ projectId, nodeType, isOpen, onClose }: Read
                         className="sr-only"
                       />
                       <div className={`toggle-track ${isSprintEligible ? 'active' : ''}`}>
-                          <motion.div animate={{ x: isSprintEligible ? 24 : 0 }} className="toggle-thumb" />
+                          <motion.div animate={{ x: isSprintEligible ? 20 : 0 }} className="toggle-thumb" />
                       </div>
                   </label>
               </div>

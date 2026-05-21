@@ -58,7 +58,7 @@ export function NodeDetailPanel({ projectId, nodeId, isOpen, onClose, onUpdate }
     <div className="side-panel-container glass p-xl">
       <header className="modal-header">
         <h3 className="text-xl font-bold">Node Details</h3>
-        <button onClick={onClose} className="button-ghost p-xs text-on-surface-variant">
+        <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-high transition-colors text-on-surface-variant hover:text-on-surface shrink-0">
           <X size={24} />
         </button>
       </header>

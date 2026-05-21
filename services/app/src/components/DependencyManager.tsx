@@ -35,10 +35,10 @@ export function DependencyManager({ dependencies, allNodes, currentNodeId, onAdd
   ];
 
   return (
-    <div className="timeline-container">
-      <label htmlFor="dependency-select" className="text-meta block mb-lg">Dependencies</label>
+    <div className="timeline-container" style={{ gridTemplateColumns: '1fr' }}>
+      <label htmlFor="dependency-select" className="text-meta block mb-xs">Dependencies</label>
       
-      <div className="flex flex-col gap-sm mb-lg">
+      <div className="flex flex-col gap-sm">
         {dependencies?.map((dep) => (
           <div key={dep.id} className="dependency-item">
             <span className="dependency-title">{dep.blockingNode?.title}</span>
@@ -50,16 +50,19 @@ export function DependencyManager({ dependencies, allNodes, currentNodeId, onAdd
             </button>
           </div>
         ))}
-        {dependencies?.length > 0 ? null : (
-          <p className="dependency-empty-text">No active dependencies.</p>
+        {(!dependencies || dependencies.length === 0) && (
+          <p className="dependency-empty-text text-left w-full m-0 p-0 mb-sm">No active dependencies.</p>
         )}
       </div>
 
-      <Select 
-        options={options}
-        value="none"
-        onChange={onAdd}
-      />
+      <div style={{ width: '100%', maxWidth: '240px' }}>
+        <Select 
+          options={options}
+          value="none"
+          onChange={onAdd}
+          triggerClassName="w-full font-semibold"
+        />
+      </div>
     </div>
   );
 }

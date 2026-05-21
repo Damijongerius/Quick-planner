@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { createNode } from "@/lib/actions";
 import { Button } from "./ui/Button";
 import { Select } from "./ui/Select";
@@ -13,7 +13,7 @@ interface BacklogChildCreationProps {
   node: Node;
   allowedChildren: NodeType[];
   depth: number;
-  onChildCreated: () => void;
+  onChildCreated: (newNode: Node) => void;
 }
 
 export function BacklogChildCreation({ 
@@ -37,11 +37,11 @@ export function BacklogChildCreation({
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!newNodeTitle || !selectedType) return;
-    await createNode(projectId, node.id, selectedType.id, newNodeTitle);
+    const newNode = await createNode(projectId, node.id, selectedType.id, newNodeTitle, {}, node.sprintId);
     setIsCreating(false); 
     setNewNodeTitle(""); 
     setSelectedType(null);
-    onChildCreated();
+    onChildCreated(newNode);
   };
 
   const allowedOptions = allowedChildren.map(t => ({ value: t.id, label: t.name, color: t.color || undefined }));
@@ -77,8 +77,16 @@ export function BacklogChildCreation({
           />
           
           <div className="flex gap-sm items-center">
-            <Button type="submit" size="sm" variant="primary">Add</Button>
-            <Button type="button" variant="ghost" size="sm" onClick={() => setIsCreating(false)}>Cancel</Button>
+            <Button type="submit" size="sm">Add</Button>
+            <Button 
+              type="button" 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setIsCreating(false)} 
+              className="!p-0 w-8 h-8 min-w-[32px] min-h-[32px] rounded-full flex items-center justify-center shrink-0"
+            >
+              <X size={18} />
+            </Button>
           </div>
         </form>
       </div>
