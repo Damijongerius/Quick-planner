@@ -20,24 +20,34 @@ export function AutoGrowingTextarea({
 }: Readonly<AutoGrowingTextareaProps>) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const lastWidthRef = useRef<number>(0);
+
   useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
     const adjustHeight = () => {
-      const textarea = textareaRef.current;
-      if (textarea) {
-        // Reset height to compute actual scrollHeight cleanly
-        textarea.style.height = "auto";
-        const scrollHeight = textarea.scrollHeight;
-        // Apply beautiful auto-sizing with a standard minimum height
-        textarea.style.height = `${Math.max(48, scrollHeight)}px`;
-      }
+      textarea.style.height = "auto";
+      const scrollHeight = textarea.scrollHeight;
+      textarea.style.height = `${Math.max(36, scrollHeight)}px`;
     };
 
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const width = entry.contentRect.width;
+        if (width !== lastWidthRef.current && width > 0) {
+          lastWidthRef.current = width;
+          adjustHeight();
+        }
+      }
+    });
+
+    resizeObserver.observe(textarea);
     adjustHeight();
 
-    // Gotcha Guard: If rendered inside an animated container (like a sliding sidepanel),
-    // scrollHeight might initially calculate as 0. A micro-timeout guarantees correct layout sizing.
-    const timeoutId = setTimeout(adjustHeight, 50);
-    return () => clearTimeout(timeoutId);
+    return () => {
+      resizeObserver.disconnect();
+    };
   }, [value]);
 
   return (

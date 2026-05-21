@@ -8,7 +8,7 @@ interface FieldDefinition {
     id: string;
     name: string;
     type: string;
-    options?: string[] | null;
+    options?: any[] | null;
 }
 
 interface FieldDefinitionItemProps {
@@ -32,7 +32,9 @@ export function FieldDefinitionItem({
                 <span className="text-xs font-bold">{field.name}</span>
                 <span className="text-[9px] opacity-30 uppercase font-mono">{field.type}</span>
                 {field.type === 'SELECT' && field.options && field.options.length > 0 && (
-                    <span className="text-[9px] opacity-50 italic">({field.options.join(', ')})</span>
+                    <span className="text-[9px] opacity-50 italic">
+                        ({field.options.map((opt: any) => typeof opt === 'string' ? opt : opt.value).join(', ')})
+                    </span>
                 )}
             </div>
              {!isReadOnly && (

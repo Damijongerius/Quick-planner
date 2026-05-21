@@ -49,7 +49,20 @@ export async function getRootNodes(projectId: string, showArchived: boolean = fa
   const session = await auth();
   if (!session?.user?.id) return [];
   const nodes = await prisma.node.findMany({
-    where: { userId: session.user.id, projectId, parentLinks: { none: {} }, isArchived: showArchived ? undefined : false },
+    where: {
+      userId: session.user.id,
+      projectId,
+      isArchived: showArchived,
+      OR: showArchived
+        ? [
+            { parentLinks: { none: {} } },
+            { parentLinks: { every: { parentNode: { isArchived: false } } } }
+          ]
+        : [
+            { parentLinks: { none: {} } },
+            { parentLinks: { every: { parentNode: { isArchived: true } } } }
+          ]
+    },
     orderBy: { createdAt: 'asc' },
     include: {
       type: { include: { fields: true } },

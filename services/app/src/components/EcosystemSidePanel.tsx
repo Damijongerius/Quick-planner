@@ -11,6 +11,7 @@ import { NodeType } from '@/lib/types';
 import { VisualIdentitySection } from './blueprint/VisualIdentitySection';
 import { LogicSection } from './blueprint/LogicSection';
 import { FieldDefinitionsSection } from './blueprint/FieldDefinitionsSection';
+import { getOptionColor } from '@/lib/utils/colorUtils';
 
 const FIELD_TYPES = [
     { type: "TEXT", icon: Type },
@@ -38,6 +39,7 @@ export function EcosystemSidePanel({
   const [fieldName, setFieldName] = React.useState("");
   const [fieldType, setFieldType] = React.useState("TEXT");
   const [fieldOptions, setFieldOptions] = React.useState("");
+  const [selectOptions, setSelectOptions] = React.useState<{ value: string; color: string }[]>([]);
   const [isAddingField, setIsAddingField] = React.useState(false);
 
   const [prevNodeTypeId, setPrevNodeTypeId] = React.useState(activeNodeType.id);
@@ -88,12 +90,22 @@ export function EcosystemSidePanel({
    const handleAddField = async (e: React.FormEvent<HTMLFormElement>) => {
      e.preventDefault();
      if (isReadOnly || !fieldName) return;
+
+     if (fieldType === 'SELECT' && selectOptions.length === 0 && !fieldOptions.trim()) {
+       alert("Please add at least one select option.");
+       return;
+     }
+
      const optionsArray = fieldType === 'SELECT' 
-       ? fieldOptions.split(',').map(o => o.trim()).filter(o => o !== "")
+       ? selectOptions.length > 0 
+         ? selectOptions 
+         : fieldOptions.split(',').map(o => o.trim()).filter(o => o !== "").map(o => ({ value: o, color: getOptionColor(o) }))
        : undefined;
+
      await addFieldDefinition(projectId, activeNodeType.id, fieldName, fieldType, optionsArray);
      setFieldName("");
      setFieldOptions("");
+     setSelectOptions([]);
      setIsAddingField(false);
    };
 
@@ -168,6 +180,8 @@ export function EcosystemSidePanel({
                  onAddField={handleAddField}
                  fieldTypes={FIELD_TYPES}
                  isReadOnly={isReadOnly}
+                 selectOptions={selectOptions}
+                 setSelectOptions={setSelectOptions}
              />
           </div>
         </div>

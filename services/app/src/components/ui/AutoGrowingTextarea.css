@@ -1,8 +1,9 @@
 .auto-growing-textarea {
   resize: none !important;
   overflow: hidden !important;
-  min-height: 48px;
-  line-height: 1.6;
+  min-height: 36px !important;
+  line-height: 1.4 !important;
+  padding: 8px 12px !important;
   width: 100%;
   transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
   display: block;

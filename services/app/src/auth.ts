@@ -20,7 +20,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
-        
+
         const user = await prisma.user.findUnique({
           where: { email: credentials.email as string },
           include: { accounts: true }
@@ -33,7 +33,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         // 2. If user already has a Google account, force them to use it
         if (user.accounts.some((acc) => acc.provider === 'google')) {
-            throw new Error("MIGRATED_TO_GOOGLE");
+          throw new Error("MIGRATED_TO_GOOGLE");
         }
 
         // 3. For existing legacy users, allow login so they can link Google
@@ -61,7 +61,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { id: token.id as string },
           include: { accounts: true }
         });
-        
+
         if (!dbUser) {
           // If the user was deleted from the database (e.g. local DB wipe),
           // invalidate the session by returning an empty session to force re-auth.
@@ -70,7 +70,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             user: undefined
           } as any;
         }
-        
+
         session.user.id = token.id as string;
         session.user.name = dbUser.name ?? "";
         session.user.email = dbUser.email ?? "";
@@ -81,10 +81,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isProtected = nextUrl.pathname.startsWith('/projects') || 
-                          nextUrl.pathname.startsWith('/project') || 
-                          nextUrl.pathname.startsWith('/profile');
-      
+      const isProtected = nextUrl.pathname.startsWith('/projects') ||
+        nextUrl.pathname.startsWith('/project') ||
+        nextUrl.pathname.startsWith('/profile');
+
       if (isProtected) {
         if (isLoggedIn) return true;
         return false;

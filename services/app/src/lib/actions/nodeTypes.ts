@@ -44,7 +44,7 @@ export async function deleteNodeType(projectId: string, id: string) {
   revalidatePath(`/project/${projectId}/settings/nodes`);
 }
 
-export async function addFieldDefinition(projectId: string, nodeTypeId: string, name: string, type: string, options?: string[]) {
+export async function addFieldDefinition(projectId: string, nodeTypeId: string, name: string, type: string, options?: any[]) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
   await ensureProjectNotArchived(projectId);

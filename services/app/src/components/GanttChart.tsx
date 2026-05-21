@@ -68,7 +68,7 @@ export function GanttChart({ nodes, sprints, currentSprintId }: Readonly<GanttCh
   const getDayOffset = (dateValue: string | Date | null | undefined) => {
     if (!dateValue) return null;
     const d = new Date(dateValue); d.setHours(0,0,0,0);
-    const diffDays = Math.floor((d.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.round((d.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     return (diffDays < 0 || diffDays >= days.length) ? null : diffDays;
   };
 

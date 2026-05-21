@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Trash } from "lucide-react";
+import { Select } from "./ui/Select";
 
 import { Node } from "@/lib/types";
 
@@ -22,6 +23,17 @@ interface DependencyManagerProps {
 }
 
 export function DependencyManager({ dependencies, allNodes, currentNodeId, onAdd, onRemove }: Readonly<DependencyManagerProps>) {
+  const eligibleNodes = allNodes.filter((n: Node) => {
+    const isSelf = n.id === currentNodeId;
+    const isAlreadyDep = dependencies?.some((d: Dependency) => d.blockingNode?.id === n.id);
+    return !isSelf && !isAlreadyDep;
+  });
+
+  const options = [
+    { value: "none", label: "+ ADD BLOCKING NODE" },
+    ...eligibleNodes.map((n: Node) => ({ value: n.id, label: n.title }))
+  ];
+
   return (
     <div className="timeline-container">
       <label htmlFor="dependency-select" className="text-meta block mb-lg">Dependencies</label>
@@ -43,24 +55,11 @@ export function DependencyManager({ dependencies, allNodes, currentNodeId, onAdd
         )}
       </div>
 
-      <select 
-        id="dependency-select"
-        className="dependency-selector input-premium w-full text-meta"
+      <Select 
+        options={options}
         value="none"
-        onChange={(e) => onAdd(e.target.value)}
-      >
-        <option value="none">+ ADD BLOCKING NODE</option>
-        {allNodes
-          .filter((n: Node) => {
-              const isSelf = n.id === currentNodeId;
-              const isAlreadyDep = dependencies?.some((d: Dependency) => d.blockingNode?.id === n.id);
-              return !isSelf && !isAlreadyDep;
-          })
-          .map((n: Node) => (
-            <option key={n.id} value={n.id}>{n.title}</option>
-          ))
-        }
-      </select>
+        onChange={onAdd}
+      />
     </div>
   );
 }

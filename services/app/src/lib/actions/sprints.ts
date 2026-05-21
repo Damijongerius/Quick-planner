@@ -73,7 +73,29 @@ export async function assignNodeToSprint(projectId: string, nodeId: string, spri
   const node = await prisma.node.findUnique({ where: { id: nodeId } });
   const sprint = sprintId ? await prisma.sprint.findUnique({ where: { id: sprintId } }) : null;
   await prisma.node.update({ where: { id: nodeId, userId: session.user.id, projectId }, data: { sprintId }, });
+  
+  await cascadeSprintToChildren(projectId, session.user.id, nodeId, sprintId);
+
   await logHistoryEvent({ projectId, nodeId, action: 'MOVE', entityType: 'NODE', entityName: node?.title, newValue: sprint?.name || 'Backlog' });
   revalidatePath(`/project/${projectId}/backlog`);
   revalidatePath(`/project/${projectId}/board`);
+}
+
+async function cascadeSprintToChildren(projectId: string, userId: string, parentId: string, sprintId: string | null) {
+  const links = await prisma.nodeLink.findMany({
+    where: { parentNodeId: parentId },
+    include: { childNode: true }
+  });
+
+  for (const link of links) {
+    const child = link.childNode;
+    if (child.status === 'DONE' || child.isArchived) {
+      continue;
+    }
+    await prisma.node.update({
+      where: { id: child.id, userId, projectId },
+      data: { sprintId }
+    });
+    await cascadeSprintToChildren(projectId, userId, child.id, sprintId);
+  }
 }

@@ -4,7 +4,7 @@ import "./Backlog.css";
 import "./TopAppBar.css";
 
 import React from "react";
-import { Plus, Search, X, Archive, ArchiveRestore, FileJson } from "lucide-react";
+import { Plus, Archive, ArchiveRestore } from "lucide-react";
 import { Button } from "./ui/Button";
 import { IconRenderer } from "./IconPicker";
 import { AnimatePresence, motion } from "framer-motion";
@@ -17,6 +17,7 @@ interface BacklogToolbarProps {
   onToggleHideCompleted: () => void;
   showArchived: boolean;
   onToggleShowArchived: () => void;
+  hasArchivedNodes: boolean;
   isReadOnly?: boolean;
 }
 
@@ -27,11 +28,10 @@ export function BacklogToolbar({
   onToggleHideCompleted,
   showArchived,
   onToggleShowArchived,
+  hasArchivedNodes,
   isReadOnly
 }: Readonly<BacklogToolbarProps>) {
   const [showInitMenu, setShowInitMenu] = React.useState(false);
-  const [showSearch, setShowSearch] = React.useState(false);
-  const [searchQuery, setSearchQuery] = React.useState("");
 
   return (
     <div className="flex flex-col gap-md">
@@ -46,22 +46,6 @@ export function BacklogToolbar({
               {availableRootTypes.length === 1 ? `Initialize ${availableRootTypes[0]?.name}` : 'Initialize Objective'}
             </Button>
           )}
-
-          <Button
-            variant="secondary"
-            className={`rounded-full p-md ${showSearch ? 'active' : ''}`}
-            onClick={() => setShowSearch(!showSearch)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setShowSearch(!showSearch);
-              }
-            }}
-            style={{ width: '44px', height: '44px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            aria-label={showSearch ? "Close search" : "Open search"}
-            aria-expanded={showSearch}
-            icon={showSearch ? <X size={18} /> : <Search size={18} />}
-          />
 
           <AnimatePresence>
             {showInitMenu && (
@@ -119,40 +103,20 @@ export function BacklogToolbar({
             {hideCompleted ? "SHOW COMPLETED" : "HIDE COMPLETED"}
           </Button>
 
-          <Button
-            variant={showArchived ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={onToggleShowArchived}
-            icon={showArchived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
-            className={showArchived ? 'filter-active-primary' : ''}
-          >
-            {showArchived ? "BACK TO ACTIVE" : "VIEW ARCHIVE"}
-          </Button>
+          {(hasArchivedNodes || showArchived) && (
+            <Button
+              variant={showArchived ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={onToggleShowArchived}
+              icon={showArchived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
+              className={showArchived ? 'filter-active-primary' : ''}
+            >
+              {showArchived ? "BACK TO ACTIVE" : "VIEW ARCHIVE"}
+            </Button>
+          )}
 
         </div>
       </div>
-
-      <AnimatePresence>
-        {showSearch && (
-          <motion.div
-            initial={{ opacity: 0, height: 0, y: -10 }}
-            animate={{ opacity: 1, height: 'auto', y: 0 }}
-            exit={{ opacity: 0, height: 0, y: -10 }}
-            className="overflow-hidden"
-          >
-            <div className="bg-surface-container-low p-sm rounded-2xl border border-outline-variant shadow-sm flex items-center gap-md">
-              <Search size={18} className="text-on-surface-variant ml-sm" />
-              <input
-                autoFocus
-                className="input-planner flex-1 border-none bg-transparent h-12 text-base"
-                placeholder="Search objectives, tasks, and requirements..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

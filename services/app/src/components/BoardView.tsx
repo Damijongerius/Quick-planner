@@ -71,6 +71,7 @@ export function BoardView({ projectId, initialSprints, initialNodeTypes, initial
                 onClose={() => { setIsPanelOpen(false); refresh(); }} 
                 sprints={initialSprints} 
                 allNodes={nodes} 
+                nodeTypes={initialNodeTypes}
               />
             </motion.div>
           )}

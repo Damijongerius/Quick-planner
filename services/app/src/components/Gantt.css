@@ -57,6 +57,15 @@
   letter-spacing: 0.1em; 
   border-right: 1px solid var(--outline-variant);
   flex-shrink: 0;
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background-color: var(--surface-container-lowest);
+}
+
+.gantt-grid-header .gantt-label-col,
+.gantt-sprints-row .gantt-label-col {
+  background-color: var(--surface-container-low) !important;
 }
 
 .gantt-day-col {

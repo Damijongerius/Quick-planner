@@ -21,6 +21,8 @@ interface BacklogTreeProps {
   selectedColumns?: string[];
   sprints?: Sprint[];
   selectedNodeType?: NodeType | null;
+  showArchived?: boolean;
+  onNodeUpdated?: () => void;
 }
 
 export function BacklogTree({ 
@@ -34,21 +36,29 @@ export function BacklogTree({
   isReadOnly = false,
   selectedColumns,
   sprints,
-  selectedNodeType
+  selectedNodeType,
+  showArchived = false,
+  onNodeUpdated
 }: Readonly<BacklogTreeProps>) {
   const nodeType = nodeTypes.find((t) => t.id === node.nodeTypeId) || node.type;
   const allowedChildren = nodeType?.allowedChildren?.map((ac) => ac.childNodeTypeType) || [];
   const initialChildren = (node.childLinks?.map((l) => l.childNode) || [])
+    .filter((c) => c.isArchived === showArchived)
     .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
   const [isOpen, setIsOpen] = useState(depth < 1);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [children, setChildren] = useState<Node[]>(initialChildren);
   const [isLoadingChildren, setIsLoadingChildren] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [prevNodeId, setPrevNodeId] = useState(node.id);
+  const [prevChildLinks, setPrevChildLinks] = useState(node.childLinks);
 
   if (node.id !== prevNodeId) {
     setPrevNodeId(node.id);
+    setChildren(initialChildren);
+  } else if (node.childLinks !== prevChildLinks) {
+    setPrevChildLinks(node.childLinks);
     setChildren(initialChildren);
   }
 
@@ -66,6 +76,7 @@ export function BacklogTree({
       onMouseLeave={() => setIsHovered(false)}
     >
       <BacklogNodeRow 
+        projectId={projectId}
         node={node} 
         nodeType={nodeType} 
         depth={depth} 
@@ -80,11 +91,20 @@ export function BacklogTree({
         selectedColumns={selectedColumns}
         sprints={sprints}
         selectedNodeType={selectedNodeType}
+        isReadOnly={isReadOnly}
+        onNodeUpdated={handleLocalNodeUpdate}
       />
 
       <AnimatePresence>
         {isOpen && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }} 
+            animate={{ opacity: 1, height: 'auto' }} 
+            exit={{ opacity: 0, height: 0 }}
+            onAnimationStart={() => setIsTransitioning(true)}
+            onAnimationComplete={() => setIsTransitioning(false)}
+            style={{ overflow: isTransitioning ? 'hidden' : 'visible' }}
+          >
             {children.map((child: Node) => (
               <BacklogTree 
                 key={child.id} 
@@ -99,6 +119,8 @@ export function BacklogTree({
                 selectedColumns={selectedColumns}
                 sprints={sprints}
                 selectedNodeType={selectedNodeType}
+                showArchived={showArchived}
+                onNodeUpdated={handleLocalNodeUpdate}
               />
             ))}
             {(allowedChildren.length > 0 && !isReadOnly && selectedNodeId === node.id) && (
@@ -115,9 +137,21 @@ export function BacklogTree({
   // INNER HELPER FUNCTIONS (Hoisted)
   // ==========================================
 
+  async function handleLocalNodeUpdate() {
+    await loadChildren();
+    if (onNodeUpdated) {
+      onNodeUpdated();
+    }
+  }
+
   async function loadChildren() {
     setIsLoadingChildren(true);
-    try { setChildren(await getNodeChildren(projectId, node.id)); }
+    try {
+      const rawChildren = await getNodeChildren(projectId, node.id);
+      const filtered = rawChildren.filter(c => c.isArchived === showArchived);
+      const sorted = [...filtered].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      setChildren(sorted);
+    }
     finally { setIsLoadingChildren(false); }
   }
 

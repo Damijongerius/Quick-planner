@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { createNode, getRootNodes } from "@/lib/actions";
 import { BacklogTree } from "./BacklogTree";
@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import { BacklogToolbar } from "./BacklogToolbar";
 import { useProject } from "./ProjectContext";
+import { Select } from "./ui/Select";
 
 import { Node, NodeType, Sprint } from "@/lib/types";
 
@@ -40,6 +41,10 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
   const [targetNodeTypeId, setTargetNodeTypeId] = useState<string | null>(null);
   const [selectedColumns, setSelectedColumns] = useState<string[]>(['title', 'status', 'sprintId', 'startDate']);
 
+  const customFieldNames = React.useMemo(() => {
+    return Array.from(new Set(nodeTypes.flatMap(nt => nt.fields?.map(f => f.name) || [])));
+  }, [nodeTypes]);
+
   useEffect(() => {
     if (nodeTypes.length > 0 && !targetNodeTypeId) {
       setTargetNodeTypeId(nodeTypes[0].id);
@@ -51,9 +56,9 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
       } else {
         defaultCols.push('startDate');
       }
-      setSelectedColumns(defaultCols);
+      setSelectedColumns(sortColumns(defaultCols, customFieldNames));
     }
-  }, [nodeTypes, targetNodeTypeId]);
+  }, [nodeTypes, targetNodeTypeId, customFieldNames]);
 
   const childTypeIds = new Set(nodeTypes.flatMap((t) => t.allowedChildren?.map((ac) => ac.childNodeTypeId) || []));
   const availableRootTypes = nodeTypes.some((t) => !childTypeIds.has(t.id))
@@ -74,9 +79,13 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
     }
   }
 
+  const refreshNodes = async () => {
+    const data = await getRootNodes(projectId, showArchived);
+    setNodes(data);
+  };
+
   useEffect(() => {
-    const refresh = async () => { const data = await getRootNodes(projectId, showArchived); setNodes(data); };
-    refresh();
+    refreshNodes();
   }, [showArchived, projectId]);
 
   const handleCreateRoot = async (typeId: string, typeName: string) => {
@@ -88,19 +97,21 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
 
   const handleColumnToggle = (colId: string) => {
     const isSelected = selectedColumns.includes(colId);
+    let nextCols: string[];
     if (isSelected) {
       if (colId === 'title') return; // Enforce Title is always visible
-      setSelectedColumns(selectedColumns.filter(c => c !== colId));
+      nextCols = selectedColumns.filter(c => c !== colId);
     } else {
       // Enforce at most 4 columns total (including Title)
       if (selectedColumns.length >= 4) {
         const nonTitleCols = selectedColumns.filter(c => c !== 'title');
         // Gracefully shift the oldest non-title column out to make room
-        setSelectedColumns(['title', ...nonTitleCols.slice(1), colId]);
+        nextCols = ['title', ...nonTitleCols.slice(1), colId];
       } else {
-        setSelectedColumns([...selectedColumns, colId]);
+        nextCols = [...selectedColumns, colId];
       }
     }
+    setSelectedColumns(sortColumns(nextCols, customFieldNames));
   };
 
   // Target details and filters
@@ -115,6 +126,7 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
         onToggleHideCompleted={() => setHideCompleted(!hideCompleted)}
         showArchived={showArchived}
         onToggleShowArchived={() => setShowArchived(!showArchived)}
+        hasArchivedNodes={allNodes.some((n) => n.isArchived)}
         isReadOnly={isReadOnly}
       />
 
@@ -123,31 +135,25 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
         <div className="flex flex-wrap items-center justify-between gap-md">
           <div className="flex items-center gap-md">
             <span className="text-meta text-primary font-bold">Target Custom Columns:</span>
-            <select
-              className="input-premium py-xs px-md cursor-pointer"
-              style={{ width: 'auto', minWidth: '160px' }}
-              value={targetNodeTypeId || ""}
-              onChange={(e) => {
-                const newTypeId = e.target.value;
-                setTargetNodeTypeId(newTypeId);
-                // Update default visible columns, keeping it strictly to at most 4 columns total!
-                const newType = nodeTypes.find(t => t.id === newTypeId);
-                const newCustomFields = newType?.fields?.map(f => f.name) || [];
-                const defaultCols = ['title', 'status', 'sprintId'];
-                if (newCustomFields.length > 0) {
-                  defaultCols.push(newCustomFields[0]);
-                } else {
-                  defaultCols.push('startDate');
-                }
-                setSelectedColumns(defaultCols);
-              }}
-            >
-              {nodeTypes.map((type) => (
-                <option key={type.id} value={type.id}>
-                  {type.name}
-                </option>
-              ))}
-            </select>
+            <div style={{ width: 'auto', minWidth: '160px' }}>
+              <Select
+                options={nodeTypes.map((type) => ({ value: type.id, label: type.name }))}
+                value={targetNodeTypeId || ""}
+                  onChange={(val) => {
+                    setTargetNodeTypeId(val);
+                    // Update default visible columns, keeping it strictly to at most 4 columns total!
+                    const newType = nodeTypes.find(t => t.id === val);
+                    const newCustomFields = newType?.fields?.map(f => f.name) || [];
+                    const defaultCols = ['title', 'status', 'sprintId'];
+                    if (newCustomFields.length > 0) {
+                      defaultCols.push(newCustomFields[0]);
+                    } else {
+                      defaultCols.push('startDate');
+                    }
+                    setSelectedColumns(sortColumns(defaultCols, customFieldNames));
+                  }}
+              />
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-sm">
@@ -235,6 +241,8 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
                 selectedColumns={selectedColumns}
                 sprints={sprints}
                 selectedNodeType={selectedNodeType}
+                showArchived={showArchived}
+                onNodeUpdated={refreshNodes}
               />
             ))}
 
@@ -257,7 +265,7 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
               transition={{ type: 'spring', damping: 25, stiffness: 120 }}
               className="backlog-panel-wrapper animate-fade-in"
             >
-              <NodeSidePanel projectId={projectId} node={selectedNode} isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} sprints={sprints} allNodes={allNodes} />
+              <NodeSidePanel projectId={projectId} node={selectedNode} isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} sprints={sprints} allNodes={allNodes} nodeTypes={nodeTypes} onNodeUpdated={refreshNodes} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -275,4 +283,24 @@ function getGridTemplate(numCols: number): string {
   if (numCols === 2) return "3fr 1.2fr";
   if (numCols === 3) return "3fr 1.2fr 1.2fr";
   return "3fr 1.2fr 1.2fr 1.2fr"; // Dynamic, left-connected grid sizing with strict boundaries
+}
+
+function sortColumns(cols: string[], customFields: string[]): string[] {
+  const standardOrder = ['title', 'status', 'sprintId', 'startDate', 'endDate'];
+  return [...cols].sort((a, b) => {
+    const idxA = standardOrder.indexOf(a);
+    const idxB = standardOrder.indexOf(b);
+
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+
+    const customIdxA = customFields.indexOf(a);
+    const customIdxB = customFields.indexOf(b);
+    if (customIdxA !== -1 && customIdxB !== -1) return customIdxA - customIdxB;
+    if (customIdxA !== -1) return -1;
+    if (customIdxB !== -1) return 1;
+
+    return a.localeCompare(b);
+  });
 }

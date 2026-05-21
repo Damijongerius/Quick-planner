@@ -21,6 +21,8 @@ interface FieldDefinitionsSectionProps {
     onAddField: (e: FormEvent<HTMLFormElement>) => Promise<void>;
     fieldTypes: { type: string; icon: LucideIcon }[];
     isReadOnly?: boolean;
+    selectOptions: { value: string; color: string }[];
+    setSelectOptions: React.Dispatch<React.SetStateAction<{ value: string; color: string }[]>>;
 }
 
 export function FieldDefinitionsSection({ 
@@ -36,7 +38,9 @@ export function FieldDefinitionsSection({
     setFieldOptions,
     onAddField,
     fieldTypes,
-    isReadOnly
+    isReadOnly,
+    selectOptions,
+    setSelectOptions
 }: Readonly<FieldDefinitionsSectionProps>) {
     return (
         <section className="flex flex-col gap-md">
@@ -61,6 +65,8 @@ export function FieldDefinitionsSection({
                         onAddField={onAddField}
                         fieldTypes={fieldTypes}
                         onDiscard={() => setIsAddingField(false)}
+                        selectOptions={selectOptions}
+                        setSelectOptions={setSelectOptions}
                     />
                 )}
 

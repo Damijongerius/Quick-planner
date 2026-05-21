@@ -11,9 +11,26 @@ import { NodeDetailsTab } from "./NodeDetailsTab";
 import "./NodeSidePanel.css";
 import "./Timeline.css";
 
-import { Node, Sprint, AuditLogEvent } from "@/lib/types";
+import { Node, Sprint, AuditLogEvent, NodeType } from "@/lib/types";
 
-export function NodeSidePanel({ projectId, node, onClose, sprints, allNodes }: Readonly<{ projectId: string; node: Node; isOpen?: boolean; onClose: () => void; sprints: Sprint[]; allNodes: Node[] }>) {
+export function NodeSidePanel({ 
+  projectId, 
+  node, 
+  onClose, 
+  sprints, 
+  allNodes,
+  nodeTypes,
+  onNodeUpdated
+}: Readonly<{ 
+  projectId: string; 
+  node: Node; 
+  isOpen?: boolean; 
+  onClose: () => void; 
+  sprints: Sprint[]; 
+  allNodes: Node[];
+  nodeTypes: NodeType[];
+  onNodeUpdated?: () => void;
+}>) {
   const [activeTab, setActiveTab] = useState<'details' | 'history'>('details');
   const [title, setTitle] = useState(node.title || "");
   const [description, setDescription] = useState(node.description || "");
@@ -76,6 +93,7 @@ export function NodeSidePanel({ projectId, node, onClose, sprints, allNodes }: R
       try {
         await updateNode(projectId, node.id, { title, description, content, startDate: startDate || null, endDate: endDate || null });
         setSavingStatus('saved'); 
+        onNodeUpdated?.();
         setTimeout(() => setSavingStatus('idle'), 2000);
       } catch { 
         setSavingStatus('idle'); 
@@ -114,14 +132,14 @@ export function NodeSidePanel({ projectId, node, onClose, sprints, allNodes }: R
 
       <div ref={scrollAreaRef} className="side-panel-scroll-area flex-1 overflow-y-auto">
         {activeTab === 'details' ? (
-          <NodeDetailsTab node={node} title={title} setTitle={setTitle} description={description} setDescription={setDescription} status={status} setStatus={setStatus} sprintId={sprintId} setSprintId={setSprintId} startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate} content={content} setContent={setContent} sprints={sprints} allNodes={allNodes} projectId={projectId} />
+          <NodeDetailsTab node={node} nodeTypes={nodeTypes} title={title} setTitle={setTitle} description={description} setDescription={setDescription} status={status} setStatus={setStatus} sprintId={sprintId} setSprintId={setSprintId} startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate} content={content} setContent={setContent} sprints={sprints} allNodes={allNodes} projectId={projectId} onNodeUpdated={onNodeUpdated} />
         ) : (
           <AuditTrail history={history} />
         )}
       </div>
 
       <footer className="side-panel-footer border-t">
-        <Button variant="secondary" onClick={async () => { await archiveNode(projectId, node.id, !node.isArchived); onClose(); }} className="w-full" icon={node.isArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}>
+        <Button variant="secondary" onClick={async () => { await archiveNode(projectId, node.id, !node.isArchived); onNodeUpdated?.(); onClose(); }} className="w-full" icon={node.isArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}>
           {node.isArchived ? "Restore Node" : "Archive Node"}
         </Button>
       </footer>

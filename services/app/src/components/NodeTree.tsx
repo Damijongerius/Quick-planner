@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { ChevronRight, ChevronDown, Plus } from "lucide-react";
 import { createNode } from "@/lib/actions";
 import { Button } from "./ui/Button";
+import { Select } from "./ui/Select";
+import { Input } from "./ui/Input";
 
 import { Node, NodeType } from "@/lib/types";
 
@@ -39,6 +41,15 @@ export function NodeTree({ projectId, node, nodeTypes, onSelect, selectedNodeId 
     setIsOpen(true);
   };
 
+  const handleToggleCreating = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const nextCreating = !isCreating;
+    setIsCreating(nextCreating);
+    if (nextCreating && allowedChildren.length === 1) {
+      setSelectedType(allowedChildren[0]);
+    }
+  };
+
   const nodeType = nodeTypes.find((t) => t.id === node.nodeTypeId);
   const allowedChildren = nodeType?.allowedChildren?.map((ac) => ac.childNodeTypeType) || [];
 
@@ -65,7 +76,7 @@ export function NodeTree({ projectId, node, nodeTypes, onSelect, selectedNodeId 
         
         {allowedChildren.length > 0 && (
           <button 
-            onClick={(e) => { e.stopPropagation(); setIsCreating(!isCreating); }}
+            onClick={handleToggleCreating}
             className="backlog-tree-add-child"
           >
             <Plus size={14} />
@@ -75,38 +86,38 @@ export function NodeTree({ projectId, node, nodeTypes, onSelect, selectedNodeId 
 
       {isCreating && (
         <form onSubmit={handleCreate} className="backlog-tree-create-form p-sm ml-xl">
-          <input 
+          <Input 
             autoFocus
-            className="input-premium flex-1 min-w-[150px] p-xs text-xs"
+            className="flex-1 min-w-[150px] p-xs text-xs"
             placeholder="New node title..."
             value={newNodeTitle}
             onChange={(e) => setNewNodeTitle(e.target.value)}
           />
-          <select 
-            className="input-premium p-xs text-xs"
-            value={selectedType?.id || ""}
-            onChange={(e) => setSelectedType(nodeTypes.find((t) => t.id === e.target.value) || null)}
-            required
-          >
-            <option value="">Select type...</option>
-            {allowedChildren.map((type) => (
-              <option key={type.id} value={type.id}>{type.name}</option>
-            ))}
-          </select>
+          <div style={{ minWidth: '120px' }}>
+            <Select 
+              options={allowedChildren.map((type) => ({ value: type.id, label: type.name }))}
+              value={selectedType?.id || ""}
+              onChange={(val) => setSelectedType(nodeTypes.find((t) => t.id === val) || null)}
+              placeholder="Select type..."
+              triggerClassName="p-xs text-xs h-[30px]"
+            />
+          </div>
           <Button type="submit" size="sm">Add</Button>
         </form>
       )}
 
-      {isOpen && node.childLinks?.map((link: { id: string; childNode: Node }) => (
-        <NodeTree 
-          key={link.id} 
-          projectId={projectId}
-          node={link.childNode} 
-          nodeTypes={nodeTypes} 
-          onSelect={onSelect}
-          selectedNodeId={selectedNodeId}
-        />
-      ))}
+      {isOpen && [...(node.childLinks || [])]
+        .sort((a, b) => new Date(a.childNode.createdAt).getTime() - new Date(b.childNode.createdAt).getTime())
+        .map((link) => (
+          <NodeTree 
+            key={link.id} 
+            projectId={projectId}
+            node={link.childNode} 
+            nodeTypes={nodeTypes} 
+            onSelect={onSelect}
+            selectedNodeId={selectedNodeId}
+          />
+        ))}
     </div>
   );
 }

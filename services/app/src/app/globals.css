@@ -361,6 +361,8 @@ h1, h2, h3, h4, h5, h6 {
 @media (min-width: 1024px) {
   .app-shell-grid {
     grid-template-columns: 288px 1fr;
+    height: 100vh;
+    overflow: hidden;
   }
   
   .sidebar-planner {
@@ -370,6 +372,8 @@ h1, h2, h3, h4, h5, h6 {
   .main-content-wrapper {
     grid-column: 2;
     width: 100%;
+    height: 100vh;
+    overflow-y: auto;
   }
 }
 

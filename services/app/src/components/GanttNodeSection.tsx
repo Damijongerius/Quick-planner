@@ -13,7 +13,7 @@ export function GanttNodeSection({ nodes, days, getDayOffset }: Readonly<GanttNo
         const startCol = getDayOffset(node.startDate || node.createdAt);
         const endCol = getDayOffset(node.endDate);
         const nodeColor = node.type?.color || 'var(--primary)';
-        const width = (startCol !== null && endCol !== null) ? (endCol - startCol + 1) * 40 : 120;
+        const width = (startCol !== null && endCol !== null) ? Math.max(40, (endCol - startCol + 1) * 40) : 120;
 
         return (
           <div key={node.id} className="gantt-node-row">

@@ -13,7 +13,7 @@
 }
 
 .side-panel-header {
-  padding: var(--spacing-xl) 40px var(--spacing-md) 40px;
+  padding: var(--spacing-xl) 24px var(--spacing-md) 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -29,7 +29,7 @@
 
 .side-panel-desc {
   width: 100%;
-  min-height: 80px;
+  min-height: 36px;
   resize: none !important;
   overflow: hidden !important;
 }
@@ -52,15 +52,15 @@
 }
 
 .side-panel-tabs-wrapper {
-  padding: 0 40px 16px 40px;
+  padding: 0 24px 16px 24px;
 }
 
 .side-panel-scroll-area {
-  padding: 40px;
+  padding: 24px;
 }
 
 .side-panel-footer {
-  padding: 40px;
+  padding: 24px;
 }
 
 /* Timeline/History inside panel */

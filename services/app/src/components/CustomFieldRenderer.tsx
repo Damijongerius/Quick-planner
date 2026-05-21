@@ -1,9 +1,12 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
 import { FormField } from "./ui/FormField";
 import { AutoGrowingTextarea } from "./ui/AutoGrowingTextarea";
+import { Select } from "./ui/Select";
+import { Input } from "./ui/Input";
+import { Checkbox } from "./ui/Checkbox";
+import { getOptionColor } from "@/lib/utils/colorUtils";
 
 import { FieldDefinition } from "@/lib/types";
 
@@ -34,9 +37,9 @@ export function CustomFieldRenderer({ fields, content, onChange, disabled }: Rea
           )}
           
           {field.type === 'NUMBER' && (
-            <input 
+            <Input 
               type="number"
-              className="input-premium p-md"
+              variant="premium"
               value={(content[field.name] as number) || ""}
               onChange={(e) => onChange(field.name, e.target.value)}
               disabled={disabled}
@@ -44,45 +47,37 @@ export function CustomFieldRenderer({ fields, content, onChange, disabled }: Rea
           )}
           
           {field.type === 'DATE' && (
-            <input 
+            <Input 
               type="date"
-              className="input-premium p-md"
+              variant="premium"
               value={(content[field.name] as string) || ""}
               onChange={(e) => onChange(field.name, e.target.value)}
               disabled={disabled}
             />
           )}
+
           {field.type === 'CHECKBOX' && (
-            <label className={`flex items-center ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-              <span className="sr-only">Enable {field.name}</span>
-              <input 
-                type="checkbox"
-                checked={!!content[field.name]}
-                onChange={() => !disabled && onChange(field.name, !content[field.name])}
-                disabled={disabled}
-                className="sr-only"
-              />
-              <div className={`toggle-track ${content[field.name] ? 'active' : ''} ${disabled ? 'opacity-50' : ''}`}>
-                <motion.div 
-                  animate={{ x: content[field.name] ? 20 : 0 }}
-                  className="toggle-thumb"
-                />
-              </div>
-            </label>
+            <Checkbox
+              checked={!!content[field.name]}
+              onChange={() => !disabled && onChange(field.name, !content[field.name])}
+              disabled={disabled}
+              label={`Enable ${field.name.toLowerCase()}`}
+            />
           )}
 
-          {field.type === 'SELECT' && (
-            <select
-              className="input-premium p-md w-full appearance-none cursor-pointer"
+          {field.type?.toUpperCase() === 'SELECT' && (
+            <Select
+              options={Array.isArray(field.options) ? field.options.map((opt: any) => {
+                const isObj = typeof opt !== 'string' && opt !== null && typeof opt === 'object';
+                const val = isObj ? opt.value : String(opt);
+                const color = isObj && opt.color ? opt.color : getOptionColor(val);
+                return { value: val, label: val, color };
+              }) : []}
               value={(content[field.name] as string) || ""}
-              onChange={(e) => onChange(field.name, e.target.value)}
+              onChange={(val) => onChange(field.name, val)}
+              placeholder={`Select ${field.name.toLowerCase()}...`}
               disabled={disabled}
-            >
-              <option value="" disabled>Select {field.name.toLowerCase()}...</option>
-              {field.options?.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
+            />
           )}
         </FormField>
       ))}

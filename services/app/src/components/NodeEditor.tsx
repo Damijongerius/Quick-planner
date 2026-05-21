@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { X, Save } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "./ui/Button";
+import { Input } from "./ui/Input";
+import { Checkbox } from "./ui/Checkbox";
 
 import { Node, FieldDefinition } from "@/lib/types";
 
@@ -88,31 +90,31 @@ export function NodeEditor({ node, onClose }: Readonly<NodeEditorProps>) {
               )}
               
               {field.type === 'NUMBER' && (
-                <input 
+                <Input 
                   id={`field-${field.id}`}
                   type="number"
-                  className="input-premium" 
+                  variant="premium"
                   value={(data[field.name] as string | number) || ''} 
                   onChange={(e) => handleChange(field.name, e.target.value)}
                 />
               )}
 
               {field.type === 'DATE' && (
-                <input 
+                <Input 
                   id={`field-${field.id}`}
                   type="date"
-                  className="input-premium" 
+                  variant="premium"
                   value={(data[field.name] as string) || ''} 
                   onChange={(e) => handleChange(field.name, e.target.value)}
                 />
               )}
 
               {field.type === 'CHECKBOX' && (
-                <input 
+                <Checkbox 
                   id={`field-${field.id}`}
-                  type="checkbox"
                   checked={(data[field.name] as boolean) || false} 
                   onChange={(e) => handleChange(field.name, e.target.checked)}
+                  label={`Enable ${field.name.toLowerCase()}`}
                 />
               )}
             </div>
