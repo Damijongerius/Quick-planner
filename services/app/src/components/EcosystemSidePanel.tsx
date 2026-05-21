@@ -128,7 +128,7 @@ export function EcosystemSidePanel({
           <div className="flex items-center gap-md">
               <div 
                 className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" 
-                style={{ backgroundColor: `${activeNodeType.color}15`, color: activeNodeType.color }}
+                style={{ backgroundColor: `${activeNodeType.color}15`, color: activeNodeType.color || undefined }}
               >
                   <IconRenderer name={activeNodeType.icon || ""} size={28} />
               </div>

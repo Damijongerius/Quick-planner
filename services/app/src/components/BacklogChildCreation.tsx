@@ -41,7 +41,7 @@ export function BacklogChildCreation({
     setIsCreating(false); 
     setNewNodeTitle(""); 
     setSelectedType(null);
-    onChildCreated(newNode);
+    onChildCreated(newNode as unknown as Node);
   };
 
   const allowedOptions = allowedChildren.map(t => ({ value: t.id, label: t.name, color: t.color || undefined }));

@@ -97,8 +97,9 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
     const newNode = await createNode(projectId, null, typeId, `New ${typeName}`);
     const data = await getRootNodes(projectId, showArchived);
     setNodes(data);
+    setSyncStamp(Date.now());
     router.refresh();
-    setSelectedNode(newNode);
+    setSelectedNode(newNode as unknown as Node);
     setIsPanelOpen(true);
   };
 
