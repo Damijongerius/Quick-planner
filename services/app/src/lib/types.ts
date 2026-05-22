@@ -28,6 +28,7 @@ export interface BoardConfig {
   showOnGantt?: boolean;
   isSprintEligible?: boolean;
   preferredView?: string;
+  sprintBoardLayer?: number | null;
 }
 
 export interface FieldDefinition {
@@ -70,7 +71,7 @@ export interface Node {
   isArchived?: boolean;
   childLinks?: { id: string; childNode: Node }[];
   blockedBy?: { id: string; blockingNode: Node }[];
-  parentLinks?: { parentNode: { title: string; sprintId?: string | null } }[];
+  parentLinks?: { id: string; parentNode: Node }[];
   createdAt: string | Date;
   updatedAt: string | Date;
 }

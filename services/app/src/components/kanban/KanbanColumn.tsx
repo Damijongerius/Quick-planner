@@ -13,6 +13,7 @@ interface ColumnProps {
   color: string;
   onNodeClick: (id: string) => void;
   isReadOnly?: boolean;
+  hideHeader?: boolean;
 }
 
 function DraggableTask({ task, index, onNodeClick, isReadOnly }: Readonly<{ task: Node; index: number; onNodeClick: (id: string) => void; isReadOnly?: boolean }>) {
@@ -39,23 +40,25 @@ function DraggableTask({ task, index, onNodeClick, isReadOnly }: Readonly<{ task
   );
 }
 
-export function KanbanColumn({ id, title, tasks, color, onNodeClick, isReadOnly }: Readonly<ColumnProps>) {
+export function KanbanColumn({ id, title, tasks, color, onNodeClick, isReadOnly, hideHeader = false }: Readonly<ColumnProps>) {
   return (
     <div className="kanban-column">
-      <header className="kanban-column-header">
-        <div className="flex items-center gap-md">
-          <div className="status-dot" style={{ '--dot-color': color } as React.CSSProperties}></div>
-          <h3 className="kanban-column-title">{title}</h3>
-          <span className="kanban-column-count">{tasks.length}</span>
-        </div>
-      </header>
+      {!hideHeader && (
+        <header className="kanban-column-header">
+          <div className="flex items-center gap-md">
+            <div className="status-dot" style={{ '--dot-color': color } as React.CSSProperties}></div>
+            <h3 className="kanban-column-title">{title}</h3>
+            <span className="kanban-column-count">{tasks.length}</span>
+          </div>
+        </header>
+      )}
 
       <Droppable droppableId={id}>
         {(provided, snapshot) => (
           <div 
             {...provided.droppableProps}
             ref={provided.innerRef}
-            className={`kanban-drop-zone ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
+            className={`kanban-drop-zone ${snapshot.isDraggingOver ? 'dragging-over' : ''} ${hideHeader ? 'swimlane-drop-zone' : ''}`}
           >
             {tasks.map((task, index) => (
               <DraggableTask 

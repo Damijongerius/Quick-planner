@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Modal } from "./ui/Modal";
 import { FormField } from "./ui/FormField";
 import { Button } from "./ui/Button";
+import { Select } from "./ui/Select";
 
 import { NodeType, BoardConfig } from "@/lib/types";
 
@@ -21,6 +22,7 @@ export function BoardConfigEditor({ projectId, nodeType, isOpen, onClose }: Read
   const [showOnKanban, setShowOnKanban] = useState(true);
   const [showOnGantt, setShowOnGantt] = useState(true);
   const [isSprintEligible, setIsSprintEligible] = useState(true);
+  const [sprintBoardLayer, setSprintBoardLayer] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const [prevNodeId, setPrevNodeId] = useState<string | null>(nodeType?.id || null);
@@ -31,6 +33,7 @@ export function BoardConfigEditor({ projectId, nodeType, isOpen, onClose }: Read
     setShowOnKanban(config.showOnKanban !== false);
     setShowOnGantt(config.showOnGantt !== false);
     setIsSprintEligible(nodeType?.isSprintEligible ?? true);
+    setSprintBoardLayer(config.sprintBoardLayer ?? null);
   }
 
   const handleSave = async () => {
@@ -41,7 +44,8 @@ export function BoardConfigEditor({ projectId, nodeType, isOpen, onClose }: Read
       await updateNodeTypeBoardConfig(projectId, nodeId, { 
         showOnKanban, 
         showOnGantt, 
-        isSprintEligible 
+        isSprintEligible,
+        sprintBoardLayer
       });
       onClose();
 
@@ -93,6 +97,19 @@ export function BoardConfigEditor({ projectId, nodeType, isOpen, onClose }: Read
                     </div>
                 </Button>
             </div>
+          </FormField>
+
+          <FormField label="Sprint Board Layer Role" description="Configure where this node type fits in the layered sprint board view.">
+            <Select 
+              options={[
+                { value: "none", label: "No Layer (Hidden / Flat)" },
+                { value: "0", label: "Layer 0: Portfolio (Epic / Feature)" },
+                { value: "1", label: "Layer 1: Swimlane Row (Story / Bug)" },
+                { value: "2", label: "Layer 2: Draggable Card (Task)" }
+              ]}
+              value={sprintBoardLayer === null ? "none" : String(sprintBoardLayer)}
+              onChange={(val) => setSprintBoardLayer(val === "none" ? null : Number(val))}
+            />
           </FormField>
 
           <div className="card-planner p-xl bg-container-low border-none">

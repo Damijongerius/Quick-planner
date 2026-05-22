@@ -40,6 +40,12 @@ export async function updateNode(projectId: string, id: string, updates: {
   const data: Record<string, unknown> = { ...updates };
   if (updates.startDate) data.startDate = new Date(updates.startDate);
   if (updates.endDate) data.endDate = new Date(updates.endDate);
+  if (updates.content) {
+    data.content = {
+      ...(oldNode?.content as Record<string, unknown> || {}),
+      ...updates.content
+    };
+  }
 
   const node = await prisma.node.update({ where: { id, userId: session.user.id, projectId }, data });
   if (updates.status && updates.status !== oldNode?.status) await propagateStatusUpwards(projectId, id, updates.status);
@@ -63,11 +69,107 @@ export async function deleteNode(projectId: string, id: string) {
   revalidatePath(`/project/${projectId}/backlog`);
 }
 
-export async function archiveNode(projectId: string, id: string, isArchived: boolean) {
+async function getRecursiveChildIds(projectId: string, nodeId: string, userId: string): Promise<string[]> {
+  const links = await prisma.nodeLink.findMany({
+    where: { 
+      parentNodeId: nodeId, 
+      childNode: { projectId, userId, isArchived: false } 
+    },
+    select: { childNodeId: true }
+  });
+  const childIds = links.map(l => l.childNodeId);
+  let descendantIds = [...childIds];
+  for (const childId of childIds) {
+    const subIds = await getRecursiveChildIds(projectId, childId, userId);
+    descendantIds = [...descendantIds, ...subIds];
+  }
+  return descendantIds;
+}
+
+export async function archiveNode(projectId: string, id: string, isArchived: boolean, archiveChildren: boolean = false) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
   await ensureProjectNotArchived(projectId);
-  const node = await prisma.node.update({ where: { id, userId: session.user.id, projectId }, data: { isArchived }, });
-  await logHistoryEvent({ projectId, nodeId: id, action: isArchived ? 'ARCHIVE' : 'RESTORE', entityType: 'NODE', entityName: node.title });
+
+  if (isArchived && archiveChildren) {
+    const descendantIds = await getRecursiveChildIds(projectId, id, session.user.id);
+    const allIds = [id, ...descendantIds];
+    
+    await prisma.node.updateMany({
+      where: {
+        id: { in: allIds },
+        userId: session.user.id,
+        projectId
+      },
+      data: { isArchived: true }
+    });
+
+    const updatedNodes = await prisma.node.findMany({
+      where: { id: { in: allIds } },
+      select: { id: true, title: true }
+    });
+
+    for (const n of updatedNodes) {
+      await logHistoryEvent({ projectId, nodeId: n.id, action: 'ARCHIVE', entityType: 'NODE', entityName: n.title });
+    }
+  } else {
+    const node = await prisma.node.update({ where: { id, userId: session.user.id, projectId }, data: { isArchived }, });
+    await logHistoryEvent({ projectId, nodeId: id, action: isArchived ? 'ARCHIVE' : 'RESTORE', entityType: 'NODE', entityName: node.title });
+  }
+
   revalidatePath(`/project/${projectId}/backlog`);
+}
+
+export async function updateNodeParent(projectId: string, nodeId: string, newParentNodeId: string | null) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+  await ensureProjectNotArchived(projectId);
+  
+  // Get current parent info first (before we delete)
+  const currentParentLink = await prisma.nodeLink.findFirst({
+    where: { childNodeId: nodeId, parentNode: { projectId } },
+    include: { parentNode: true }
+  });
+
+  // Delete existing links for this child node
+  await prisma.nodeLink.deleteMany({
+    where: { 
+      childNodeId: nodeId, 
+      parentNode: { projectId } 
+    }
+  });
+
+  const childNode = await prisma.node.findUnique({ where: { id: nodeId }, select: { title: true } });
+
+  // Create new link if a parent is specified
+  if (newParentNodeId) {
+    await prisma.nodeLink.create({
+      data: { parentNodeId: newParentNodeId, childNodeId: nodeId }
+    });
+    
+    const parentNode = await prisma.node.findUnique({ where: { id: newParentNodeId }, select: { title: true } });
+    
+    await logHistoryEvent({ 
+      projectId, 
+      nodeId, 
+      action: 'UPDATE', 
+      entityType: 'NODE', 
+      entityName: childNode?.title || "Node",
+      oldValue: currentParentLink?.parentNode?.title || "None",
+      newValue: parentNode?.title || newParentNodeId
+    });
+  } else {
+    await logHistoryEvent({ 
+      projectId, 
+      nodeId, 
+      action: 'UPDATE', 
+      entityType: 'NODE', 
+      entityName: childNode?.title || "Node",
+      oldValue: currentParentLink?.parentNode?.title || "None",
+      newValue: "None (Unparented)"
+    });
+  }
+
+  revalidatePath(`/project/${projectId}/backlog`);
+  revalidatePath(`/project/${projectId}/board`);
 }

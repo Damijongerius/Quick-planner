@@ -159,10 +159,14 @@ function getRowCellContent(
     if (isReadOnly) {
       return <span className="text-sm font-semibold text-on-surface-variant truncate block">{sprintName}</span>;
     }
-    const sprintOptions = [
-      { value: "none", label: "Backlog" },
-      ...sprints.map(s => ({ value: s.id, label: s.name }))
-    ];
+    const sprintOptions = React.useMemo(() => {
+      const sprintList = sprints || [];
+      const filtered = sprintList.filter(s => s.status !== 'COMPLETED' || s.id === node.sprintId);
+      return [
+        { value: "none", label: "Backlog" },
+        ...filtered.map(s => ({ value: s.id, label: s.name }))
+      ];
+    }, [sprints, node.sprintId]);
     return (
       <div style={{ width: 'auto', maxWidth: '140px' }} onClick={(e) => e.stopPropagation()}>
         <Select

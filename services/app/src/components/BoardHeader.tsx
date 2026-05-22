@@ -4,6 +4,7 @@ import { LayoutGrid, Calendar, ChevronRight, ChevronLeft } from "lucide-react";
 import { IconRenderer } from "./IconPicker";
 import { SegmentedControl } from "./ui/SegmentedControl";
 import { Button } from "./ui/Button";
+import { Select } from "./ui/Select";
 
 import { Sprint, NodeType } from "@/lib/types";
 
@@ -16,6 +17,9 @@ interface BoardHeaderProps {
   onSprintChange: (id: string) => void;
   onNodeTypeToggle: (id: string) => void;
   onViewModeChange: (mode: string) => void;
+  boardLevelView?: string;
+  onBoardLevelViewChange?: (view: string) => void;
+  availableLevels?: { value: string; label: string; rowTypeIds?: string[]; cardTypeIds?: string[] }[];
 }
 
 export function BoardHeader({
@@ -26,7 +30,10 @@ export function BoardHeader({
   viewMode,
   onSprintChange,
   onNodeTypeToggle,
-  onViewModeChange
+  onViewModeChange,
+  boardLevelView,
+  onBoardLevelViewChange,
+  availableLevels
 }: Readonly<BoardHeaderProps>) {
   const currentIndex = getSprintIndex(sprints, selectedSprintId);
   const selectedSprint = sprints[currentIndex];
@@ -36,35 +43,58 @@ export function BoardHeader({
       <div className="flex flex-col gap-sm">
         <div className="board-header-meta">
           <span>Strategic Roadmap</span>
-          <span className="board-header-divider"></span>
-          
-          <div className="flex items-center gap-xs">
-             <Button variant="ghost" size="sm" onClick={() => handlePrev(currentIndex, sprints, onSprintChange)} disabled={isFirstSprint(currentIndex)} className="p-xs">
-               <ChevronLeft size={14} />
-             </Button>
-             <span className="board-sprint-nav-title">{(selectedSprint?.name || 'No Cycles Defined').replace('Srpint', 'Sprint')}</span>
-             <Button variant="ghost" size="sm" onClick={() => handleNext(currentIndex, sprints, onSprintChange)} disabled={isLastSprint(currentIndex, sprints.length)} className="p-xs">
-               <ChevronRight size={14} />
-             </Button>
-          </div>
+          {viewMode !== 'GANTT' && (
+            <>
+              <span className="board-header-divider"></span>
+              <div className="flex items-center gap-xs">
+                 <Button variant="ghost" size="sm" onClick={() => handlePrev(currentIndex, sprints, onSprintChange)} disabled={isFirstSprint(currentIndex)} className="p-xs">
+                   <ChevronLeft size={14} />
+                 </Button>
+                 <span className="board-sprint-nav-title">{(selectedSprint?.name || 'No Cycles Defined').replace('Srpint', 'Sprint')}</span>
+                 <Button variant="ghost" size="sm" onClick={() => handleNext(currentIndex, sprints, onSprintChange)} disabled={isLastSprint(currentIndex, sprints.length)} className="p-xs">
+                   <ChevronRight size={14} />
+                 </Button>
+              </div>
+            </>
+          )}
         </div>
         <h2 className="board-title">Sprint Board</h2>
       </div>
 
-      <TypeFilterList 
-        nodeTypes={nodeTypes} 
-        selectedNodeTypeIds={selectedNodeTypeIds} 
-        onToggle={onNodeTypeToggle} 
-      />
+      {(!boardLevelView || boardLevelView === 'flat') && (
+        <TypeFilterList 
+          nodeTypes={nodeTypes} 
+          selectedNodeTypeIds={selectedNodeTypeIds} 
+          onToggle={onNodeTypeToggle} 
+        />
+      )}
 
-      <SegmentedControl 
-        options={[
-            { id: 'KANBAN', label: 'Board View', icon: <LayoutGrid size={18} /> },
-            { id: 'GANTT', label: 'Gantt View', icon: <Calendar size={18} /> }
-        ]}
-        value={viewMode}
-        onChange={onViewModeChange}
-      />
+      <div className="flex items-center gap-md">
+        {availableLevels && availableLevels.length > 1 && (
+          <div className="chip-group">
+            {availableLevels.map((lvl) => (
+              <Button 
+                key={lvl.value}
+                variant="ghost" 
+                size="sm" 
+                onClick={() => onBoardLevelViewChange?.(lvl.value)}
+                className={`chip-item ${boardLevelView === lvl.value ? 'active' : ''}`}
+              >
+                {lvl.label}
+              </Button>
+            ))}
+          </div>
+        )}
+        <SegmentedControl 
+          layoutId="board-view-mode"
+          options={[
+              { id: 'KANBAN', label: 'Board View', icon: <LayoutGrid size={18} /> },
+              { id: 'GANTT', label: 'Gantt View', icon: <Calendar size={18} /> }
+          ]}
+          value={viewMode}
+          onChange={onViewModeChange}
+        />
+      </div>
     </div>
   );
 }

@@ -82,7 +82,7 @@ export async function getAllNodes(projectId: string): Promise<Node[]> {
     where: { userId: session.user.id, projectId },
     include: {
       type: { include: { fields: true } },
-      parentLinks: { include: { parentNode: true } },
+      parentLinks: { include: { parentNode: { include: { type: true } } } },
       blockedBy: { include: { blockingNode: { include: { type: true } } } },
       sprint: true
     }

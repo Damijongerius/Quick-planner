@@ -15,9 +15,13 @@ interface SegmentedControlProps {
   value: string;
   onChange: (id: string) => void;
   className?: string;
+  layoutId?: string;
 }
 
-export function SegmentedControl({ options, value, onChange, className = "" }: Readonly<SegmentedControlProps>) {
+export function SegmentedControl({ options, value, onChange, className = "", layoutId }: Readonly<SegmentedControlProps>) {
+  const defaultLayoutId = React.useId();
+  const activeLayoutId = layoutId || defaultLayoutId;
+
   return (
     <div className={`segmented-control-container ${className}`}>
       {options.map((option) => {
@@ -30,7 +34,7 @@ export function SegmentedControl({ options, value, onChange, className = "" }: R
           >
             {isActive && (
               <motion.div
-                layoutId="segmented-active"
+                layoutId={activeLayoutId}
                 className="segmented-active-bg"
                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
               />

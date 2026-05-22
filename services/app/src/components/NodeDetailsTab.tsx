@@ -63,10 +63,13 @@ export function NodeDetailsTab({
     { value: "DONE", label: "Completed" }
   ];
 
-  const sprintOptions = [
-    { value: "none", label: "Backlog" },
-    ...sprints.map((s) => ({ value: s.id, label: s.name }))
-  ];
+  const sprintOptions = React.useMemo(() => {
+    const activeAndPlanned = sprints.filter(s => s.status !== 'COMPLETED' || s.id === sprintId);
+    return [
+      { value: "none", label: "Backlog" },
+      ...activeAndPlanned.map((s) => ({ value: s.id, label: s.name }))
+    ];
+  }, [sprints, sprintId]);
 
   return (
     <div className="flex flex-col gap-md">

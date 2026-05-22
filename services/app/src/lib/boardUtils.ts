@@ -14,10 +14,10 @@ export function getFilteredNodes(nodes: Node[], viewMode: string, selectedSprint
     const nodeSprintId = node.sprintId;
     const parentSprintId = node.parentLinks?.[0]?.parentNode?.sprintId;
     
-    const matchesSprint = !selectedSprintId || 
+    const matchesSprint = viewMode === 'GANTT' ||
+                          !selectedSprintId || 
                           nodeSprintId === selectedSprintId || 
-                          parentSprintId === selectedSprintId ||
-                          (viewMode === 'GANTT' && !isSprintEligible);
+                          parentSprintId === selectedSprintId;
 
     const matchesType = selectedNodeTypeIds.length === 0 || selectedNodeTypeIds.includes(node.nodeTypeId);
     

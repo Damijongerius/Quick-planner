@@ -69,7 +69,7 @@ export function EcosystemSidePanel({
      if (isReadOnly) return;
      const newVal = !isSprintEligible;
      setIsSprintEligible(newVal);
-     const currentConfig = activeNodeType.boardConfig || {};
+     const currentConfig = (activeNodeType.boardConfig as any) || {};
      await updateNodeTypeBoardConfig(projectId, activeNodeType.id, {
        ...currentConfig,
        isSprintEligible: newVal
@@ -78,7 +78,7 @@ export function EcosystemSidePanel({
 
    const handleToggleVisibility = async (key: 'showOnKanban' | 'showOnGantt') => {
      if (isReadOnly) return;
-     const currentConfig = activeNodeType.boardConfig || {};
+     const currentConfig = (activeNodeType.boardConfig as any) || {};
      const newVal = currentConfig[key] === false;
      await updateNodeTypeBoardConfig(projectId, activeNodeType.id, {
        ...currentConfig,
@@ -168,6 +168,7 @@ export function EcosystemSidePanel({
                 showOnGantt={showOnGantt}
                 onToggleSprint={handleToggleSprint}
                 onToggleVisibility={handleToggleVisibility}
+                isReadOnly={isReadOnly}
             />
 
              <FieldDefinitionsSection 

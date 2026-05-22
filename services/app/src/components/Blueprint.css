@@ -188,3 +188,137 @@
 .blueprint-node-settings:hover {
   background: var(--surface-container);
 }
+
+/* Blueprint Layer Boxes */
+.blueprint-layer-box {
+  width: 1700px;
+  height: 220px;
+  border: 1px solid var(--outline-variant);
+  border-radius: 24px;
+  background: var(--surface-container-low);
+  pointer-events: none; /* Let clicks pass through background to canvas */
+  position: relative;
+  box-sizing: border-box;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.blueprint-layer-box-header {
+  position: absolute;
+  top: 14px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: auto; /* Enable clicking controls */
+}
+
+.blueprint-layer-box-title {
+  font-family: var(--font-sans, sans-serif);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--primary) 15%, transparent);
+  user-select: none;
+}
+
+.blueprint-layer-box-toggles {
+  display: flex;
+  gap: 8px;
+}
+
+.blueprint-layer-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--outline-variant);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--surface-container-low);
+  color: var(--on-surface-variant);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  user-select: none;
+}
+
+.blueprint-layer-pill:hover:not(:disabled) {
+  background: var(--surface-container);
+  border-color: var(--outline);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.blueprint-layer-pill:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.blueprint-layer-pill:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+/* Active States */
+.blueprint-layer-pill.active-kanban {
+  background: color-mix(in srgb, var(--tertiary) 12%, transparent);
+  border-color: var(--tertiary);
+  color: var(--tertiary);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--tertiary) 20%, transparent);
+}
+.blueprint-layer-pill.active-kanban:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--tertiary) 18%, transparent);
+  border-color: var(--tertiary);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--tertiary) 30%, transparent);
+}
+
+.blueprint-layer-pill.active-gantt {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+.blueprint-layer-pill.active-gantt:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary) 18%, transparent);
+  border-color: var(--primary);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+.blueprint-layer-pill.active-sprint {
+  background: color-mix(in srgb, #d97706 12%, transparent);
+  border-color: #d97706;
+  color: #b45309;
+  box-shadow: 0 0 8px color-mix(in srgb, #d97706 20%, transparent);
+}
+.blueprint-layer-pill.active-sprint:hover:not(:disabled) {
+  background: color-mix(in srgb, #d97706 18%, transparent);
+  border-color: #d97706;
+  box-shadow: 0 0 12px color-mix(in srgb, #d97706 30%, transparent);
+}
+
+/* Ensure correct layering in ReactFlow:
+   1. Background layer boxes (.react-flow__node-layerBox) are at the bottom.
+   2. Connected edge lines (.react-flow__edges) are in the middle (on top of layer boxes but behind node cards).
+   3. Blueprint node cards (.react-flow__node-nodeType) are on top.
+*/
+.react-flow__node-layerBox {
+  z-index: 1 !important;
+}
+
+.react-flow__edges {
+  z-index: 2 !important;
+}
+
+.react-flow__node-nodeType {
+  z-index: 3 !important;
+}
+

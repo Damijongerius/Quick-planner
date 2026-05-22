@@ -220,3 +220,7 @@
 .text-node-color {
   color: var(--node-color, var(--primary));
 }
+
+.kanban-drop-zone.swimlane-drop-zone {
+  min-height: 120px;
+}

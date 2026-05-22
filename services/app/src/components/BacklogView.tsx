@@ -271,7 +271,7 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
               initial={{ width: 0, opacity: 0 }}
               animate={{ width: '450px', opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 120 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 35 }}
               className="backlog-panel-wrapper animate-fade-in"
             >
               <NodeSidePanel projectId={projectId} node={selectedNode} isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} sprints={sprints} allNodes={allNodes} nodeTypes={nodeTypes} onNodeUpdated={refreshNodes} />
