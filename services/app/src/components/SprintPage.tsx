@@ -13,9 +13,10 @@ interface SprintPageProps {
   readonly projectId: string;
   readonly sprints: Sprint[];
   readonly nodeTypes?: NodeType[];
+  readonly onRefresh?: () => void;
 }
 
-export function SprintPage({ projectId, sprints, nodeTypes = [] }: SprintPageProps) {
+export function SprintPage({ projectId, sprints, nodeTypes = [], onRefresh }: SprintPageProps) {
   const [isCreating, setIsCreating] = useState(false);
   const { isReadOnly } = useProject();
 
@@ -50,7 +51,14 @@ export function SprintPage({ projectId, sprints, nodeTypes = [] }: SprintPagePro
 
       
       {isCreating && (
-        <SprintCreationForm projectId={projectId} onCancel={() => setIsCreating(false)} />
+        <SprintCreationForm 
+          projectId={projectId} 
+          onCancel={() => setIsCreating(false)} 
+          onSuccess={() => {
+            setIsCreating(false);
+            onRefresh?.();
+          }}
+        />
       )}
 
        <SprintSection 
@@ -60,6 +68,7 @@ export function SprintPage({ projectId, sprints, nodeTypes = [] }: SprintPagePro
          sprints={activeSprints}
          projectId={projectId}
          isReadOnly={isReadOnly}
+         onRefresh={onRefresh}
        />
 
        <SprintSection 
@@ -69,6 +78,7 @@ export function SprintPage({ projectId, sprints, nodeTypes = [] }: SprintPagePro
          sprints={plannedSprints}
          projectId={projectId}
          isReadOnly={isReadOnly}
+         onRefresh={onRefresh}
        />
 
        <SprintSection 
@@ -79,6 +89,7 @@ export function SprintPage({ projectId, sprints, nodeTypes = [] }: SprintPagePro
          projectId={projectId}
          isReadOnly={isReadOnly}
          className="opacity-60"
+         onRefresh={onRefresh}
        />
 
        {sprints.length === 0 && !isCreating && (

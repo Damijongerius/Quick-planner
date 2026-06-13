@@ -21,6 +21,7 @@ export function EcosystemCreationOverlay({ projectId, onClose }: Readonly<Ecosys
     formData.append("color", color);
     formData.append("icon", icon);
     await createNodeType(projectId, formData);
+    window.dispatchEvent(new CustomEvent("project-mutated"));
     setNewName("");
     onClose();
   };

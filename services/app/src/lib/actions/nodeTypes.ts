@@ -1,97 +1,72 @@
-"use server";
-
-import prisma from "@/lib/db";
-import { auth } from "@/auth";
-import { revalidatePath } from "next/cache";
-import { serializeData } from "@/lib/utils";
-import { logHistoryEvent, ensureProjectNotArchived } from "./helpers";
+import { apiFetch } from "@/context/AuthContext";
 import { NodeType, BoardConfig } from "@/lib/types";
 
 export async function createNodeType(projectId: string, formData: FormData) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  await ensureProjectNotArchived(projectId);
   const name = formData.get("name") as string;
   const color = formData.get("color") as string;
-  const icon = formData.get("icon") as string || "Target";
-  await prisma.nodeType.create({
-    data: { name, color, icon, userId: session.user.id, projectId },
+  const icon = (formData.get("icon") as string) || "Target";
+
+  return apiFetch(`/projects/${projectId}/node-types`, {
+    method: "POST",
+    body: JSON.stringify({ name, color, icon }),
   });
-  await logHistoryEvent({ projectId, action: 'CREATE', entityType: 'NODETYPE', entityName: name });
-  revalidatePath(`/project/${projectId}/settings/nodes`);
 }
 
-export async function updateNodeType(projectId: string, id: string, name: string, color: string, icon: string, isSprintEligible: boolean = true) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  await ensureProjectNotArchived(projectId);
-  await prisma.nodeType.update({
-    where: { id, userId: session.user.id, projectId },
-    data: { name, color, icon, isSprintEligible },
+export async function updateNodeType(
+  projectId: string,
+  id: string,
+  name: string,
+  color: string,
+  icon: string,
+  isSprintEligible: boolean = true
+) {
+  return apiFetch(`/projects/${projectId}/node-types/${id}`, {
+    method: "PUT",
+    body: JSON.stringify({ name, color, icon, isSprintEligible }),
   });
-  revalidatePath(`/project/${projectId}/settings/nodes`);
 }
 
 export async function deleteNodeType(projectId: string, id: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  await ensureProjectNotArchived(projectId);
-  try {
-    await prisma.nodeType.delete({ where: { id, userId: session.user.id, projectId } });
-  } catch (error: unknown) {
-    if (error && typeof error === 'object' && 'code' in error && error.code !== 'P2025') throw error;
-  }
-  revalidatePath(`/project/${projectId}/settings/nodes`);
+  return apiFetch(`/projects/${projectId}/node-types/${id}`, {
+    method: "DELETE",
+  });
 }
 
-export async function addFieldDefinition(projectId: string, nodeTypeId: string, name: string, type: string, options?: any[]) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  await ensureProjectNotArchived(projectId);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await prisma.fieldDefinition.create({ data: { nodeTypeId, name, type, options: options || [] } as any });
-  revalidatePath(`/project/${projectId}/settings/nodes`);
+export async function addFieldDefinition(
+  projectId: string,
+  nodeTypeId: string,
+  name: string,
+  type: string,
+  options?: any[]
+) {
+  return apiFetch(`/projects/${projectId}/node-types/${nodeTypeId}/fields`, {
+    method: "POST",
+    body: JSON.stringify({ name, type, options }),
+  });
 }
 
 export async function removeFieldDefinition(projectId: string, id: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  await ensureProjectNotArchived(projectId);
-  try {
-    await prisma.fieldDefinition.delete({ where: { id } });
-  } catch (error: unknown) {
-    if (error && typeof error === 'object' && 'code' in error && error.code !== 'P2025') throw error;
-  }
-  revalidatePath(`/project/${projectId}/settings/nodes`);
+  return apiFetch(`/projects/${projectId}/fields/${id}`, {
+    method: "DELETE",
+  });
 }
 
 export async function getNodeTypes(projectId: string): Promise<NodeType[]> {
-  const session = await auth();
-  if (!session?.user?.id) return [];
-  const nodeTypes = await prisma.nodeType.findMany({
-    where: { userId: session.user.id, projectId },
-    include: { fields: true, allowedChildren: { include: { childNodeTypeType: true } } },
-    orderBy: { createdAt: "asc" },
-  });
-  return serializeData(nodeTypes) as NodeType[];
+  try {
+    return await apiFetch(`/projects/${projectId}/node-types`);
+  } catch (error) {
+    console.error("Get node types error:", error);
+    return [];
+  }
 }
 
-
-export async function updateNodeTypeBoardConfig(projectId: string, id: string, boardConfig: BoardConfig) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  await ensureProjectNotArchived(projectId);
-  
-  const updates: Record<string, unknown> = { boardConfig };
-  if (boardConfig.isSprintEligible !== undefined) {
-      updates.isSprintEligible = boardConfig.isSprintEligible;
-  }
-
-  await prisma.nodeType.update({ 
-      where: { id, userId: session.user.id, projectId }, 
-      data: updates 
+export async function updateNodeTypeBoardConfig(
+  projectId: string,
+  id: string,
+  boardConfig: BoardConfig
+) {
+  return apiFetch(`/projects/${projectId}/node-types/${id}/board-config`, {
+    method: "PUT",
+    body: JSON.stringify({ boardConfig }),
   });
-
-  revalidatePath(`/project/${projectId}/settings/nodes`);
-  revalidatePath(`/project/${projectId}/board`);
 }

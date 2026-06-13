@@ -6,9 +6,9 @@ import { updateNode, getHistoryForNode, archiveNode } from "@/lib/actions";
 import { IconRenderer } from "./IconPicker";
 import { AuditTrail } from "./AuditTrail";
 import { Button } from "./ui/Button";
-import { Modal } from "./ui/Modal";
 import { SegmentedControl } from "./ui/SegmentedControl";
 import { NodeDetailsTab } from "./NodeDetailsTab";
+import { NodeArchiveModal } from "./NodeArchiveModal";
 import "./NodeSidePanel.css";
 import "./Timeline.css";
 
@@ -50,7 +50,6 @@ export function NodeSidePanel({
   const lastNodeIdRef = useRef(node.id);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Reset local states when a different node is selected
   useEffect(() => {
     setTitle(node.title || "");
     setDescription(node.description || "");
@@ -60,33 +59,16 @@ export function NodeSidePanel({
     setSprintId(node.sprintId || null);
     setStatus(node.status || "TODO");
     lastNodeIdRef.current = node.id;
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = 0;
-    }
+    if (scrollAreaRef.current) scrollAreaRef.current.scrollTop = 0;
   }, [node.id]);
 
-  // Debounced auto-save effect
   useEffect(() => {
-    if (isInitialMount.current) { 
-      isInitialMount.current = false; 
-      return; 
-    }
+    if (isInitialMount.current) { isInitialMount.current = false; return; }
+    if (lastNodeIdRef.current !== node.id) { lastNodeIdRef.current = node.id; return; }
 
-    // Skip saving if we are just loading a newly clicked node
-    if (lastNodeIdRef.current !== node.id) {
-      lastNodeIdRef.current = node.id;
-      return;
-    }
-
-    // Only save if a field was actually modified by the user
     const originalStartDate = node.startDate ? new Date(node.startDate).toISOString().split('T')[0] : "";
     const originalEndDate = node.endDate ? new Date(node.endDate).toISOString().split('T')[0] : "";
-    const isUnchanged = 
-      title === (node.title || "") &&
-      description === (node.description || "") &&
-      startDate === originalStartDate &&
-      endDate === originalEndDate &&
-      JSON.stringify(content) === JSON.stringify(node.content || {});
+    const isUnchanged = title === (node.title || "") && description === (node.description || "") && startDate === originalStartDate && endDate === originalEndDate && JSON.stringify(content) === JSON.stringify(node.content || {});
 
     if (isUnchanged) return;
 
@@ -112,6 +94,30 @@ export function NodeSidePanel({
 
   if (!node) return null;
 
+  const handleArchiveAll = async () => {
+    setIsArchiving(true);
+    try {
+      await archiveNode(projectId, node.id, true, true);
+      onNodeUpdated?.();
+      setIsArchiveConfirmOpen(false);
+      onClose();
+    } finally {
+      setIsArchiving(false);
+    }
+  };
+
+  const handleArchiveNodeOnly = async () => {
+    setIsArchiving(true);
+    try {
+      await archiveNode(projectId, node.id, true, false);
+      onNodeUpdated?.();
+      setIsArchiveConfirmOpen(false);
+      onClose();
+    } finally {
+      setIsArchiving(false);
+    }
+  };
+
   return (
     <div className="side-panel-container card-planner p-none">
       <header className="side-panel-header">
@@ -130,12 +136,7 @@ export function NodeSidePanel({
       </header>
  
       <div className="side-panel-tabs-wrapper border-b">
-        <SegmentedControl 
-          layoutId="side-panel-tabs"
-          options={[{ id: 'details', label: 'DETAILS' }, { id: 'history', label: 'HISTORY', icon: <Clock size={14} /> }]} 
-          value={activeTab} 
-          onChange={(id) => setActiveTab(id as 'details' | 'history')} 
-        />
+        <SegmentedControl layoutId="side-panel-tabs" options={[{ id: 'details', label: 'DETAILS' }, { id: 'history', label: 'HISTORY', icon: <Clock size={14} /> }]} value={activeTab} onChange={(id) => setActiveTab(id as 'details' | 'history')} />
       </div>
 
       <div ref={scrollAreaRef} className="side-panel-scroll-area flex-1 overflow-y-auto">
@@ -156,9 +157,8 @@ export function NodeSidePanel({
               onClose();
             } else {
               const activeChildren = getRecursiveActiveChildren(node.id, allNodes);
-              if (activeChildren.length > 0) {
-                setIsArchiveConfirmOpen(true);
-              } else {
+              if (activeChildren.length > 0) setIsArchiveConfirmOpen(true);
+              else {
                 await archiveNode(projectId, node.id, true);
                 onNodeUpdated?.();
                 onClose();
@@ -172,75 +172,20 @@ export function NodeSidePanel({
         </Button>
       </footer>
 
-      {/* Archive Confirmation Modal */}
-      <Modal
-        isOpen={isArchiveConfirmOpen}
-        onClose={() => setIsArchiveConfirmOpen(false)}
-        title="Archive Children as well?"
-        subtitle="This node has child nodes. Choose how you would like to proceed."
-        footer={
-          <div className="flex gap-md w-full">
-            <Button 
-              variant="danger" 
-              className="flex-1" 
-              loading={isArchiving}
-              onClick={async () => {
-                setIsArchiving(true);
-                try {
-                  await archiveNode(projectId, node.id, true, true);
-                  onNodeUpdated?.();
-                  setIsArchiveConfirmOpen(false);
-                  onClose();
-                } finally {
-                  setIsArchiving(false);
-                }
-              }}
-            >
-              Archive All
-            </Button>
-            <Button 
-              variant="secondary" 
-              className="flex-1"
-              loading={isArchiving}
-              onClick={async () => {
-                setIsArchiving(true);
-                try {
-                  await archiveNode(projectId, node.id, true, false);
-                  onNodeUpdated?.();
-                  setIsArchiveConfirmOpen(false);
-                  onClose();
-                } finally {
-                  setIsArchiving(false);
-                }
-              }}
-            >
-              Archive Node Only
-            </Button>
-            <Button 
-              variant="ghost" 
-              onClick={() => setIsArchiveConfirmOpen(false)}
-              disabled={isArchiving}
-            >
-              Cancel
-            </Button>
-          </div>
-        }
-      >
-        <p className="text-sm text-on-surface-variant leading-relaxed">
-          Archiving this node will remove it from your active views. Since it contains child items, you can either archive the children along with it, or keep the children active (they will appear in the backlog without this parent).
-        </p>
-      </Modal>
+      <NodeArchiveModal 
+        isOpen={isArchiveConfirmOpen} 
+        onClose={() => setIsArchiveConfirmOpen(false)} 
+        isArchiving={isArchiving} 
+        onArchiveAll={handleArchiveAll} 
+        onArchiveNodeOnly={handleArchiveNodeOnly} 
+      />
     </div>
   );
 }
 
 function getRecursiveActiveChildren(nodeId: string, nodesList: Node[]): Node[] {
   if (!nodesList) return [];
-  const directChildren = nodesList.filter(n => 
-    !n.isArchived && 
-    n.parentLinks?.some(pl => (pl.parentNode as any)?.id === nodeId)
-  );
-  
+  const directChildren = nodesList.filter(n => !n.isArchived && n.parentLinks?.some(pl => (pl.parentNode as any)?.id === nodeId));
   let descendants = [...directChildren];
   for (const child of directChildren) {
     descendants = [...descendants, ...getRecursiveActiveChildren(child.id, nodesList)];

@@ -1,17 +1,15 @@
 "use client";
 
 import React from 'react';
-import { Trash2, Type, Hash, Calendar, CheckCircle2, X, LayoutGrid } from 'lucide-react';
+import { Trash2, Type, Hash, Calendar, CheckCircle2, LayoutGrid, X } from 'lucide-react';
 import { IconRenderer } from './IconPicker';
 import { Button } from './ui/Button';
-import { updateNodeType, deleteNodeType, updateNodeTypeBoardConfig, addFieldDefinition } from '@/lib/actions';
 
 import { NodeType } from '@/lib/types';
-
+import { useEcosystemSidePanel } from './useEcosystemSidePanel';
 import { VisualIdentitySection } from './blueprint/VisualIdentitySection';
 import { LogicSection } from './blueprint/LogicSection';
 import { FieldDefinitionsSection } from './blueprint/FieldDefinitionsSection';
-import { getOptionColor } from '@/lib/utils/colorUtils';
 
 const FIELD_TYPES = [
     { type: "TEXT", icon: Type },
@@ -34,92 +32,25 @@ export function EcosystemSidePanel({
   onClose,
   isReadOnly
 }: Readonly<EcosystemSidePanelProps>) {
-  const [name, setName] = React.useState(activeNodeType.name);
-  const [isSprintEligible, setIsSprintEligible] = React.useState(activeNodeType.isSprintEligible);
-  const [fieldName, setFieldName] = React.useState("");
-  const [fieldType, setFieldType] = React.useState("TEXT");
-  const [fieldOptions, setFieldOptions] = React.useState("");
-  const [selectOptions, setSelectOptions] = React.useState<{ value: string; color: string }[]>([]);
-  const [isAddingField, setIsAddingField] = React.useState(false);
 
-  const [prevNodeTypeId, setPrevNodeTypeId] = React.useState(activeNodeType.id);
-
-  if (activeNodeType.id !== prevNodeTypeId) {
-    setPrevNodeTypeId(activeNodeType.id);
-    setName(activeNodeType.name);
-    setIsSprintEligible(activeNodeType.isSprintEligible);
-  }
-  
-   const handleUpdateIcon = async (icon: string) => {
-     if (isReadOnly) return;
-     await updateNodeType(projectId, activeNodeType.id, activeNodeType.name || "", activeNodeType.color || "#000", icon, isSprintEligible);
-   };
-
-   const handleUpdateColor = async (color: string) => {
-     if (isReadOnly) return;
-     await updateNodeType(projectId, activeNodeType.id, name || "", color, activeNodeType.icon || "", isSprintEligible);
-   };
-
-   const handleUpdateName = async () => {
-     if (isReadOnly || name === activeNodeType.name) return;
-     await updateNodeType(projectId, activeNodeType.id, name || "", activeNodeType.color || "#000", activeNodeType.icon || "", isSprintEligible);
-   };
-
-   const handleToggleSprint = async () => {
-     if (isReadOnly) return;
-     const newVal = !isSprintEligible;
-     setIsSprintEligible(newVal);
-     const currentConfig = (activeNodeType.boardConfig as any) || {};
-     await updateNodeTypeBoardConfig(projectId, activeNodeType.id, {
-       ...currentConfig,
-       isSprintEligible: newVal
-     });
-   };
-
-   const handleToggleVisibility = async (key: 'showOnKanban' | 'showOnGantt') => {
-     if (isReadOnly) return;
-     const currentConfig = (activeNodeType.boardConfig as any) || {};
-     const newVal = currentConfig[key] === false;
-     await updateNodeTypeBoardConfig(projectId, activeNodeType.id, {
-       ...currentConfig,
-       [key]: newVal,
-       isSprintEligible
-     });
-   };
-
-   const handleAddField = async (e: React.FormEvent<HTMLFormElement>) => {
-     e.preventDefault();
-     if (isReadOnly || !fieldName) return;
-
-     if (fieldType === 'SELECT' && selectOptions.length === 0 && !fieldOptions.trim()) {
-       alert("Please add at least one select option.");
-       return;
-     }
-
-     const optionsArray = fieldType === 'SELECT' 
-       ? selectOptions.length > 0 
-         ? selectOptions 
-         : fieldOptions.split(',').map(o => o.trim()).filter(o => o !== "").map(o => ({ value: o, color: getOptionColor(o) }))
-       : undefined;
-
-     await addFieldDefinition(projectId, activeNodeType.id, fieldName, fieldType, optionsArray);
-     setFieldName("");
-     setFieldOptions("");
-     setSelectOptions([]);
-     setIsAddingField(false);
-   };
-
-   const handleDelete = async () => {
-     if (isReadOnly) return;
-     if(confirm(`Are you sure you want to delete the ${activeNodeType.name} blueprint? This cannot be undone.`)) {
-         await deleteNodeType(projectId, activeNodeType.id);
-         onClose();
-     }
-   };
-
-  const boardConfig = activeNodeType.boardConfig || {};
-  const showOnKanban = boardConfig.showOnKanban !== false;
-  const showOnGantt = boardConfig.showOnGantt !== false;
+  const {
+    name, setName,
+    isSprintEligible, setIsSprintEligible,
+    fieldName, setFieldName,
+    fieldType, setFieldType,
+    fieldOptions, setFieldOptions,
+    selectOptions, setSelectOptions,
+    isAddingField, setIsAddingField,
+    handleUpdateIcon,
+    handleUpdateColor,
+    handleUpdateName,
+    handleToggleSprint,
+    handleToggleVisibility,
+    handleAddField,
+    handleDelete,
+    showOnKanban,
+    showOnGantt
+  } = useEcosystemSidePanel(projectId, activeNodeType, onClose, isReadOnly);
 
   return (
     <div className="fixed inset-0 z-1000 flex items-center justify-center bg-surface/80 backdrop-blur-md animate-in fade-in overflow-y-auto p-xl">

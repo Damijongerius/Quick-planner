@@ -68,7 +68,10 @@ export function FieldDefinitionItem({
             {!isReadOnly && (
                 <Button
                     variant="ghost"
-                    onClick={() => removeFieldDefinition(projectId, field.id)}
+                    onClick={async () => {
+                        await removeFieldDefinition(projectId, field.id);
+                        window.dispatchEvent(new CustomEvent("project-mutated"));
+                    }}
                     className="opacity-0 group-hover:opacity-100 p-xs text-error hover:bg-error/10 rounded-md transition-all"
                 >
                     <Trash2 size={14} />

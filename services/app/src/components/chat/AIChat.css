@@ -173,6 +173,7 @@
 
 .ai-chat-input-area {
   display: flex;
+  align-items: flex-end;
   padding: 16px 20px;
   background: var(--surface-container-lowest);
   border-top: 1px solid var(--outline-variant);
@@ -183,12 +184,16 @@
   flex: 1;
   background: var(--surface-container-low);
   border: 1px solid var(--outline-variant);
-  border-radius: 24px;
-  padding: 12px 20px;
+  border-radius: 20px;
+  padding: 10px 16px;
   color: var(--on-surface);
   font-size: 0.95rem;
   transition: all 0.2s ease;
   outline: none;
+  resize: none;
+  font-family: inherit;
+  height: 44px;
+  line-height: 1.4;
 }
 
 .ai-chat-input:focus {
@@ -223,3 +228,298 @@
   cursor: not-allowed;
   box-shadow: none;
 }
+
+/* Settings Toggle & Panel */
+.ai-settings-toggle {
+  background: transparent;
+  border: none;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.ai-settings-toggle:hover, .ai-settings-toggle.active {
+  background: var(--surface-container-high);
+  color: var(--primary);
+  transform: rotate(30deg);
+}
+
+.ai-chat-settings {
+  background: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: slideDown 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.9rem;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-field label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.settings-field input, .settings-field select {
+  background: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--on-surface);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.settings-field input:focus, .settings-field select:focus {
+  border-color: var(--primary);
+}
+
+.model-input-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.settings-actions button {
+  background: var(--primary);
+  color: var(--on-primary);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.settings-actions button:hover:not(:disabled) {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+
+.settings-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.text-success {
+  color: #10b981;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.text-error {
+  color: #ef4444;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.settings-tip {
+  margin: 4px 0 0 0;
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+  line-height: 1.4;
+}
+
+.settings-tip code {
+  background: var(--surface-container-high);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+/* Loading status style */
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--on-surface-variant);
+  font-size: 0.9rem;
+}
+
+/* Proposed actions safety gate styles */
+.proposed-actions-list {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--ambient-shadow);
+}
+
+.proposed-actions-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary);
+}
+
+.proposed-actions-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--on-surface-variant);
+}
+
+.proposed-actions-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 4px;
+}
+
+.proposed-action-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--on-surface);
+  line-height: 1.4;
+}
+
+.proposed-action-item .bullet {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.proposed-action-item .action-text {
+  font-weight: 600;
+}
+
+.proposed-actions-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+  border-top: 1px solid var(--outline-variant);
+  padding-top: 12px;
+}
+
+.action-button {
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  outline: none;
+  font-family: var(--font-main);
+}
+
+.action-button.reject {
+  background: transparent;
+  color: var(--on-surface-variant);
+  border: 1px solid var(--outline-variant);
+}
+
+.action-button.reject:hover {
+  background: rgba(168, 54, 75, 0.08);
+  color: var(--error);
+  border-color: rgba(168, 54, 75, 0.2);
+}
+
+.action-button.approve {
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: var(--primary-shadow);
+}
+
+.action-button.approve:hover {
+  background: var(--primary-container);
+  transform: translateY(-1px);
+}
+
+.action-button.approve:active {
+  transform: translateY(0);
+}
+
+/* Collapsible thinking box styles */
+.ai-thinking-box {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  font-size: 0.85rem;
+}
+
+.ai-thinking-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--surface-container);
+  color: var(--on-surface-variant);
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.ai-thinking-header:hover {
+  background: var(--surface-container-high);
+}
+
+.ai-thinking-header .chevron-icon {
+  margin-left: auto;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ai-thinking-header.open .chevron-icon {
+  transform: rotate(180deg);
+}
+
+.ai-thinking-content {
+  padding: 12px 14px;
+  border-top: 1px solid var(--outline-variant);
+  color: var(--on-surface-variant);
+  font-family: monospace;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  background: rgba(0, 0, 0, 0.02);
+  max-height: 250px;
+  overflow-y: auto;
+}
+

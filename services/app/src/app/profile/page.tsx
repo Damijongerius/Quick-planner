@@ -1,8 +1,9 @@
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+"use client";
+
+import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
 import { 
-  User, 
+  User as UserIcon, 
   Calendar, 
   Verified,
   Palette,
@@ -11,13 +12,19 @@ import {
   Globe
 } from "lucide-react";
 
-export const dynamic = 'force-dynamic';
-
-export default async function ProfilePage() {
-  const session = await auth();
+export default function ProfilePage() {
+  const { user, loading } = useAuth();
   
-  if (!session?.user) {
-    redirect("/auth/signin");
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl opacity-50">Loading settings profile...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (
@@ -34,11 +41,11 @@ export default async function ProfilePage() {
             padding: '4px',
             boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)'
           }}>
-            {session.user.image ? (
-              <Image src={session.user.image} alt={session.user.name || "User"} width={160} height={160} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '36px' }} />
+            {user.image ? (
+              <Image src={user.image} alt={user.name || "User"} width={160} height={160} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '36px' }} />
             ) : (
               <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--surface-container-high)', borderRadius: '36px' }}>
-                <User size={64} color="var(--on-surface-variant)" />
+                <UserIcon size={64} color="var(--on-surface-variant)" />
               </div>
             )}
           </div>
@@ -60,7 +67,7 @@ export default async function ProfilePage() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <h1 style={{ fontSize: '48px', fontWeight: 800, letterSpacing: '-0.025em', color: 'var(--on-surface)' }}>
-              {session.user.name || "Anonymous User"}
+              {user.name || "Anonymous User"}
             </h1>
           </div>
           <p style={{ fontSize: '20px', fontWeight: 500, color: 'var(--on-surface-variant)' }}>

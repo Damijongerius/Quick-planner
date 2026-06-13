@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { Milestone, Calendar, CalendarDays } from "lucide-react";
 import { GanttGridHeader } from "./GanttGridHeader";
 import { GanttSprintSection } from "./GanttSprintSection";
 import { GanttNodeSection } from "./GanttNodeSection";
 import { SegmentedControl } from "./ui/SegmentedControl";
+import { useGanttTimeline } from "./useGanttTimeline";
 import "./Gantt.css";
 
 import { Node, Sprint } from "@/lib/types";
@@ -18,49 +19,6 @@ interface GanttChartProps {
   boardLevelView?: string;
   rowTypeIds?: string[];
   cardTypeIds?: string[];
-}
-
-function getStartOfWeek(date: Date) {
-  const d = new Date(date);
-  const day = d.getDay();
-  // Align to Monday (1). Sunday (0) goes back 6 days.
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function getEndOfWeek(date: Date) {
-  const d = getStartOfWeek(date);
-  d.setDate(d.getDate() + 6);
-  d.setHours(23, 59, 59, 999);
-  return d;
-}
-
-function generateDays(start: Date, end: Date) {
-  const list = []; 
-  const curr = new Date(start); 
-  const stop = new Date(end);
-  let count = 0; 
-  while (curr <= stop && count < 180) { 
-    list.push(new Date(curr)); 
-    curr.setDate(curr.getDate() + 1); 
-    count++; 
-  }
-  return list;
-}
-
-function generateWeeks(start: Date, end: Date) {
-  const list = [];
-  const curr = new Date(start);
-  const stop = new Date(end);
-  let count = 0;
-  while (curr <= stop && count < 52) {
-    list.push(new Date(curr));
-    curr.setDate(curr.getDate() + 7);
-    count++;
-  }
-  return list;
 }
 
 export function GanttChart({ 
@@ -81,6 +39,8 @@ export function GanttChart({
     badge?: string;
     badgeColor?: string;
   } | null>(null);
+
+  const { startDate, endDate, days, weeks, getDayOffset } = useGanttTimeline(nodes, sprints);
 
   const handleHover = (
     e: React.MouseEvent | null,
@@ -110,59 +70,6 @@ export function GanttChart({
       x: e.clientX - rect.left,
       y: e.clientY - rect.top
     } : null);
-  };
-
-  const { startDate, endDate, days, weeks } = useMemo(() => {
-    const allDates: number[] = [];
-    // Ensure today's date is always included in the date range so the "Today" line is visible
-    allDates.push(new Date().getTime());
-
-    sprints.forEach((s) => { 
-      if (s.startDate) {
-        allDates.push(new Date(s.startDate).getTime());
-      }
-      if (s.endDate) {
-        allDates.push(new Date(s.endDate).getTime());
-      }
-    });
-    nodes.forEach((n) => { 
-      if (n.startDate) {
-        allDates.push(new Date(n.startDate).getTime());
-      }
-      if (n.endDate) {
-        allDates.push(new Date(n.endDate).getTime());
-      }
-    });
-
-    if (allDates.length === 0) {
-        const d = new Date(); 
-        d.setHours(0,0,0,0); 
-        const end = new Date(d); 
-        end.setDate(end.getDate() + 14);
-        return { startDate: d, endDate: end, days: generateDays(d, end), weeks: generateWeeks(d, end) };
-    }
-
-    let minDate = new Date(Math.min(...allDates)); 
-    minDate = getStartOfWeek(minDate);
-    minDate.setDate(minDate.getDate() - 7);
-
-    let maxDate = new Date(Math.max(...allDates)); 
-    maxDate = getEndOfWeek(maxDate);
-    maxDate.setDate(maxDate.getDate() + 14);
-
-    return { 
-      startDate: minDate, 
-      endDate: maxDate, 
-      days: generateDays(minDate, maxDate),
-      weeks: generateWeeks(minDate, maxDate)
-    };
-  }, [sprints, nodes]);
-
-  const getDayOffset = (dateValue: string | Date | null | undefined) => {
-    if (!dateValue) return null;
-    const d = new Date(dateValue); d.setHours(0,0,0,0);
-    const diffDays = Math.round((d.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    return (diffDays < 0 || diffDays >= days.length) ? null : diffDays;
   };
 
   const todayCol = getDayOffset(new Date());
@@ -227,18 +134,9 @@ export function GanttChart({
             <div className="gantt-today-line" style={{ left: `${todayX}px` }} />
           )}
           {tooltip && (
-            <div 
-              className="gantt-tooltip" 
-              style={{ 
-                left: `${tooltip.x}px`, 
-                top: `${tooltip.y - 12}px`,
-              }}
-            >
+            <div className="gantt-tooltip" style={{ left: `${tooltip.x}px`, top: `${tooltip.y - 12}px` }}>
               {tooltip.badge && (
-                <span 
-                  className="gantt-tooltip-badge" 
-                  style={{ backgroundColor: tooltip.badgeColor || 'var(--primary)' }}
-                >
+                <span className="gantt-tooltip-badge" style={{ backgroundColor: tooltip.badgeColor || 'var(--primary)' }}>
                   {tooltip.badge}
                 </span>
               )}

@@ -27,8 +27,8 @@ export function Sidebar({ project, isOpen, onClose }: SidebarProps) {
 
   const { isReadOnly } = useProject();
   const menuItems = [
-    { name: "Sprint Board", href: `/project/${project.id}/board`, icon: KanbanSquare },
-    { name: "Hierarchical Backlog", href: `/project/${project.id}/backlog`, icon: LayoutDashboard },
+    { name: "Sprint Board", href: `/project/board?projectId=${project.id}`, icon: KanbanSquare },
+    { name: "Hierarchical Backlog", href: `/project/backlog?projectId=${project.id}`, icon: LayoutDashboard },
   ];
 
   return (

@@ -1,91 +1,38 @@
-"use server";
-
-import prisma from "@/lib/db";
-import { auth } from "@/auth";
-import { serializeData } from "@/lib/utils";
+import { apiFetch } from "@/context/AuthContext";
 import { Node } from "@/lib/types";
 
-export async function getNode(projectId: string, id: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  const node = await prisma.node.findUnique({
-    where: { id, userId: session.user.id, projectId },
-    include: {
-      type: { include: { fields: true } },
-      parentLinks: { include: { parentNode: { include: { type: true } } } },
-      childLinks: { include: { childNode: { include: { type: true } } } },
-      blockedBy: { include: { blockingNode: { include: { type: true } } } },
-      blocking: { include: { blockedNode: { include: { type: true } } } }
-    }
-  });
-  if (!node) return null;
-  return serializeData(node) as Node;
+export async function getNode(projectId: string, id: string): Promise<Node | null> {
+  try {
+    return await apiFetch(`/projects/${projectId}/nodes/${id}`);
+  } catch (error) {
+    console.error("Get node error:", error);
+    return null;
+  }
 }
 
-export async function getNodeChildren(projectId: string, nodeId: string) {
-  const session = await auth();
-  if (!session?.user?.id) return [];
-  const node = await prisma.node.findUnique({
-    where: { id: nodeId, projectId },
-    include: {
-      childLinks: {
-        include: {
-          childNode: {
-            include: { 
-              type: { include: { fields: true } },
-              childLinks: { include: { childNode: { include: { type: true } } } }
-            }
-          }
-        }
-      }
-    }
-  });
-  const children = node?.childLinks.map((l) => l.childNode) || [];
-  children.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-  return serializeData(children) as Node[];
+export async function getNodeChildren(projectId: string, nodeId: string): Promise<Node[]> {
+  try {
+    return await apiFetch(`/projects/${projectId}/nodes/${nodeId}/children`);
+  } catch (error) {
+    console.error("Get node children error:", error);
+    return [];
+  }
 }
 
-export async function getRootNodes(projectId: string, showArchived: boolean = false) {
-  const session = await auth();
-  if (!session?.user?.id) return [];
-  const nodes = await prisma.node.findMany({
-    where: {
-      userId: session.user.id,
-      projectId,
-      isArchived: showArchived,
-      OR: showArchived
-        ? [
-            { parentLinks: { none: {} } },
-            { parentLinks: { every: { parentNode: { isArchived: false } } } }
-          ]
-        : [
-            { parentLinks: { none: {} } },
-            { parentLinks: { every: { parentNode: { isArchived: true } } } }
-          ]
-    },
-    orderBy: { createdAt: 'asc' },
-    include: {
-      type: { include: { fields: true } },
-      childLinks: { include: { childNode: { include: { type: { include: { fields: true } }, sprint: true } } } },
-      blockedBy: { include: { blockingNode: { include: { type: true } } } },
-      blocking: { include: { blockedNode: { include: { type: true } } } },
-      sprint: true
-    }
-  });
-  return serializeData(nodes) as Node[];
+export async function getRootNodes(projectId: string, showArchived: boolean = false): Promise<Node[]> {
+  try {
+    return await apiFetch(`/projects/${projectId}/nodes-root?showArchived=${showArchived}`);
+  } catch (error) {
+    console.error("Get root nodes error:", error);
+    return [];
+  }
 }
 
 export async function getAllNodes(projectId: string): Promise<Node[]> {
-  const session = await auth();
-  if (!session?.user?.id) return [];
-  const nodes = await prisma.node.findMany({
-    where: { userId: session.user.id, projectId },
-    include: {
-      type: { include: { fields: true } },
-      parentLinks: { include: { parentNode: { include: { type: true } } } },
-      blockedBy: { include: { blockingNode: { include: { type: true } } } },
-      sprint: true
-    }
-  });
-  return serializeData(nodes) as Node[];
+  try {
+    return await apiFetch(`/projects/${projectId}/nodes`);
+  } catch (error) {
+    console.error("Get all nodes error:", error);
+    return [];
+  }
 }

@@ -1,23 +1,31 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Loader2 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import { useParams } from "next/navigation";
+import React, { useRef, useEffect } from "react";
+import { Send, Bot, Loader2, ShieldAlert } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { ChatMessage } from "./ChatMessage";
+import { getHumanReadableAction } from "./AIChatHelpers";
+import { useAIChat } from "./useAIChat";
 import "./AIChat.css";
 
-interface Message {
-  role: "user" | "model";
-  content: string;
-}
-
 export function AIChat() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const projectId = searchParams?.get("projectId") || undefined;
+  
+  const {
+    messages,
+    input,
+    setInput,
+    isLoading,
+    statusText,
+    pendingToolCalls,
+    sendMessage,
+    handleApproveTools,
+    handleRejectTools
+  } = useAIChat(projectId);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const params = useParams();
-  const projectId = params?.projectId as string | undefined;
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -25,63 +33,34 @@ export function AIChat() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isLoading, statusText]);
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
-
-    const userMessage: Message = { role: "user", content: input };
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setIsLoading(true);
-
-    let attempts = 0;
-    const maxAttempts = 3;
-    let success = false;
-    let errorMessage = "Failed to connect to the AI server.";
-
-    while (attempts < maxAttempts && !success) {
-      try {
-        const response = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            messages: [...messages, userMessage],
-            projectId: projectId || null,
-          }),
-        });
-
-        if (response.status === 500) {
-          throw new Error("500 Internal Server Error");
-        }
-
-        const data = await response.json();
-        
-        if (data.error) {
-          if (response.status === 500 || data.error.includes("500") || data.status === 500) {
-            throw new Error(data.error);
-          }
-          setMessages((prev) => [...prev, { role: "model", content: `Error: ${data.error}` }]);
-          success = true;
-        } else {
-          setMessages((prev) => [...prev, { role: "model", content: data.text }]);
-          success = true;
-        }
-      } catch (error: any) {
-        attempts++;
-        errorMessage = error.message || "Failed to connect to the AI server.";
-        if (attempts < maxAttempts) {
-          // Wait 3 seconds before retrying
-          await new Promise((resolve) => setTimeout(resolve, 3000));
-        }
-      }
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
     }
+  }, [input]);
 
-    if (!success) {
-      setMessages((prev) => [...prev, { role: "model", content: `Error: ${errorMessage} (Failed after ${maxAttempts} attempts)` }]);
-    }
-    setIsLoading(false);
-  };
+  if (!projectId) {
+    return (
+      <div className="ai-chat-container">
+        <div className="ai-chat-header">
+          <Bot className="ai-icon" />
+          <h2>QuickPlanner AI Assistant</h2>
+        </div>
+        <div className="ai-chat-empty flex flex-col items-center justify-center p-xl text-center h-full" style={{ gap: '16px', minHeight: '60vh' }}>
+          <ShieldAlert size={48} className="text-error" style={{ color: 'var(--error, #ef4444)' }} />
+          <div>
+            <p className="font-bold text-lg" style={{ color: 'var(--on-surface)' }}>AI Assistant Locked</p>
+            <p className="text-meta text-xs mt-xs" style={{ color: 'var(--on-surface-variant)', opacity: 0.7, maxWidth: '240px', margin: '8px auto 0 auto' }}>
+              Please open a project workspace first. The AI Assistant requires an active project context to function.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="ai-chat-container">
@@ -89,45 +68,58 @@ export function AIChat() {
         <Bot className="ai-icon" />
         <h2>QuickPlanner AI Assistant</h2>
       </div>
-      
+
       <div className="ai-chat-messages">
         {messages.length === 0 ? (
           <div className="ai-chat-empty">
             <Bot size={48} className="empty-icon" />
-            <p>Hi! I'm your QuickPlanner AI Assistant.<br/>I can help modify project settings and node preferences via local MCP tools!</p>
+            <p>Hi! I'm your QuickPlanner AI Assistant.<br />I connect to your local Ollama instance to help manage projects and nodes completely cost-free.</p>
           </div>
         ) : (
-          messages.map((msg, idx) => (
-            <div key={idx} className={`ai-message-bubble ${msg.role}`}>
-              <div className="ai-message-avatar">
-                {msg.role === "user" ? <User size={16} /> : <Bot size={16} />}
-              </div>
-              <div className="ai-message-content">
-                <ReactMarkdown>{msg.content}</ReactMarkdown>
-              </div>
-            </div>
-          ))
+          (() => {
+            const filtered = messages.filter(msg => msg.role === "user" || msg.role === "assistant");
+            return filtered.map((msg, idx) => (
+              <ChatMessage
+                key={idx}
+                msg={msg}
+                pendingToolCalls={pendingToolCalls}
+                isLast={idx === filtered.length - 1}
+                getHumanReadableAction={getHumanReadableAction}
+                handleRejectTools={handleRejectTools}
+                handleApproveTools={handleApproveTools}
+              />
+            ));
+          })()
         )}
         {isLoading && (
           <div className="ai-message-bubble model loading">
-             <div className="ai-message-avatar"><Bot size={16} /></div>
-             <Loader2 size={16} className="spinner" />
+            <div className="ai-message-avatar"><Bot size={16} /></div>
+            <div className="loading-indicator">
+              <Loader2 size={16} className="spinner" />
+              <span>{statusText}</span>
+            </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
       <div className="ai-chat-input-area">
-        <input
-          type="text"
+        <textarea
+          ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Ask me to update project settings..."
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              sendMessage();
+            }
+          }}
+          placeholder={pendingToolCalls ? "Please resolve pending action above..." : "Ask me to schedule a task or organize sprints..."}
           className="ai-chat-input"
-          disabled={isLoading}
+          disabled={isLoading || !!pendingToolCalls}
+          rows={1}
         />
-        <button onClick={sendMessage} disabled={isLoading || !input.trim()} className="ai-chat-send">
+        <button onClick={sendMessage} disabled={isLoading || !input.trim() || !!pendingToolCalls} className="ai-chat-send">
           <Send size={18} />
         </button>
       </div>

@@ -5,12 +5,24 @@ import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuthLogo } from "@/components/auth/AuthLogo";
 import { AuthErrorBanner } from "@/components/auth/AuthErrorBanner";
-import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { LegacyMigrationForm } from "@/components/auth/LegacyMigrationForm";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
+import { ExternalLink, Loader2, ShieldCheck } from "lucide-react";
+import { useTauriSignIn } from "./useTauriSignIn";
 
 function SignInContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
+  const sessionId = searchParams.get("sessionId");
+
+  const {
+    isTauri,
+    isWaiting,
+    isAutoCompleting,
+    tauriError,
+    handleTauriSignIn,
+    handleCancelTauriSignIn
+  } = useTauriSignIn(sessionId);
 
   return (
     <div className="flex items-center justify-center relative overflow-hidden" style={{ minHeight: '100vh', width: '100vw', background: 'var(--surface)' }}>
@@ -43,22 +55,75 @@ function SignInContent() {
         </div>
 
         <AnimatePresence>
-          {error && <AuthErrorBanner error={error} />}
+          {(error || tauriError) && (
+            <AuthErrorBanner error={error || tauriError || ""} />
+          )}
         </AnimatePresence>
         
-        <div className="flex flex-col gap-xl">
-
-            <GoogleSignInButton />
-
-            <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-outline-variant/30"></div>
+        {isAutoCompleting ? (
+          <div className="flex flex-col items-center gap-lg">
+            <Loader2 className="animate-spin text-primary" size={40} style={{ color: 'var(--primary)' }} />
+            <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--foreground)' }}>
+              Connecting to app...
+            </h2>
+            <p style={{ fontSize: '14px', color: 'var(--muted)' }}>
+              Completing login on your desktop application.
+            </p>
+          </div>
+        ) : isTauri ? (
+          <div className="flex flex-col gap-xl">
+            {isWaiting ? (
+              <div className="flex flex-col items-center gap-lg">
+                <Loader2 className="animate-spin text-primary" size={40} style={{ color: 'var(--primary)' }} />
+                <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--foreground)' }}>
+                  Waiting for Browser...
+                </h2>
+                <p style={{ fontSize: '14px', color: 'var(--muted)' }}>
+                  Please complete the sign in process in the browser window that just opened.
+                </p>
+                <button
+                  onClick={handleCancelTauriSignIn}
+                  className="button-planner w-full mt-md text-white font-bold h-12"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--outline-variant)", cursor: "pointer", borderRadius: "12px" }}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-lg">
+                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-md" style={{ background: 'rgba(var(--primary-rgb), 0.1)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ShieldCheck size={32} />
                 </div>
-            </div>
+                <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--foreground)' }}>
+                  Sign in to Desktop App
+                </h2>
+                <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: '1.5', marginBottom: '8px' }}>
+                  To keep your credentials secure, authentication takes place in your system default web browser.
+                </p>
+                <button 
+                  onClick={handleTauriSignIn}
+                  className="button-planner w-full flex items-center justify-center gap-md h-12 text-white font-bold" 
+                  style={{ background: "var(--primary)", border: "none", cursor: "pointer", borderRadius: "12px" }}
+                >
+                  <ExternalLink size={18} />
+                  <span>SIGN IN IN BROWSER</span>
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-xl">
+              <GoogleSignInButton />
 
-            <LegacyMigrationForm />
+              <div className="flex items-center" style={{ margin: '16px 0' }}>
+                <div style={{ flexGrow: 1, borderTop: '1px solid var(--outline-variant)' }} />
+                <span style={{ padding: '0 16px', fontSize: '14px', color: 'var(--muted)', fontWeight: 500 }}>or</span>
+                <div style={{ flexGrow: 1, borderTop: '1px solid var(--outline-variant)' }} />
+              </div>
 
-        </div>
+              <LegacyMigrationForm />
+          </div>
+        )}
 
       </motion.div>
     </div>

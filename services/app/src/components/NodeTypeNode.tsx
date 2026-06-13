@@ -67,7 +67,7 @@ export const NodeTypeNode = ({ data }: Readonly<NodeTypeNodeProps>) => {
         </div>
       )}
 
-      <Handle type="source" position={Position.Bottom} className="flow-handle-source" />
+      <Handle type="source" position={Position.Bottom} className="flow-handle-source z-10" />
     </div>
   );
 };

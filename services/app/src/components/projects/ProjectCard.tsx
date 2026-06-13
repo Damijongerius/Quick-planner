@@ -20,7 +20,7 @@ export function ProjectCard({ project, isArchived, availableImages }: Readonly<P
   if (isArchived) {
     return (
       <Link 
-        href={`/project/${project.id}/board`}
+        href={`/project/board?projectId=${project.id}`}
         className="group no-underline relative overflow-hidden block h-full rounded-2xl"
       >
         <div className="project-card-image grayscale opacity-20" style={{ backgroundImage: `url(${bgImage})` }}></div>
@@ -42,7 +42,7 @@ export function ProjectCard({ project, isArchived, availableImages }: Readonly<P
 
   return (
     <Link 
-      href={`/project/${project.id}/board`}
+      href={`/project/board?projectId=${project.id}`}
       className="group no-underline relative overflow-hidden block h-full rounded-2xl"
     >
       <div className="project-card-image" style={{ backgroundImage: `url(${bgImage})` }}></div>

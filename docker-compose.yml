@@ -1,25 +1,43 @@
 services:
-  app:
+  # app:
+  #   build:
+  #     context: ./services/app
+  #     dockerfile: Dockerfile
+  #   container_name: planner-app
+  #   ports:
+  #     - "3000:3000"
+  #   env_file:
+  #     - ./services/app/.env
+  #   environment:
+  #     - NODE_ENV=development
+  #     - DATABASE_URL=postgresql://postgres:postgres@db:5432/planner_db?schema=public
+  #     - AUTH_URL=http://localhost:3000
+  #     - AUTH_TRUST_HOST=true
+  #     - NODE_OPTIONS=--dns-result-order=ipv4first
+  #     - WATCHPACK_POLLING=true
+  #   volumes:
+  #     - ./services/app:/app
+  #     - /app/node_modules
+  #     - /app/.next
+  #   command: ./dev.sh
+  #   depends_on:
+  #     - db
+  #   restart: always
+
+  backend:
     build:
-      context: ./services/app
+      context: ./services/backend
       dockerfile: Dockerfile
-    container_name: planner-app
+    container_name: planner-backend
     ports:
       - "3000:3000"
-    env_file:
-      - ./services/app/.env
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/planner_db?schema=public
-      - AUTH_URL=http://localhost:3000
-      - AUTH_TRUST_HOST=true
-      - NODE_OPTIONS=--dns-result-order=ipv4first
-      - WATCHPACK_POLLING=true
-    volumes:
-      - ./services/app:/app
-      - /app/node_modules
-      - /app/.next
-    command: ./dev.sh
+      - JWT_SECRET=9be36b2890786576f3f0e0c8b6a1d4f2a5e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5
+      - PORT=3000
+      - AUTH_GOOGLE_ID=${AUTH_GOOGLE_ID}
+      - AUTH_GOOGLE_SECRET=${AUTH_GOOGLE_SECRET}
     depends_on:
       - db
     restart: always

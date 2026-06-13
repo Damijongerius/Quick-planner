@@ -46,6 +46,7 @@ export const LayerBoxNode = ({ data }: Readonly<LayerBoxNodeProps>) => {
           isSprintEligible: newVal,
         });
       }));
+      window.dispatchEvent(new CustomEvent("project-mutated"));
     } catch (err) {
       setLocalSprint(!newVal);
       console.error(err);
@@ -68,6 +69,7 @@ export const LayerBoxNode = ({ data }: Readonly<LayerBoxNodeProps>) => {
           isSprintEligible: localSprint,
         });
       }));
+      window.dispatchEvent(new CustomEvent("project-mutated"));
     } catch (err) {
       if (key === 'showOnKanban') {
         setLocalKanban(!newVal);

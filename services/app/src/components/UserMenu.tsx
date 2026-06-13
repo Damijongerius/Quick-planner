@@ -1,20 +1,20 @@
 "use client";
 import "./Sidebar.css";
 
-import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
 import { LogOut } from "lucide-react";
 import { Avatar } from "./ui/Avatar";
 import { Button } from "./ui/Button";
 import { WakePcModal } from "./WakePcModal";
+import { useAuth } from "@/context/AuthContext";
 
 export function UserMenu() {
-  const { data: session } = useSession();
+  const { user, logout } = useAuth();
   const [isWakeModalOpen, setIsWakeModalOpen] = useState(false);
 
-  if (!session?.user) return null;
+  if (!user) return null;
 
-  const isDamian = session.user.email === "damianojongerius@gmail.com";
+  const isDamian = user.email === "damianojongerius@gmail.com";
 
   return (
     <>
@@ -28,22 +28,22 @@ export function UserMenu() {
           aria-label={isDamian ? "Open Wake PC Menu" : undefined}
         >
           <Avatar 
-            src={session.user.image} 
-            name={session.user.name} 
+            src={user.image} 
+            name={user.name} 
             size="md" 
           />
           <div className="user-info text-left pr-8">
             <span className="user-name">
-                {session.user.name}
+                {user.name}
             </span>
             <span className="user-email text-[11px] text-on-surface-variant">
-                {session.user.email}
+                {user.email}
             </span>
           </div>
         </div>
         <Button 
           variant="ghost"
-          onClick={(e) => { e.stopPropagation(); handleUserSignOut(); }}
+          onClick={(e) => { e.stopPropagation(); logout(); }}
           title="Sign Out"
           className="!p-0 w-8 h-8 min-w-[32px] min-h-[32px] rounded-full flex items-center justify-center shrink-0 !text-on-surface-variant hover:!text-error hover:!bg-error/10 transition-colors"
         >
@@ -57,8 +57,4 @@ export function UserMenu() {
       )}
     </>
   );
-}
-
-function handleUserSignOut() {
-  signOut({ callbackUrl: '/auth/signin' });
 }

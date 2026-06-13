@@ -4,11 +4,7 @@ import { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { TopAppBar } from "./TopAppBar";
 
-interface Project {
-  id: string;
-  name: string;
-  [key: string]: unknown;
-}
+import { Project } from "@/lib/types";
 
 interface ProjectShellProps {
   children: React.ReactNode;

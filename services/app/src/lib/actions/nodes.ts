@@ -1,175 +1,69 @@
-"use server";
+import { apiFetch } from "@/context/AuthContext";
 
-import { Prisma } from "@prisma/client";
-import prisma from "@/lib/db";
-import { auth } from "@/auth";
-import { revalidatePath } from "next/cache";
-import { serializeData } from "@/lib/utils";
-import { logHistoryEvent, propagateStatusUpwards, propagateTimelineShift, ensureProjectNotArchived } from "./helpers";
-
-export async function createNode(projectId: string, parentNodeId: string | null, nodeTypeId: string, title: string, content: Record<string, unknown> = {}, sprintId?: string | null) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  await ensureProjectNotArchived(projectId);
-  const newNode = await prisma.node.create({
-    data: { userId: session.user.id, projectId, nodeTypeId, title, content: content as Prisma.JsonObject, sprintId },
-    include: { type: true }
+export async function createNode(
+  projectId: string,
+  parentNodeId: string | null,
+  nodeTypeId: string,
+  title: string,
+  content: Record<string, unknown> = {},
+  sprintId?: string | null
+) {
+  return apiFetch(`/projects/${projectId}/nodes`, {
+    method: "POST",
+    body: JSON.stringify({
+      parentNodeId,
+      nodeTypeId,
+      title,
+      content,
+      sprintId,
+    }),
   });
-  if (parentNodeId) {
-    const parentNode = await prisma.node.findUnique({ where: { id: parentNodeId, projectId }, include: { type: true } });
-    if (!parentNode) throw new Error("Parent node not found");
-    const isAllowed = await prisma.allowedRelation.findFirst({
-      where: { parentNodeTypeId: parentNode.nodeTypeId, childNodeTypeId: nodeTypeId }
-    });
-    if (!isAllowed) throw new Error(`Cannot add this type of node under a ${parentNode.type.name}`);
-    await prisma.nodeLink.create({ data: { parentNodeId, childNodeId: newNode.id } });
-  }
-  await logHistoryEvent({ projectId, nodeId: newNode.id, action: 'CREATE', entityType: 'NODE', entityName: title, newValue: newNode.type.name });
-  revalidatePath(`/project/${projectId}/backlog`);
-  return serializeData(newNode);
 }
 
-export async function updateNode(projectId: string, id: string, updates: { 
-    title?: string, description?: string, content?: Record<string, unknown>, status?: string, 
-    isArchived?: boolean, startDate?: string | Date | null, endDate?: string | Date | null
-}) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  await ensureProjectNotArchived(projectId);
-  const oldNode = await prisma.node.findUnique({ where: { id } });
-  const data: Record<string, unknown> = { ...updates };
-  if (updates.startDate) data.startDate = new Date(updates.startDate);
-  if (updates.endDate) data.endDate = new Date(updates.endDate);
-  if (updates.content) {
-    data.content = {
-      ...(oldNode?.content as Record<string, unknown> || {}),
-      ...updates.content
-    };
+export async function updateNode(
+  projectId: string,
+  id: string,
+  updates: {
+    title?: string;
+    description?: string;
+    content?: Record<string, unknown>;
+    status?: string;
+    isArchived?: boolean;
+    startDate?: string | Date | null;
+    endDate?: string | Date | null;
   }
-
-  const node = await prisma.node.update({ where: { id, userId: session.user.id, projectId }, data });
-  if (updates.status && updates.status !== oldNode?.status) await propagateStatusUpwards(projectId, id, updates.status);
-  if (updates.endDate && (!oldNode?.endDate || new Date(updates.endDate).getTime() !== oldNode?.endDate?.getTime())) await propagateTimelineShift(projectId, id);
-  if (updates.title && updates.title !== oldNode?.title) await logHistoryEvent({ projectId, nodeId: id, action: 'UPDATE', entityType: 'NODE', entityName: node.title, oldValue: oldNode?.title, newValue: updates.title });
-  revalidatePath(`/project/${projectId}/backlog`);
-  revalidatePath(`/project/${projectId}/board`);
+) {
+  return apiFetch(`/projects/${projectId}/nodes/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(updates),
+  });
 }
 
 export async function deleteNode(projectId: string, id: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  await ensureProjectNotArchived(projectId);
-  const node = await prisma.node.findUnique({ where: { id } });
-  try {
-    await prisma.node.delete({ where: { id, userId: session.user.id, projectId } });
-    await logHistoryEvent({ projectId, action: 'DELETE', entityType: 'NODE', entityName: node?.title });
-  } catch (error: unknown) { 
-    if (error && typeof error === 'object' && 'code' in error && error.code !== 'P2025') throw error; 
-  }
-  revalidatePath(`/project/${projectId}/backlog`);
+  return apiFetch(`/projects/${projectId}/nodes/${id}`, {
+    method: "DELETE",
+  });
 }
 
-async function getRecursiveChildIds(projectId: string, nodeId: string, userId: string): Promise<string[]> {
-  const links = await prisma.nodeLink.findMany({
-    where: { 
-      parentNodeId: nodeId, 
-      childNode: { projectId, userId, isArchived: false } 
-    },
-    select: { childNodeId: true }
+export async function archiveNode(
+  projectId: string,
+  id: string,
+  isArchived: boolean,
+  archiveChildren: boolean = false
+) {
+  return apiFetch(`/projects/${projectId}/nodes/${id}/archive`, {
+    method: "PUT",
+    body: JSON.stringify({ isArchived, archiveChildren }),
   });
-  const childIds = links.map(l => l.childNodeId);
-  let descendantIds = [...childIds];
-  for (const childId of childIds) {
-    const subIds = await getRecursiveChildIds(projectId, childId, userId);
-    descendantIds = [...descendantIds, ...subIds];
-  }
-  return descendantIds;
 }
 
-export async function archiveNode(projectId: string, id: string, isArchived: boolean, archiveChildren: boolean = false) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  await ensureProjectNotArchived(projectId);
-
-  if (isArchived && archiveChildren) {
-    const descendantIds = await getRecursiveChildIds(projectId, id, session.user.id);
-    const allIds = [id, ...descendantIds];
-    
-    await prisma.node.updateMany({
-      where: {
-        id: { in: allIds },
-        userId: session.user.id,
-        projectId
-      },
-      data: { isArchived: true }
-    });
-
-    const updatedNodes = await prisma.node.findMany({
-      where: { id: { in: allIds } },
-      select: { id: true, title: true }
-    });
-
-    for (const n of updatedNodes) {
-      await logHistoryEvent({ projectId, nodeId: n.id, action: 'ARCHIVE', entityType: 'NODE', entityName: n.title });
-    }
-  } else {
-    const node = await prisma.node.update({ where: { id, userId: session.user.id, projectId }, data: { isArchived }, });
-    await logHistoryEvent({ projectId, nodeId: id, action: isArchived ? 'ARCHIVE' : 'RESTORE', entityType: 'NODE', entityName: node.title });
-  }
-
-  revalidatePath(`/project/${projectId}/backlog`);
-}
-
-export async function updateNodeParent(projectId: string, nodeId: string, newParentNodeId: string | null) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  await ensureProjectNotArchived(projectId);
-  
-  // Get current parent info first (before we delete)
-  const currentParentLink = await prisma.nodeLink.findFirst({
-    where: { childNodeId: nodeId, parentNode: { projectId } },
-    include: { parentNode: true }
+export async function updateNodeParent(
+  projectId: string,
+  nodeId: string,
+  newParentNodeId: string | null
+) {
+  return apiFetch(`/projects/${projectId}/nodes/${nodeId}/parent`, {
+    method: "PUT",
+    body: JSON.stringify({ newParentNodeId }),
   });
-
-  // Delete existing links for this child node
-  await prisma.nodeLink.deleteMany({
-    where: { 
-      childNodeId: nodeId, 
-      parentNode: { projectId } 
-    }
-  });
-
-  const childNode = await prisma.node.findUnique({ where: { id: nodeId }, select: { title: true } });
-
-  // Create new link if a parent is specified
-  if (newParentNodeId) {
-    await prisma.nodeLink.create({
-      data: { parentNodeId: newParentNodeId, childNodeId: nodeId }
-    });
-    
-    const parentNode = await prisma.node.findUnique({ where: { id: newParentNodeId }, select: { title: true } });
-    
-    await logHistoryEvent({ 
-      projectId, 
-      nodeId, 
-      action: 'UPDATE', 
-      entityType: 'NODE', 
-      entityName: childNode?.title || "Node",
-      oldValue: currentParentLink?.parentNode?.title || "None",
-      newValue: parentNode?.title || newParentNodeId
-    });
-  } else {
-    await logHistoryEvent({ 
-      projectId, 
-      nodeId, 
-      action: 'UPDATE', 
-      entityType: 'NODE', 
-      entityName: childNode?.title || "Node",
-      oldValue: currentParentLink?.parentNode?.title || "None",
-      newValue: "None (Unparented)"
-    });
-  }
-
-  revalidatePath(`/project/${projectId}/backlog`);
-  revalidatePath(`/project/${projectId}/board`);
 }

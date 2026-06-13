@@ -7,7 +7,15 @@ import { Button } from "./ui/Button";
 import { FormField } from "./ui/FormField";
 import { createSprint } from "@/lib/actions";
 
-export function SprintCreationForm({ projectId, onCancel }: Readonly<{ projectId: string; onCancel: () => void }>) {
+export function SprintCreationForm({ 
+  projectId, 
+  onCancel,
+  onSuccess
+}: Readonly<{ 
+  projectId: string; 
+  onCancel: () => void; 
+  onSuccess?: () => void;
+}>) {
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -16,7 +24,12 @@ export function SprintCreationForm({ projectId, onCancel }: Readonly<{ projectId
     e.preventDefault();
     if (!name) return;
     await createSprint(projectId, name, startDate || undefined, endDate || undefined);
-    onCancel();
+    window.dispatchEvent(new CustomEvent("project-mutated"));
+    if (onSuccess) {
+      onSuccess();
+    } else {
+      onCancel();
+    }
   };
 
   return (

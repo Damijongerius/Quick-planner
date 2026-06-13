@@ -12,6 +12,7 @@ interface SprintSectionProps {
   projectId: string;
   className?: string;
   isReadOnly?: boolean;
+  onRefresh?: () => void;
 }
 
 export function SprintSection({ 
@@ -21,7 +22,8 @@ export function SprintSection({
   sprints, 
   projectId, 
   className = "",
-  isReadOnly
+  isReadOnly,
+  onRefresh
 }: Readonly<SprintSectionProps>) {
   if (sprints.length === 0) return null;
 
@@ -33,7 +35,13 @@ export function SprintSection({
       </div>
       <div className="flex flex-col gap-md">
         {sprints.map((sprint) => (
-          <SprintCard key={sprint.id} sprint={sprint} projectId={projectId} isReadOnly={isReadOnly} />
+          <SprintCard 
+            key={sprint.id} 
+            sprint={sprint} 
+            projectId={projectId} 
+            isReadOnly={isReadOnly} 
+            onRefresh={onRefresh}
+          />
         ))}
       </div>
     </section>

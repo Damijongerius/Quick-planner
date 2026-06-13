@@ -312,6 +312,7 @@
 */
 .react-flow__node-layerBox {
   z-index: 1 !important;
+  pointer-events: none !important;
 }
 
 .react-flow__edges {
@@ -320,5 +321,21 @@
 
 .react-flow__node-nodeType {
   z-index: 3 !important;
+}
+
+/* Edge interaction and hover styling */
+.react-flow__edge {
+  cursor: pointer;
+}
+
+.react-flow__edge-path {
+  transition: stroke 0.15s ease, stroke-width 0.15s ease, opacity 0.15s ease;
+}
+
+.react-flow__edge:hover .react-flow__edge-path,
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--primary) !important;
+  stroke-width: 3px !important;
+  opacity: 0.9 !important;
 }
 

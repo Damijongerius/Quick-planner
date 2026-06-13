@@ -10,9 +10,10 @@ interface SprintCardProps {
   sprint: Sprint & { _count?: { nodes: number } };
   projectId: string;
   isReadOnly?: boolean;
+  onRefresh?: () => void;
 }
 
-export function SprintCard({ sprint, projectId, isReadOnly }: Readonly<SprintCardProps>) {
+export function SprintCard({ sprint, projectId, isReadOnly, onRefresh }: Readonly<SprintCardProps>) {
   const getStatusConfig = (status: string): { color: string, bg: string, icon: LucideIcon } => {
     switch (status) {
       case 'ACTIVE': return { color: 'var(--primary)', bg: 'rgba(70, 86, 184, 0.1)', icon: Play };
@@ -65,7 +66,11 @@ export function SprintCard({ sprint, projectId, isReadOnly }: Readonly<SprintCar
           <div className="flex gap-sm">
             {sprint.status === 'PLANNED' && (
               <Button 
-                onClick={() => updateSprintStatus(projectId, sprint.id, 'ACTIVE')} 
+                onClick={async () => {
+                  await updateSprintStatus(projectId, sprint.id, 'ACTIVE');
+                  onRefresh?.();
+                  window.dispatchEvent(new CustomEvent("project-mutated"));
+                }} 
                 size="sm" 
                 icon={<Play size={16} fill="currentColor" />}
               >
@@ -74,7 +79,11 @@ export function SprintCard({ sprint, projectId, isReadOnly }: Readonly<SprintCar
             )}
             {sprint.status === 'ACTIVE' && (
               <Button 
-                onClick={() => updateSprintStatus(projectId, sprint.id, 'COMPLETED')} 
+                onClick={async () => {
+                  await updateSprintStatus(projectId, sprint.id, 'COMPLETED');
+                  onRefresh?.();
+                  window.dispatchEvent(new CustomEvent("project-mutated"));
+                }} 
                 size="sm" 
                 variant="success" 
                 icon={<CheckCircle2 size={16} />}
@@ -86,7 +95,13 @@ export function SprintCard({ sprint, projectId, isReadOnly }: Readonly<SprintCar
               variant="ghost" 
               size="sm" 
               className="text-error hover:bg-error/10"
-              onClick={() => confirm('Are you sure you want to delete this strategic cycle?') && deleteSprint(projectId, sprint.id)} 
+              onClick={async () => {
+                if (confirm('Are you sure you want to delete this strategic cycle?')) {
+                  await deleteSprint(projectId, sprint.id);
+                  onRefresh?.();
+                  window.dispatchEvent(new CustomEvent("project-mutated"));
+                }
+              }} 
               icon={<Trash2 size={18} />} 
             />
           </div>
