@@ -9,12 +9,13 @@ export default async function BoardPage({ params }: Readonly<{ params: Promise<{
   const nodeTypes = await getNodeTypes(projectId);
   const allNodes = await getAllNodes(projectId);
 
-  // Find active sprint
-  const activeSprint = sprints.find((s) => s.status === 'ACTIVE') || sprints[0];
+  // Open on the active sprint; otherwise the next planned one, otherwise the most recent.
+  const activeSprint = sprints.find((s) => s.status === 'ACTIVE') || sprints.find((s) => s.status === 'PLANNED') || sprints[sprints.length - 1];
 
   return (
     <div className="canvas-content">
       <BoardView 
+        mode="KANBAN"
         projectId={projectId}
         initialSprints={sprints} 
         initialNodeTypes={nodeTypes} 

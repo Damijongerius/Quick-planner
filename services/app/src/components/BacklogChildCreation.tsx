@@ -14,6 +14,9 @@ interface BacklogChildCreationProps {
   allowedChildren: NodeType[];
   depth: number;
   onChildCreated: (newNode: Node) => void;
+  /** Open the inline form immediately (used by the row's "+" button). */
+  startOpen?: boolean;
+  onClose?: () => void;
 }
 
 export function BacklogChildCreation({ 
@@ -21,11 +24,14 @@ export function BacklogChildCreation({
   node, 
   allowedChildren, 
   depth, 
-  onChildCreated 
+  onChildCreated,
+  startOpen = false,
+  onClose,
 }: Readonly<BacklogChildCreationProps>) {
-  const [isCreating, setIsCreating] = useState(false);
+  const [isCreating, setIsCreating] = useState(startOpen);
   const [newNodeTitle, setNewNodeTitle] = useState("");
-  const [selectedType, setSelectedType] = useState<NodeType | null>(null);
+  const [selectedType, setSelectedType] = useState<NodeType | null>(startOpen && allowedChildren.length === 1 ? allowedChildren[0] : null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleStartCreating = () => {
     setIsCreating(true);
@@ -36,79 +42,68 @@ export function BacklogChildCreation({
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!newNodeTitle || !selectedType) return;
-    const newNode = await createNode(projectId, node.id, selectedType.id, newNodeTitle, {}, node.sprintId);
-    setIsCreating(false); 
-    setNewNodeTitle(""); 
-    setSelectedType(null);
-    onChildCreated(newNode as unknown as Node);
+    if (!newNodeTitle.trim() || !selectedType || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const newNode = await createNode(projectId, node.id, selectedType.id, newNodeTitle, {}, node.sprintId);
+      setIsCreating(false); 
+      setNewNodeTitle(""); 
+      setSelectedType(null);
+      onClose?.();
+      onChildCreated(newNode as unknown as Node);
+    } catch (error) {
+      console.error("Failed to create node", error);
+      alert("Could not create that item. Check that this type is allowed under its parent.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const allowedOptions = allowedChildren.map(t => ({ value: t.id, label: t.name, color: t.color || undefined }));
+  const indent = (depth + 1) * 20 + 12;
 
   if (isCreating) {
     return (
-      <div 
-        className="backlog-row-container inline-creation-row border-b border-outline-variant" 
-        style={{ 
-          '--depth-padding': `${depth * 28 + 52}px`,
-          paddingLeft: 'var(--depth-padding)',
-          paddingRight: '24px'
-        } as React.CSSProperties}
-      >
-        <form onSubmit={handleCreate} className="flex items-center gap-md w-full py-xs">
-          <div style={{ minWidth: '100px' }}>
-            <Select 
-              options={allowedOptions}
-              value={selectedType?.id || ""}
-              onChange={(val) => setSelectedType(allowedChildren.find(t => t.id === val) || null)}
-              placeholder="Type..."
-              triggerClassName="inline-type-select text-xs font-semibold py-xs px-sm"
-            />
-          </div>
-          
-          <Input 
-            autoFocus 
-            className="inline-title-input flex-1 py-xs px-sm text-sm" 
-            placeholder="New branch title..." 
-            value={newNodeTitle} 
-            onChange={(e) => setNewNodeTitle(e.target.value)} 
+      <div className="border-b border-border bg-sidebar py-2 pr-3" style={{ paddingLeft: indent + 32 }}>
+        <form onSubmit={handleCreate} className="flex items-center gap-2">
+          {allowedChildren.length > 1 && (
+            <div style={{ width: 130 }}>
+              <Select
+                options={allowedOptions}
+                value={selectedType?.id || ""}
+                onChange={(val) => setSelectedType(allowedChildren.find(t => t.id === val) || null)}
+                placeholder="Type…"
+              />
+            </div>
+          )}
+          <Input
+            autoFocus
+            variant="planner"
+            className="flex-1"
+            placeholder={selectedType ? `New ${selectedType.name.toLowerCase()} title…` : "Title…"}
+            value={newNodeTitle}
+            onChange={(e) => setNewNodeTitle(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Escape") { setIsCreating(false); onClose?.(); } }}
             required
           />
-          
-          <div className="flex gap-sm items-center">
-            <Button type="submit" size="sm">Add</Button>
-            <Button 
-              type="button" 
-              variant="ghost" 
-              size="sm"
-              onClick={() => setIsCreating(false)} 
-              className="!p-0 w-8 h-8 min-w-[32px] min-h-[32px] rounded-full flex items-center justify-center shrink-0"
-            >
-              <X size={18} />
-            </Button>
-          </div>
+          <Button type="submit" size="md" disabled={isSubmitting || !selectedType}>Add</Button>
+          <Button type="button" variant="ghost" size="md" onClick={() => { setIsCreating(false); onClose?.(); }} aria-label="Cancel">
+            <X size={16} />
+          </Button>
         </form>
       </div>
     );
   }
 
   return (
-    <div 
-      className="flex gap-md items-center py-xs" 
-      style={{ 
-        paddingLeft: `${depth * 28 + 52}px`
-      }}
-    >
-      <Button 
-        onClick={handleStartCreating} 
-        variant="secondary" 
-        size="sm" 
-        className="rounded-full"
-        icon={<Plus size={14} />}
+    <div className="border-b border-border py-1" style={{ paddingLeft: indent + 32 }}>
+      <button
+        onClick={handleStartCreating}
+        className="flex h-7 items-center gap-1.5 rounded-md px-2 text-sm text-muted transition-colors hover:bg-hover hover:text-fg"
       >
-        ADD BRANCH
-      </Button>
+        <Plus size={14} />
+        {allowedChildren.length === 1 ? `Add ${allowedChildren[0].name.toLowerCase()}` : "Add child item"}
+      </button>
     </div>
   );
 }

@@ -53,17 +53,17 @@ function UpgradeRequiredCard({ onAction }: Readonly<{ onAction: () => void }>) {
         To continue using Quick Planner, you must link your Google account to your existing profile.
       </p>
 
-      <div className="flex flex-col gap-lg">
+      <div className="flex flex-col gap-6">
         <button 
           onClick={onAction}
-          className="button-planner w-full p-lg text-lg flex items-center justify-center gap-md"
+          className="button-planner w-full p-4 text-lg flex items-center justify-center gap-3"
         >
           <Sparkles size={20} />
           Connect Google Account
           <ArrowRight size={18} />
         </button>
         
-        <p className="text-xs text-on-surface-variant opacity-60">
+        <p className="text-xs text-muted opacity-60">
           Your project data will be preserved and linked to your Google login.
         </p>
       </div>

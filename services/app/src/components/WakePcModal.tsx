@@ -32,9 +32,9 @@ export function WakePcModal({ isOpen, onClose }: Readonly<{ isOpen: boolean, onC
             title="Wake Local Machine"
             subtitle="Send a Wake-on-LAN magic packet to 9C:6B:00:37:97:94"
         >
-            <div className="flex flex-col items-center gap-xl py-xl">
-                <div className="w-24 h-24 rounded-full bg-surface-container-high flex items-center justify-center border border-outline-variant shadow-sm">
-                    <Power size={48} className={status === 'success' ? 'text-success' : 'text-primary'} />
+            <div className="flex flex-col items-center gap-6 py-xl">
+                <div className="w-24 h-24 rounded-full bg-active flex items-center justify-center border border-border shadow-sm">
+                    <Power size={48} className={status === 'success' ? 'text-success' : 'text-accent'} />
                 </div>
                 
                 <div className="text-center">
@@ -43,7 +43,7 @@ export function WakePcModal({ isOpen, onClose }: Readonly<{ isOpen: boolean, onC
                 </div>
 
                 {status === 'error' && (
-                    <div className="text-error flex items-center gap-sm text-sm bg-error/10 px-md py-sm rounded-lg">
+                    <div className="text-danger flex items-center gap-2 text-sm bg-danger-soft px-md py-sm rounded-lg">
                         <AlertCircle size={16} /> Failed to send packet
                     </div>
                 )}
@@ -52,7 +52,7 @@ export function WakePcModal({ isOpen, onClose }: Readonly<{ isOpen: boolean, onC
                     onClick={handleWake} 
                     loading={status === 'loading'}
                     variant={status === 'success' ? 'secondary' : 'primary'}
-                    className="w-full mt-md"
+                    className="w-full mt-4"
                     icon={status === 'success' ? <Check size={18} /> : <Power size={18} />}
                 >
                     {status === 'success' ? 'Magic Packet Sent!' : 'Power On Machine'}

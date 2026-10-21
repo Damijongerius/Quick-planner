@@ -6,7 +6,7 @@ import { IconRenderer } from './IconPicker';
 import { Button } from './ui/Button';
 import { updateNodeType, deleteNodeType, updateNodeTypeBoardConfig, addFieldDefinition } from '@/lib/actions';
 
-import { NodeType } from '@/lib/types';
+import { NodeType, BoardConfig } from '@/lib/types';
 
 import { VisualIdentitySection } from './blueprint/VisualIdentitySection';
 import { LogicSection } from './blueprint/LogicSection';
@@ -69,7 +69,7 @@ export function EcosystemSidePanel({
      if (isReadOnly) return;
      const newVal = !isSprintEligible;
      setIsSprintEligible(newVal);
-     const currentConfig = (activeNodeType.boardConfig as any) || {};
+     const currentConfig = (activeNodeType.boardConfig as BoardConfig | null | undefined) || {};
      await updateNodeTypeBoardConfig(projectId, activeNodeType.id, {
        ...currentConfig,
        isSprintEligible: newVal
@@ -78,7 +78,7 @@ export function EcosystemSidePanel({
 
    const handleToggleVisibility = async (key: 'showOnKanban' | 'showOnGantt') => {
      if (isReadOnly) return;
-     const currentConfig = (activeNodeType.boardConfig as any) || {};
+     const currentConfig = (activeNodeType.boardConfig as BoardConfig | null | undefined) || {};
      const newVal = currentConfig[key] === false;
      await updateNodeTypeBoardConfig(projectId, activeNodeType.id, {
        ...currentConfig,
@@ -102,8 +102,13 @@ export function EcosystemSidePanel({
          : fieldOptions.split(',').map(o => o.trim()).filter(o => o !== "").map(o => ({ value: o, color: getOptionColor(o) }))
        : undefined;
 
-     await addFieldDefinition(projectId, activeNodeType.id, fieldName, fieldType, optionsArray);
+     const result = await addFieldDefinition(projectId, activeNodeType.id, fieldName, fieldType, optionsArray);
+     if (result?.error) {
+       alert(result.error);
+       return;
+     }
      setFieldName("");
+     setFieldType("TEXT");
      setFieldOptions("");
      setSelectOptions([]);
      setIsAddingField(false);
@@ -111,8 +116,12 @@ export function EcosystemSidePanel({
 
    const handleDelete = async () => {
      if (isReadOnly) return;
-     if(confirm(`Are you sure you want to delete the ${activeNodeType.name} blueprint? This cannot be undone.`)) {
-         await deleteNodeType(projectId, activeNodeType.id);
+     if(confirm(`Delete the “${activeNodeType.name}” item type? This can't be undone.`)) {
+         const result = await deleteNodeType(projectId, activeNodeType.id);
+         if (result?.error) {
+           alert(result.error);
+           return;
+         }
          onClose();
      }
    };
@@ -121,83 +130,82 @@ export function EcosystemSidePanel({
   const showOnKanban = boardConfig.showOnKanban !== false;
   const showOnGantt = boardConfig.showOnGantt !== false;
 
-  return (
-    <div className="fixed inset-0 z-1000 flex items-center justify-center bg-surface/80 backdrop-blur-md animate-in fade-in overflow-y-auto p-xl">
-      <div className="card-planner p-2xl w-full max-w-4xl shadow-planner my-auto flex flex-col gap-xl">
-        <div className="flex flex-row justify-between items-center mb-md">
-          <div className="flex items-center gap-md">
-              <div 
-                className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" 
-                style={{ backgroundColor: `${activeNodeType.color}15`, color: activeNodeType.color || undefined }}
-              >
-                  <IconRenderer name={activeNodeType.icon || ""} size={28} />
-              </div>
-              <div className="flex-1">
-                   <label htmlFor="blueprint-name" className="sr-only">Blueprint Name</label>
-                   <input 
-                       id="blueprint-name"
-                       className="text-editorial font-bold text-2xl bg-transparent border-none p-0 w-full focus:outline-none focus:ring-0" 
-                       value={name} 
-                       onChange={(e) => !isReadOnly && setName(e.target.value)} 
-                       onBlur={handleUpdateName}
-                       disabled={isReadOnly}
-                   />
-                  <p className="text-meta text-10px tracking-widest opacity-60">BLUEPRINT SETTINGS</p>
-              </div>
-          </div>
-          <button 
-            onClick={onClose} 
-            className="rounded-full flex items-center justify-center transition-all bg-transparent hover:bg-surface-container-high opacity-40 hover:opacity-100 p-0 border-none outline-none shrink-0 ml-md"
-            style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px' }}
-          >
-              <X size={20} />
-          </button>
-        </div>
+  const colorVar = activeNodeType.color || "var(--accent)";
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-xl">
-          <VisualIdentitySection 
-            activeNodeType={activeNodeType} 
-            onUpdateIcon={handleUpdateIcon} 
-            onUpdateColor={handleUpdateColor} 
+  return (
+    <div className="modal-overlay" onClick={onClose} role="none">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${activeNodeType.name} settings`}
+        className="flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-border bg-panel shadow-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header className="flex items-center gap-3 border-b border-border px-5 py-3.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg" style={{ color: colorVar, background: `color-mix(in srgb, ${colorVar} 14%, transparent)` }}>
+            <IconRenderer name={activeNodeType.icon || ""} size={18} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <label htmlFor="blueprint-name" className="sr-only">Type name</label>
+            <input
+              id="blueprint-name"
+              className="input-seamless !text-lg"
+              value={name}
+              onChange={(e) => !isReadOnly && setName(e.target.value)}
+              onBlur={handleUpdateName}
+              disabled={isReadOnly}
+              maxLength={120}
+            />
+            <p className="text-xs text-muted">Item type settings</p>
+          </div>
+          <button onClick={onClose} className="icon-button" aria-label="Close"><X size={18} /></button>
+        </header>
+
+        <div className="grid flex-1 gap-6 overflow-y-auto p-5 md:grid-cols-2">
+          <VisualIdentitySection
+            activeNodeType={activeNodeType}
+            onUpdateIcon={handleUpdateIcon}
+            onUpdateColor={handleUpdateColor}
+            isReadOnly={isReadOnly}
           />
 
-          <div className="flex flex-col gap-xl">
-            <LogicSection 
-                isSprintEligible={isSprintEligible}
-                showOnKanban={showOnKanban}
-                showOnGantt={showOnGantt}
-                onToggleSprint={handleToggleSprint}
-                onToggleVisibility={handleToggleVisibility}
-                isReadOnly={isReadOnly}
+          <div className="flex flex-col gap-6">
+            <LogicSection
+              isSprintEligible={isSprintEligible}
+              showOnKanban={showOnKanban}
+              showOnGantt={showOnGantt}
+              onToggleSprint={handleToggleSprint}
+              onToggleVisibility={handleToggleVisibility}
+              isReadOnly={isReadOnly}
             />
 
-             <FieldDefinitionsSection 
-                 projectId={projectId}
-                 activeNodeType={activeNodeType}
-                 isAddingField={isAddingField}
-                 fieldName={fieldName}
-                 fieldType={fieldType}
-                 fieldOptions={fieldOptions}
-                 setIsAddingField={setIsAddingField}
-                 setFieldName={setFieldName}
-                 setFieldType={setFieldType}
-                 setFieldOptions={setFieldOptions}
-                 onAddField={handleAddField}
-                 fieldTypes={FIELD_TYPES}
-                 isReadOnly={isReadOnly}
-                 selectOptions={selectOptions}
-                 setSelectOptions={setSelectOptions}
-             />
+            <FieldDefinitionsSection
+              projectId={projectId}
+              activeNodeType={activeNodeType}
+              isAddingField={isAddingField}
+              fieldName={fieldName}
+              fieldType={fieldType}
+              fieldOptions={fieldOptions}
+              setIsAddingField={setIsAddingField}
+              setFieldName={setFieldName}
+              setFieldType={setFieldType}
+              setFieldOptions={setFieldOptions}
+              onAddField={handleAddField}
+              fieldTypes={FIELD_TYPES}
+              isReadOnly={isReadOnly}
+              selectOptions={selectOptions}
+              setSelectOptions={setSelectOptions}
+            />
           </div>
         </div>
 
-         {!isReadOnly && (
-           <div className="pt-xl border-t border-outline-variant">
-             <Button onClick={handleDelete} variant="ghost" size="sm" className="text-error hover:bg-error/10" icon={<Trash2 size={16} />}>
-                 Destroy Blueprint Type
-             </Button>
-           </div>
-         )}
+        {!isReadOnly && (
+          <footer className="border-t border-border bg-sidebar px-5 py-3">
+            <Button onClick={handleDelete} variant="ghost" size="sm" className="hover:!text-danger" icon={<Trash2 size={14} />}>
+              Delete item type
+            </Button>
+          </footer>
+        )}
       </div>
     </div>
   );

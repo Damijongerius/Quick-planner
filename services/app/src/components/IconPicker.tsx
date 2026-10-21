@@ -1,5 +1,4 @@
 "use client";
-import "./Blueprint.css";
 
 import * as Icons from "lucide-react";
 import { Search } from "lucide-react";
@@ -33,18 +32,19 @@ export function IconPicker({ currentIcon, onSelect, color = "#3b82f6" }: IconPic
   );
 
   return (
-    <div className="glass p-sm max-w-xs">
-      <div className="relative mb-sm">
-        <input 
-          className="input-premium pl-xl text-sm"
-          placeholder="Search icons..."
+    <div className="flex flex-col gap-2">
+      <div className="relative">
+        <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-faint" />
+        <input
+          className="input-planner !pl-8"
+          placeholder="Search icons…"
+          aria-label="Search icons"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <Search size={16} className="absolute left-[10px] top-1/2 -translate-y-1/2 text-on-surface-variant" />
       </div>
 
-      <div className="icon-picker-grid">
+      <div className="grid max-h-40 grid-cols-8 gap-1 overflow-y-auto pr-1">
         {filteredIcons.map(iconName => {
           const Icon = (Icons as unknown as Record<string, Icons.LucideIcon>)[iconName] || Icons.HelpCircle;
           const isActive = currentIcon === iconName;
@@ -55,13 +55,16 @@ export function IconPicker({ currentIcon, onSelect, color = "#3b82f6" }: IconPic
               type="button"
               onClick={() => onSelect(iconName)}
               title={iconName}
-              className={`icon-picker-button ${isActive ? 'active' : ''}`}
-              style={{ '--node-color': color } as React.CSSProperties}
+              aria-label={iconName}
+              aria-pressed={isActive}
+              className={`flex aspect-square items-center justify-center rounded-md border transition-colors ${isActive ? "" : "border-transparent text-muted hover:bg-hover hover:text-fg"}`}
+              style={isActive ? { color, borderColor: color, background: `color-mix(in srgb, ${color} 14%, transparent)` } : undefined}
             >
               <Icon size={16} />
             </button>
           );
         })}
+        {filteredIcons.length === 0 && <p className="col-span-8 py-3 text-center text-xs text-faint">No icons match.</p>}
       </div>
     </div>
   );

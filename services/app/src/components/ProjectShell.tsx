@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { TopAppBar } from "./TopAppBar";
+import { RealtimeProvider } from "./realtime/RealtimeProvider";
+import { KeyboardShortcuts } from "./KeyboardShortcuts";
 
 interface Project {
   id: string;
@@ -20,37 +22,24 @@ export function ProjectShell({ children, project, projectId }: Readonly<ProjectS
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="app-shell-grid h-screen overflow-hidden bg-surface">
-      <Sidebar 
-        project={project} 
-        isOpen={isSidebarOpen} 
-        onClose={() => setIsSidebarOpen(false)} 
-      />
-      
-      <div className="main-content-wrapper flex flex-col min-w-0 h-full relative">
-        <TopAppBar 
-            projectId={projectId} 
-            onMenuClick={() => setIsSidebarOpen(true)} 
-        />
-        
-        <main className="flex-1 overflow-y-auto overflow-x-auto">
-          {children}
-        </main>
+    <RealtimeProvider projectId={projectId}>
+    <div className="app-shell-grid bg-bg">
+      <KeyboardShortcuts projectId={projectId} />
+      <Sidebar project={project} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
+      <div className="main-content-wrapper relative flex min-w-0 flex-col">
+        <TopAppBar projectId={projectId} onMenuClick={() => setIsSidebarOpen(true)} />
+        <main className="flex-1">{children}</main>
       </div>
 
-      {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90] lg:hidden"
+        <button
+          aria-label="Close menu"
+          className="fixed inset-0 z-[90] cursor-default bg-black/40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              setIsSidebarOpen(false);
-            }
-          }}
-          role="none"
         />
       )}
     </div>
+    </RealtimeProvider>
   );
 }

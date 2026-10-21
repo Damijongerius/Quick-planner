@@ -15,6 +15,9 @@ services:
       - AUTH_TRUST_HOST=true
       - NODE_OPTIONS=--dns-result-order=ipv4first
       - WATCHPACK_POLLING=true
+      # Local-only login without Google (only activates because AUTH_URL is localhost; see README).
+      - AUTH_DEV_LOGIN=${AUTH_DEV_LOGIN:-true}
+      - MCP_AUTH_TOKEN=${MCP_AUTH_TOKEN:-dev-only-change-me}
     volumes:
       - ./services/app:/app
       - /app/node_modules
@@ -30,10 +33,12 @@ services:
       dockerfile: services/mcp/Dockerfile
     container_name: planner-mcp
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/planner_db?schema=public
       - PORT=3001
+      # The app sends this as a bearer token; the MCP server refuses to start without it.
+      - MCP_AUTH_TOKEN=${MCP_AUTH_TOKEN:-dev-only-change-me}
     volumes:
       - ./services/mcp/src:/app/services/mcp/src
     depends_on:
@@ -49,7 +54,7 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=planner_db
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

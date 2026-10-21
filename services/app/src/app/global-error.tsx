@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-
+// Replaces the whole document when the root layout itself fails, so it can't rely on the app's CSS.
 export default function GlobalError({
   error,
   reset,
@@ -10,36 +9,25 @@ export default function GlobalError({
   reset: () => void;
 }>) {
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      minHeight: '100vh', 
-      padding: '24px', 
-      fontFamily: 'system-ui, sans-serif', 
-      textAlign: 'center',
-      backgroundColor: '#0f172a',
-      color: '#f8fafc'
-    }}>
-      <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '12px' }}>Something went wrong!</h2>
-      <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '24px', maxWidth: '400px' }}>
-        {error?.message || "An unexpected global exception occurred."}
-      </p>
-      <button 
-        onClick={() => reset()} 
-        style={{ 
-          padding: '10px 20px', 
-          borderRadius: '8px', 
-          border: 'none', 
-          backgroundColor: '#3b82f6', 
-          color: 'white', 
-          fontWeight: 600, 
-          cursor: 'pointer'
-        }}
-      >
-        Try again
-      </button>
-    </div>
+    <html lang="en">
+      <body>
+        <style>{`
+          body { margin: 0; font-family: system-ui, sans-serif; background: #fafafb; color: #17171c; }
+          @media (prefers-color-scheme: dark) { body { background: #0e0e11; color: #ededf1; } p { color: #a0a0ad !important; } }
+        `}</style>
+        <main style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 24, textAlign: 'center' }}>
+          <h1 style={{ fontSize: 22, fontWeight: 600, margin: '0 0 8px' }}>Something went wrong</h1>
+          <p style={{ color: '#5f5f6b', fontSize: 14, margin: '0 0 24px', maxWidth: 380 }}>
+            An unexpected error stopped the page from loading.{error?.digest ? ` (Reference: ${error.digest})` : ''}
+          </p>
+          <button
+            onClick={() => reset()}
+            style={{ height: 36, padding: '0 16px', borderRadius: 8, border: 0, background: '#4f46e5', color: '#fff', fontWeight: 500, cursor: 'pointer' }}
+          >
+            Try again
+          </button>
+        </main>
+      </body>
+    </html>
   );
 }

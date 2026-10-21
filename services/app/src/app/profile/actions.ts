@@ -6,7 +6,8 @@ import wol from "wake_on_lan";
 export async function wakePc() {
     const session = await auth();
     
-    if (session?.user?.email === "damianojongerius@gmail.com") {
+    const allowedEmail = process.env.WOL_ALLOWED_EMAIL || "damianojongerius@gmail.com";
+    if (session?.user?.email && session.user.email === allowedEmail) {
         const macAddress = process.env.WOL_MAC_ADDRESS || "9C:6B:00:37:97:94";
         const broadcastAddresses = (process.env.WOL_BROADCAST_ADDRESSES || '255.255.255.255').split(',');
 

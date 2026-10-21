@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useMemo, useState, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { Node } from "@/lib/types";
 import { updateNode } from "@/lib/actions/nodes";
+import { useProject } from "./ProjectContext";
 import { Modal } from "./ui/Modal";
 import { Button } from "./ui/Button";
 import { AlertCircle } from "lucide-react";
@@ -17,6 +18,7 @@ interface GanttNodeSectionProps {
   boardLevelView?: string;
   rowTypeIds?: string[];
   cardTypeIds?: string[];
+  onNodeClick?: (nodeId: string) => void;
   onHover: (e: React.MouseEvent | null, content: { title: string; subtitle?: string; badge?: string; badgeColor?: string } | null) => void;
   onMouseMove: (e: React.MouseEvent) => void;
 }
@@ -41,10 +43,14 @@ export function GanttNodeSection({
   boardLevelView = "flat",
   rowTypeIds = [],
   cardTypeIds = [],
+  onNodeClick,
   onHover,
   onMouseMove
 }: Readonly<GanttNodeSectionProps>) {
 
+  const { isReadOnly } = useProject();
+  // A drag ends with a click event too; this tells the bar's onClick it was a drag, not a click.
+  const movedRef = useRef(false);
   const [interaction, setInteraction] = useState<ActiveInteraction | null>(null);
   const [optimisticChanges, setOptimisticChanges] = useState<Record<string, { leftOffset: number; widthOffset: number; rowOffset: number }>>({});
 
@@ -141,7 +147,7 @@ export function GanttNodeSection({
     }
 
     const getDates = (node: Node) => {
-      const start = new Date(node.startDate || node.createdAt || Date.now());
+      const start = new Date(node.startDate || node.createdAt);
       const end = node.endDate ? new Date(node.endDate) : new Date(start);
       return { start, end };
     };
@@ -240,6 +246,7 @@ export function GanttNodeSection({
     endCol: number | null, 
     e: React.MouseEvent
   ) => {
+    if (isReadOnly) return; // view-only or archived: bars can be hovered but not moved
     e.preventDefault();
     e.stopPropagation();
 
@@ -271,7 +278,7 @@ export function GanttNodeSection({
       originalWidth: defaultWidth,
       originalRow: 0
     });
-  }, [viewScale]);
+  }, [viewScale, isReadOnly]);
 
   // Drag / Resize Effect
   useEffect(() => {
@@ -346,6 +353,8 @@ export function GanttNodeSection({
 
       const descendants = getDescendantNodeIds(interaction.nodeId);
 
+      movedRef.current = deltaDays !== 0 || deltaWidthDays !== 0;
+      setTimeout(() => { movedRef.current = false; }, 0);
       setInteraction(null);
 
       if (deltaDays !== 0 || deltaWidthDays !== 0) {
@@ -375,27 +384,25 @@ export function GanttNodeSection({
 
             if (interaction.type === "move" && deltaDays !== 0) {
               if (descendants.length > 0) {
-                await Promise.all(
-                  descendants.map(async (descId) => {
-                    const descNode = nodes.find(n => n.id === descId);
-                    if (descNode) {
-                      const descStartStr = descNode.startDate || descNode.createdAt;
-                      const descOriginalStart = new Date(descStartStr);
-                      const descOriginalEnd = descNode.endDate ? new Date(descNode.endDate) : new Date(descOriginalStart);
+                // Sequential: each update re-derives dependent timelines, so concurrent writes could interleave.
+                for (const descId of descendants) {
+                  const descNode = nodes.find(n => n.id === descId);
+                  if (!descNode) continue;
+                  const descStartStr = descNode.startDate || descNode.createdAt;
+                  const descOriginalStart = new Date(descStartStr);
+                  const descOriginalEnd = descNode.endDate ? new Date(descNode.endDate) : new Date(descOriginalStart);
 
-                      const descNewStart = new Date(descOriginalStart);
-                      descNewStart.setDate(descNewStart.getDate() + deltaDays);
+                  const descNewStart = new Date(descOriginalStart);
+                  descNewStart.setDate(descNewStart.getDate() + deltaDays);
 
-                      const descNewEnd = new Date(descOriginalEnd);
-                      descNewEnd.setDate(descNewEnd.getDate() + deltaDays);
+                  const descNewEnd = new Date(descOriginalEnd);
+                  descNewEnd.setDate(descNewEnd.getDate() + deltaDays);
 
-                      await updateNode(projectId, descNode.id, {
-                        startDate: descNewStart.toISOString(),
-                        endDate: descNewEnd.toISOString()
-                      });
-                    }
-                  })
-                );
+                  await updateNode(projectId, descNode.id, {
+                    startDate: descNewStart.toISOString(),
+                    endDate: descNewEnd.toISOString()
+                  });
+                }
               }
             }
 
@@ -462,7 +469,7 @@ export function GanttNodeSection({
 
     const startCol = getDayOffset(node.startDate || node.createdAt);
     const endCol = getDayOffset(node.endDate);
-    const nodeColor = node.type?.color || "var(--primary)";
+    const nodeColor = node.type?.color || "var(--accent)";
 
     if (startCol === null) return null;
 
@@ -492,6 +499,7 @@ export function GanttNodeSection({
     return (
       <div
         key={`${node.id}-${isChild ? 'child' : 'parent'}`}
+        data-gantt-node={node.id}
         className={barClass}
         style={{
           "--left": `${finalLeft + 4}px`,
@@ -500,6 +508,7 @@ export function GanttNodeSection({
           top: `${top}px`
         } as React.CSSProperties}
         onMouseDown={(e) => handleMouseDown(node.id, startCol, endCol, e)}
+        onClick={() => { if (!movedRef.current) onNodeClick?.(node.id); }}
         onMouseEnter={(e) => onHover(e, {
           title: node.title,
           subtitle: `${new Date(node.startDate || node.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' })} – ${node.endDate ? new Date(node.endDate).toLocaleDateString(undefined, { dateStyle: 'medium' }) : 'No end date'}`,
@@ -509,9 +518,9 @@ export function GanttNodeSection({
         onMouseMove={onMouseMove}
         onMouseLeave={() => onHover(null, null)}
       >
-        <div className="gantt-node-bar-handle-left" />
+        {!isReadOnly && <div className="gantt-node-bar-handle-left" />}
         <span className="truncate">{isChild ? `↳ ${node.title}` : node.title}</span>
-        <div className="gantt-node-bar-handle-right" />
+        {!isReadOnly && <div className="gantt-node-bar-handle-right" />}
       </div>
     );
   };
@@ -577,7 +586,7 @@ export function GanttNodeSection({
 
         const top = box.startRow * rowHeight + 4;
         const height = box.rowCount * rowHeight - 8;
-        const parentColor = parent.type?.color || "var(--primary)";
+        const parentColor = parent.type?.color || "var(--accent)";
 
         return (
           <div
@@ -616,7 +625,7 @@ export function GanttNodeSection({
           subtitle="Timeline Alignment Warning"
           maxWidth="460px"
           footer={
-            <div className="flex justify-end gap-sm w-full">
+            <div className="flex justify-end gap-2 w-full">
               <Button 
                 variant="ghost" 
                 onClick={() => setPendingExtension(null)}
@@ -643,19 +652,19 @@ export function GanttNodeSection({
             </div>
           }
         >
-          <div className="flex flex-col gap-md py-md">
-            <div className="flex items-start gap-md">
-              <div className="p-sm rounded-lg bg-[rgba(235,87,87,0.1)] text-error shrink-0 mt-xs">
+          <div className="flex flex-col gap-3 py-md">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-[rgba(235,87,87,0.1)] text-danger shrink-0 mt-1">
                 <AlertCircle size={20} />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold mb-xs">Timeline conflict detected</p>
+                <p className="text-sm font-semibold mb-1">Timeline conflict detected</p>
                 <p className="text-xs text-secondary leading-relaxed">
-                  The item <strong className="text-on-surface">'{pendingExtension.childTitle}'</strong> now extends outside the timeline of its parent <strong className="text-on-surface">'{pendingExtension.parentTitle}'</strong>.
+                  The item <strong className="text-fg">“{pendingExtension.childTitle}”</strong> now extends outside the timeline of its parent <strong className="text-fg">“{pendingExtension.parentTitle}”</strong>.
                 </p>
               </div>
             </div>
-            <div className="mt-sm p-md rounded-lg bg-surface-container-high border border-outline-variant flex flex-col gap-sm">
+            <div className="mt-2 p-3 rounded-lg bg-active border border-border flex flex-col gap-2">
               <div className="flex justify-between text-xs">
                 <span className="text-secondary">Proposed Parent Start:</span>
                 <span className="font-mono font-medium">{new Date(pendingExtension.updatedParentStart).toLocaleDateString(undefined, { dateStyle: 'medium' })}</span>

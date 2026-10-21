@@ -1,74 +1,56 @@
 "use client";
 
-import React, { useState } from 'react';
-import { motion } from "framer-motion";
-import { Calendar, Rocket } from "lucide-react";
+import React, { useState } from "react";
 import { Button } from "./ui/Button";
 import { FormField } from "./ui/FormField";
+import { Input } from "./ui/Input";
 import { createSprint } from "@/lib/actions";
 
 export function SprintCreationForm({ projectId, onCancel }: Readonly<{ projectId: string; onCancel: () => void }>) {
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!name) return;
-    await createSprint(projectId, name, startDate || undefined, endDate || undefined);
-    onCancel();
+    if (!name.trim()) return;
+    if (startDate && endDate && endDate < startDate) {
+      setError("The end date can't be before the start date.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      await createSprint(projectId, name, startDate || undefined, endDate || undefined);
+      onCancel();
+    } catch {
+      setError("Couldn't create the sprint. Check the name and dates.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: -20 }} 
-      animate={{ opacity: 1, y: 0 }} 
-      className="card-planner glass p-2xl mb-xl border-primary"
-      style={{ borderLeft: '4px solid var(--primary)' }}
-    >
-      <form onSubmit={handleCreate}>
-        <div className="flex items-center gap-md mb-xl">
-          <Calendar size={24} className="text-primary" />
-          <h3 className="text-3xl font-bold tracking-tight">Create new sprint</h3>
-        </div>
-        
-        <div className="grid grid-cols-3 gap-xl mb-2xl">
-          <FormField label="Cycle Identity">
-            <input 
-              className="input-planner p-md w-full" 
-              placeholder="e.g. Sprint 1..." 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
-              required 
-            />
-          </FormField>
-          <FormField label="Commencement">
-            <input 
-              type="date" 
-              className="input-planner p-md w-full" 
-              value={startDate} 
-              onChange={(e) => setStartDate(e.target.value)} 
-            />
-          </FormField>
-          <FormField label="Target Completion">
-            <input 
-              type="date" 
-              className="input-planner p-md w-full" 
-              value={endDate} 
-              onChange={(e) => setEndDate(e.target.value)} 
-            />
-          </FormField>
-        </div>
-        
-        <div className="flex gap-md pt-lg border-t">
-          <Button type="submit" icon={<Rocket size={18} />}>
-            Create Sprint
-          </Button>
-          <Button type="button" variant="ghost" onClick={onCancel}>
-            Discard
-          </Button>
-        </div>
-      </form>
-    </motion.div>
+    <form onSubmit={handleCreate} className="mb-6 rounded-lg border border-border bg-panel p-4 shadow-sm animate-fade-in">
+      <h2 className="mb-3 text-sm font-semibold">New sprint</h2>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <FormField label="Name">
+          <Input autoFocus placeholder="e.g. Sprint 4" value={name} onChange={(e) => setName(e.target.value)} required />
+        </FormField>
+        <FormField label="Start date">
+          <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+        </FormField>
+        <FormField label="End date">
+          <Input type="date" value={endDate} min={startDate || undefined} onChange={(e) => setEndDate(e.target.value)} />
+        </FormField>
+      </div>
+      {error && <p className="mt-2 text-sm text-danger" role="alert">{error}</p>}
+      <div className="mt-4 flex gap-2">
+        <Button type="submit" loading={saving}>Create sprint</Button>
+        <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+      </div>
+    </form>
   );
 }

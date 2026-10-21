@@ -1,6 +1,6 @@
 import { ProjectShell } from "@/components/ProjectShell";
 import { MigrationGuard } from "@/components/auth/MigrationGuard";
-import { getProject } from "@/lib/actions";
+import { getProject, getProjectMembers } from "@/lib/actions";
 import { notFound, redirect } from "next/navigation";
 import { ProjectProvider } from "@/components/ProjectContext";
 import { Project } from "@/lib/types";
@@ -23,8 +23,7 @@ export default async function ProjectLayout({
   }
 
   const { projectId } = await params;
-  const project = await getProject(projectId);
-
+  const [project, members] = await Promise.all([getProject(projectId), getProjectMembers(projectId)]);
 
   if (!project) {
     notFound();
@@ -33,7 +32,7 @@ export default async function ProjectLayout({
   return (
     <Providers>
       <MigrationGuard>
-        <ProjectProvider project={project as Project}>
+        <ProjectProvider project={project as Project} members={members}>
           <ProjectShell project={project} projectId={projectId}>
             {children}
             <GlobalAIChat />

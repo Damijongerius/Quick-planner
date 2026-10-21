@@ -1,15 +1,24 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { createNode, getRootNodes } from "@/lib/actions";
+import { createNode, getRootNodes, reorderNodes } from "@/lib/actions";
 import { BacklogTree } from "./BacklogTree";
+import { BacklogNodeRow } from "./BacklogNodeRow";
 import { NodeSidePanel } from "./NodeSidePanel";
 import { AnimatePresence, motion } from "framer-motion";
+import { SearchX, Inbox } from "lucide-react";
 
-import { BacklogToolbar } from "./BacklogToolbar";
+import { BacklogToolbar, ColumnOption } from "./BacklogToolbar";
+import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
+import { ReorderContext, type ReorderList } from "./backlog/ReorderContext";
+import { BulkBar } from "./backlog/BulkBar";
+import { moveInList } from "@/lib/order";
+import { PageHeader } from "./PageHeader";
 import { useProject } from "./ProjectContext";
-import { Select } from "./ui/Select";
+import { matchesAssignee, type AssigneeFilter } from "@/lib/assignee";
+import { useUrlState } from "./ui/useUrlState";
+import { flagCodec, listCodec, stringCodec, stringWithDefault } from "@/lib/urlState";
 
 import { Node, NodeType, Sprint } from "@/lib/types";
 
@@ -21,53 +30,71 @@ interface BacklogViewProps {
   readonly allNodes: Node[];
 }
 
+const STANDARD_COLUMNS: ColumnOption[] = [
+  { id: "status", label: "Status" },
+  { id: "assignee", label: "Assignee" },
+  { id: "sprintId", label: "Sprint" },
+  { id: "startDate", label: "Start date" },
+  { id: "endDate", label: "End date" },
+];
+const ASSIGNEE_CODEC = stringWithDefault("all");
+const STANDARD_ORDER = ["title", "status", "assignee", "sprintId", "startDate", "endDate"];
+const COLUMN_WIDTH: Record<string, string> = { status: "142px", assignee: "136px", sprintId: "150px", startDate: "84px", endDate: "84px" };
+
 export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, sprints, allNodes }: BacklogViewProps) {
+  const { isReadOnly, currentUserId, members } = useProject();
   const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [prevInitialNodes, setPrevInitialNodes] = useState(initialNodes);
+  const [showArchived, setShowArchived] = useUrlState("archived", flagCodec);
 
+  // Server data only describes the non-archived backlog; don't let a router refresh
+  // overwrite the archived list the user is currently looking at.
   if (initialNodes !== prevInitialNodes) {
     setPrevInitialNodes(initialNodes);
-    setNodes(initialNodes);
+    if (!showArchived) setNodes(initialNodes);
   }
 
-  const [syncStamp, setSyncStamp] = useState(Date.now());
+  const [syncStamp, setSyncStamp] = useState(0);
+  // Expanded sub-trees fetch their own children, so they must be told when the server data changed under them
+  // (a teammate added a task to a story that is open here).
+  const [stampedFor, setStampedFor] = useState(initialNodes);
+  if (stampedFor !== initialNodes) {
+    setStampedFor(initialNodes);
+    setSyncStamp((n) => n + 1);
+  }
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [showArchived, setShowArchived] = useState(false);
-  const [hideCompleted, setHideCompleted] = useState(true);
+  const [showCompleted, setShowCompleted] = useUrlState("done", flagCodec);
+  const hideCompleted = !showCompleted;
+  const [search, setSearch] = useUrlState("q", stringCodec);
+  // "none" marks "every optional column turned off" (an empty list means "use the defaults").
+  const [colList, setColList] = useUrlState("cols", listCodec);
+  const defaultColumns = members.length > 1 ? ["status", "assignee", "sprintId"] : ["status", "sprintId", "startDate"];
+  const selectedColumns = ["title", ...(colList.length ? colList.filter((c) => c !== "none") : defaultColumns)];
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { isReadOnly } = useProject();
+  const [assigneeRaw, setAssigneeFilter] = useUrlState("assignee", ASSIGNEE_CODEC);
+  const assigneeFilter = assigneeRaw as AssigneeFilter;
 
-  // Premium Custom targeted Tree-Table view states (Initializes with max 4 columns)
-  const [targetNodeTypeId, setTargetNodeTypeId] = useState<string | null>(null);
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(['title', 'status', 'sprintId', 'startDate']);
-
-  const customFieldNames = React.useMemo(() => {
-    return Array.from(new Set(nodeTypes.flatMap(nt => nt.fields?.map(f => f.name) || [])));
-  }, [nodeTypes]);
-
-  useEffect(() => {
-    if (nodeTypes.length > 0 && !targetNodeTypeId) {
-      setTargetNodeTypeId(nodeTypes[0].id);
-      const firstType = nodeTypes[0];
-      const customFields = firstType?.fields?.map(f => f.name) || [];
-      const defaultCols = ['title', 'status', 'sprintId'];
-      if (customFields.length > 0) {
-        defaultCols.push(customFields[0]);
-      } else {
-        defaultCols.push('startDate');
+  const columnOptions = useMemo<ColumnOption[]>(() => {
+    const custom: ColumnOption[] = [];
+    const seen = new Set<string>();
+    for (const type of nodeTypes) {
+      for (const field of type.fields ?? []) {
+        if (seen.has(field.name)) continue;
+        seen.add(field.name);
+        custom.push({ id: field.name, label: field.name, group: type.name });
       }
-      setSelectedColumns(sortColumns(defaultCols, customFieldNames));
     }
-  }, [nodeTypes, targetNodeTypeId, customFieldNames]);
+    return [...STANDARD_COLUMNS, ...custom];
+  }, [nodeTypes]);
 
   const childTypeIds = new Set(nodeTypes.flatMap((t) => t.allowedChildren?.map((ac) => ac.childNodeTypeId) || []));
   const availableRootTypes = nodeTypes.some((t) => !childTypeIds.has(t.id))
     ? nodeTypes.filter((t) => !childTypeIds.has(t.id))
     : nodeTypes;
 
-  const urlNodeId = searchParams.get('nodeId');
+  const urlNodeId = searchParams.get("nodeId");
   const [prevUrlNodeId, setPrevUrlNodeId] = useState<string | null>(null);
 
   if (urlNodeId !== prevUrlNodeId) {
@@ -88,191 +115,222 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
     router.refresh();
   };
 
+  // The initial list comes from the server, so skip the very first run.
+  // (unless the URL opened straight onto the archived list, which the server did not send)
+  const hasLoadedOnce = useRef(showArchived);
   useEffect(() => {
-    refreshNodes();
+    if (!hasLoadedOnce.current) {
+      hasLoadedOnce.current = true;
+      return;
+    }
+    getRootNodes(projectId, showArchived).then((data) => {
+      setNodes(data);
+      setSyncStamp(Date.now());
+    });
   }, [showArchived, projectId]);
 
   const handleCreateRoot = async (typeId: string, typeName: string) => {
     if (isReadOnly) return;
-    const newNode = await createNode(projectId, null, typeId, `New ${typeName}`);
-    const data = await getRootNodes(projectId, showArchived);
-    setNodes(data);
-    setSyncStamp(Date.now());
-    router.refresh();
-    setSelectedNode(newNode as unknown as Node);
-    setIsPanelOpen(true);
+    try {
+      const newNode = await createNode(projectId, null, typeId, `New ${typeName}`);
+      const data = await getRootNodes(projectId, showArchived);
+      setNodes(data);
+      setSyncStamp(Date.now());
+      router.refresh();
+      setSelectedNode(newNode as unknown as Node);
+      setIsPanelOpen(true);
+    } catch (error) {
+      console.error("Failed to create item", error);
+      alert("Could not create that item.");
+    }
   };
 
   const handleColumnToggle = (colId: string) => {
-    const isSelected = selectedColumns.includes(colId);
-    let nextCols: string[];
-    if (isSelected) {
-      if (colId === 'title') return; // Enforce Title is always visible
-      nextCols = selectedColumns.filter(c => c !== colId);
-    } else {
-      // Enforce at most 4 columns total (including Title)
-      if (selectedColumns.length >= 4) {
-        const nonTitleCols = selectedColumns.filter(c => c !== 'title');
-        // Gracefully shift the oldest non-title column out to make room
-        nextCols = ['title', ...nonTitleCols.slice(1), colId];
-      } else {
-        nextCols = [...selectedColumns, colId];
-      }
-    }
-    setSelectedColumns(sortColumns(nextCols, customFieldNames));
+    const current = selectedColumns.filter((c) => c !== "title");
+    const next = current.includes(colId) ? current.filter((c) => c !== colId) : [...current, colId];
+    const customOrder = columnOptions.filter((o) => o.group).map((o) => o.id);
+    next.sort((a, b) => {
+      const ia = STANDARD_ORDER.indexOf(a), ib = STANDARD_ORDER.indexOf(b);
+      if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+      return customOrder.indexOf(a) - customOrder.indexOf(b);
+    });
+    setColList(next.length ? next : ["none"]);
   };
 
-  // Target details and filters
-  const selectedNodeType = nodeTypes.find(t => t.id === targetNodeTypeId);
+  const gridTemplate = ["minmax(0,1fr)", ...selectedColumns.filter((c) => c !== "title").map((c) => `minmax(90px, ${COLUMN_WIDTH[c] ?? "130px"})`)].join(" ");
+  const typeById = useMemo(() => new Map(nodeTypes.map((t) => [t.id, t])), [nodeTypes]);
+
+  const query = search.trim().toLowerCase();
+  // Search and the assignee filter switch the hierarchy to a flat list of matches.
+  const filtering = !!query || assigneeFilter !== "all";
+  const searchResults = useMemo(() => {
+    if (!filtering) return [];
+    return allNodes.filter((n) =>
+      !!n.isArchived === showArchived &&
+      (!hideCompleted || n.status !== "DONE") &&
+      matchesAssignee(n.assigneeId, assigneeFilter, currentUserId) &&
+      (!query || n.title.toLowerCase().includes(query))
+    );
+  }, [allNodes, filtering, query, showArchived, hideCompleted, assigneeFilter, currentUserId]);
+
+  const openNode = (n: Node) => { setSelectedNode(n); setIsPanelOpen(true); };
+
+  // ---- Bulk selection
+  const [selection, setSelection] = useState<ReadonlySet<string>>(new Set());
+  const toggleSelect = (id: string) => setSelection((prev) => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+  const clearSelection = () => setSelection(new Set());
+
+  // ---- Drag to reorder: every sibling list registers how to read and apply its order.
+  const lists = useRef(new Map<string, ReorderList>());
+  const registry = useMemo(() => ({
+    register: (listId: string, list: ReorderList) => {
+      lists.current.set(listId, list);
+      return () => { if (lists.current.get(listId) === list) lists.current.delete(listId); };
+    },
+  }), []);
+  const visibleRoots = useMemo(() => nodes.filter((n) => !(hideCompleted && n.status === "DONE")), [nodes, hideCompleted]);
+  const rootsRef = useRef(visibleRoots);
+  useEffect(() => { rootsRef.current = visibleRoots; });
+  useEffect(() => registry.register("root", {
+    ids: () => rootsRef.current.map((n) => n.id),
+    apply: (ids) => setNodes((prev) => {
+      const byId = new Map(prev.map((n) => [n.id, n]));
+      return [...ids.map((id) => byId.get(id)).filter((n): n is Node => !!n), ...prev.filter((n) => !ids.includes(n.id))];
+    }),
+  }), [registry]);
+
+  const handleDragEnd = async (result: DropResult) => {
+    const { source, destination } = result;
+    if (!destination || destination.droppableId !== source.droppableId || destination.index === source.index) return;
+    const list = lists.current.get(source.droppableId);
+    if (!list) return;
+    const next = moveInList(list.ids(), source.index, destination.index);
+    list.apply(next);
+    const res = await reorderNodes(projectId, next);
+    if (res?.error) { alert(res.error); await refreshNodes(); }
+  };
+
+  const columnLabel = (id: string) => columnOptions.find((o) => o.id === id)?.label ?? id;
 
   return (
-    <div className="flex flex-col gap-xl">
-      <BacklogToolbar
-        availableRootTypes={availableRootTypes}
-        onAddRoot={handleCreateRoot}
-        hideCompleted={hideCompleted}
-        onToggleHideCompleted={() => setHideCompleted(!hideCompleted)}
-        showArchived={showArchived}
-        onToggleShowArchived={() => setShowArchived(!showArchived)}
-        hasArchivedNodes={allNodes.some((n) => n.isArchived)}
-        isReadOnly={isReadOnly}
-      />
+    <div>
+      <PageHeader title="Backlog" description="Everything planned in this project, grouped by hierarchy." />
 
-      {/* Dynamic Column Configurator */}
-      <div className="flex flex-col gap-md bg-surface-container-low p-lg rounded-2xl border border-outline-variant shadow-sm mb-xs">
-        <div className="flex flex-wrap items-center justify-between gap-md">
-          <div className="flex items-center gap-md">
-            <span className="text-meta text-primary font-bold">Target Custom Columns:</span>
-            <div style={{ width: 'auto', minWidth: '160px' }}>
-              <Select
-                options={nodeTypes.map((type) => ({ value: type.id, label: type.name }))}
-                value={targetNodeTypeId || ""}
-                  onChange={(val) => {
-                    setTargetNodeTypeId(val);
-                    // Update default visible columns, keeping it strictly to at most 4 columns total!
-                    const newType = nodeTypes.find(t => t.id === val);
-                    const newCustomFields = newType?.fields?.map(f => f.name) || [];
-                    const defaultCols = ['title', 'status', 'sprintId'];
-                    if (newCustomFields.length > 0) {
-                      defaultCols.push(newCustomFields[0]);
-                    } else {
-                      defaultCols.push('startDate');
-                    }
-                    setSelectedColumns(sortColumns(defaultCols, customFieldNames));
-                  }}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-sm">
-            <span className="text-meta text-on-surface-variant font-semibold">
-              Visible Columns <span className="opacity-50" style={{ fontSize: '10px' }}>(Max 4 total)</span>:
-            </span>
-            
-            {[
-              { id: 'status', label: 'Status' },
-              { id: 'sprintId', label: 'Sprint' },
-              { id: 'startDate', label: 'Start Date' },
-              { id: 'endDate', label: 'End Date' }
-            ].map((col) => {
-              const isSelected = selectedColumns.includes(col.id);
-              return (
-                <button
-                  key={col.id}
-                  onClick={() => handleColumnToggle(col.id)}
-                  className={`blueprint-chip ${isSelected ? 'active' : ''}`}
-                  style={{ fontSize: '10px', padding: '4px 12px', cursor: 'pointer' }}
-                >
-                  {col.label}
-                </button>
-              );
-            })}
-
-            {selectedNodeType?.fields?.map((field) => {
-              const isSelected = selectedColumns.includes(field.name);
-              return (
-                <button
-                  key={field.id}
-                  onClick={() => handleColumnToggle(field.name)}
-                  className={`blueprint-chip ${isSelected ? 'active' : ''}`}
-                  style={{ fontSize: '10px', padding: '4px 12px', cursor: 'pointer', border: '1px dashed var(--primary)' }}
-                >
-                  {field.name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+      <div className="mb-3">
+        <BacklogToolbar
+          availableRootTypes={availableRootTypes}
+          onAddRoot={handleCreateRoot}
+          hideCompleted={hideCompleted}
+          onToggleHideCompleted={() => setShowCompleted(!showCompleted)}
+          showArchived={showArchived}
+          onToggleShowArchived={() => setShowArchived(!showArchived)}
+          hasArchivedNodes={allNodes.some((n) => n.isArchived)}
+          isReadOnly={isReadOnly}
+          search={search}
+          onSearchChange={setSearch}
+          columnOptions={columnOptions}
+          selectedColumns={selectedColumns}
+          onToggleColumn={handleColumnToggle}
+          assigneeFilter={assigneeFilter}
+          onAssigneeFilterChange={setAssigneeFilter}
+        />
       </div>
 
-      <div className="backlog-main-layout">
-        <div className="flex-1 flex flex-col gap-xs min-w-0">
-          {/* Table Header Row aligned perfectly with the BacklogNodeRow */}
-          <div 
-            className="backlog-table-header" 
-            style={{ 
-              gridTemplateColumns: getGridTemplate(selectedColumns.length),
-              paddingLeft: '24px',
-              paddingRight: '24px'
-            }}
-          >
-            <div className="min-w-0 flex items-center gap-md">
-              <span className="text-meta" style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em' }}>TITLE / HIERARCHY</span>
+      <div className="flex items-start gap-4" style={{ "--backlog-cols": gridTemplate } as React.CSSProperties}>
+        <div className="min-w-0 flex-1 overflow-x-auto rounded-lg border border-border bg-panel shadow-sm">
+          <div className="min-w-[640px]">
+            <div className="backlog-grid-header grid items-center border-b border-border bg-sidebar pl-10 pr-3 py-2 text-xs font-medium text-muted">
+              <div className="pl-8">Title</div>
+              {selectedColumns.filter((c) => c !== "title").map((col) => <div key={col}>{columnLabel(col)}</div>)}
             </div>
-            {selectedColumns.filter(c => c !== 'title').map((colKey) => {
-              const isCustom = selectedNodeType?.fields?.some(f => f.name === colKey);
-              const label = isCustom 
-                ? colKey.toUpperCase()
-                : colKey === 'sprintId' ? 'SPRINT'
-                : colKey === 'startDate' ? 'START DATE'
-                : colKey === 'endDate' ? 'END DATE'
-                : colKey.toUpperCase();
-              return (
-                <div key={colKey} className="min-w-0 text-left">
-                  <span className="text-meta" style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em' }}>{label}</span>
-                </div>
-              );
-            })}
-          </div>
 
-          <div className="backlog-tree-container card-planner min-w-0">
-            {nodes.map(node => (
-              <BacklogTree 
-                key={node.id} 
-                projectId={projectId} 
-                node={node} 
-                nodeTypes={nodeTypes} 
-                onSelect={(n) => { setSelectedNode(n); setIsPanelOpen(true); }} 
-                selectedNodeId={selectedNode?.id || null} 
-                hideCompleted={hideCompleted} 
-                isReadOnly={isReadOnly}
-                selectedColumns={selectedColumns}
-                sprints={sprints}
-                selectedNodeType={selectedNodeType}
-                showArchived={showArchived}
-                onNodeUpdated={refreshNodes}
-                syncStamp={syncStamp}
-              />
-            ))}
-
-            {nodes.length === 0 && (
-              <div className="backlog-empty-state">
-                <h3 className="text-xl mb-sm">{showArchived ? "No archived items found." : "Your backlog is empty."}</h3>
-                <p className="text-secondary text-sm">Start by initializing something above.</p>
-              </div>
+            {filtering ? (
+              searchResults.length > 0 ? (
+                searchResults.map((n) => (
+                  <BacklogNodeRow
+                    key={n.id}
+                    projectId={projectId}
+                    node={n}
+                    nodeType={typeById.get(n.nodeTypeId) ?? n.type}
+                    depth={0}
+                    isOpen={false}
+                    isSelected={selectedNode?.id === n.id}
+                    isLoadingChildren={false}
+                    hasChildren={false}
+                    isHovered={false}
+                    onToggle={() => {}}
+                    onSelect={() => openNode(n)}
+                    progress={n.status === "DONE" ? 100 : 0}
+                    selectedColumns={selectedColumns}
+                    sprints={sprints}
+                    isReadOnly={isReadOnly}
+                    onNodeUpdated={refreshNodes}
+                    checked={selection.has(n.id)}
+                    anySelected={selection.size > 0}
+                    onToggleChecked={isReadOnly ? undefined : () => toggleSelect(n.id)}
+                  />
+                ))
+              ) : (
+                <EmptyState icon={<SearchX size={22} />} title={query ? `No items match “${search.trim()}”` : "Nothing matches this filter"} hint="Try a different filter, or show completed items." />
+              )
+            ) : (
+              <>
+                <ReorderContext.Provider value={registry}>
+                <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="root" type="list:root">
+                  {(dropProvided) => (
+                  <div ref={dropProvided.innerRef} {...dropProvided.droppableProps}>
+                {visibleRoots.map((node, i) => (
+                  <BacklogTree
+                    key={node.id}
+                    index={i}
+                    selection={selection}
+                    onToggleSelect={isReadOnly ? undefined : toggleSelect}
+                    projectId={projectId}
+                    node={node}
+                    nodeTypes={nodeTypes}
+                    onSelect={openNode}
+                    selectedNodeId={selectedNode?.id || null}
+                    hideCompleted={hideCompleted}
+                    isReadOnly={isReadOnly}
+                    selectedColumns={selectedColumns}
+                    sprints={sprints}
+                    showArchived={showArchived}
+                    onNodeUpdated={refreshNodes}
+                    syncStamp={syncStamp}
+                  />
+                ))}
+                {dropProvided.placeholder}
+                  </div>
+                  )}
+                </Droppable>
+                </DragDropContext>
+                </ReorderContext.Provider>
+                {nodes.length === 0 && (
+                  <EmptyState
+                    icon={<Inbox size={22} />}
+                    title={showArchived ? "Nothing archived" : "Your backlog is empty"}
+                    hint={showArchived ? "Archived items show up here." : isReadOnly ? "" : "Create your first item with “New item” above."}
+                  />
+                )}
+              </>
             )}
           </div>
         </div>
+
+        {selection.size > 0 && !isReadOnly && (
+          <BulkBar projectId={projectId} ids={[...selection]} sprints={sprints} showingArchived={showArchived} onClear={clearSelection} onChanged={refreshNodes} />
+        )}
 
         <AnimatePresence mode="wait">
           {isPanelOpen && selectedNode && (
             <motion.div
               key={selectedNode.id}
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: '450px', opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 380, damping: 35 }}
-              className="backlog-panel-wrapper animate-fade-in"
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 16 }}
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 z-[200] bg-bg p-2 md:sticky md:inset-auto md:top-4 md:z-auto md:max-h-[calc(100vh-2rem)] md:w-[380px] md:shrink-0 md:bg-transparent md:p-0"
             >
               <NodeSidePanel projectId={projectId} node={selectedNode} isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} sprints={sprints} allNodes={allNodes} nodeTypes={nodeTypes} onNodeUpdated={refreshNodes} />
             </motion.div>
@@ -283,33 +341,12 @@ export function BacklogView({ projectId, rootNodes: initialNodes, nodeTypes, spr
   );
 }
 
-// ==========================================
-// PURE HELPER FUNCTIONS (Code as Prose)
-// ==========================================
-
-function getGridTemplate(numCols: number): string {
-  if (numCols <= 1) return "1fr";
-  if (numCols === 2) return "3fr 1.2fr";
-  if (numCols === 3) return "3fr 1.2fr 1.2fr";
-  return "3fr 1.2fr 1.2fr 1.2fr"; // Dynamic, left-connected grid sizing with strict boundaries
-}
-
-function sortColumns(cols: string[], customFields: string[]): string[] {
-  const standardOrder = ['title', 'status', 'sprintId', 'startDate', 'endDate'];
-  return [...cols].sort((a, b) => {
-    const idxA = standardOrder.indexOf(a);
-    const idxB = standardOrder.indexOf(b);
-
-    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-    if (idxA !== -1) return -1;
-    if (idxB !== -1) return 1;
-
-    const customIdxA = customFields.indexOf(a);
-    const customIdxB = customFields.indexOf(b);
-    if (customIdxA !== -1 && customIdxB !== -1) return customIdxA - customIdxB;
-    if (customIdxA !== -1) return -1;
-    if (customIdxB !== -1) return 1;
-
-    return a.localeCompare(b);
-  });
+function EmptyState({ icon, title, hint }: Readonly<{ icon: React.ReactNode; title: string; hint?: string }>) {
+  return (
+    <div className="flex flex-col items-center gap-2 px-6 py-16 text-center">
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-hover text-faint">{icon}</div>
+      <p className="text-sm font-medium">{title}</p>
+      {hint && <p className="max-w-xs text-sm text-muted">{hint}</p>}
+    </div>
+  );
 }

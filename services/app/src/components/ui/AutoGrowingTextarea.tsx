@@ -4,6 +4,8 @@ import React, { useEffect, useRef } from "react";
 import "./AutoGrowingTextarea.css";
 
 interface AutoGrowingTextareaProps {
+  id?: string;
+  "aria-label"?: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   placeholder?: string;
@@ -12,6 +14,8 @@ interface AutoGrowingTextareaProps {
 }
 
 export function AutoGrowingTextarea({
+  id,
+  "aria-label": ariaLabel,
   value,
   onChange,
   placeholder,
@@ -53,6 +57,8 @@ export function AutoGrowingTextarea({
   return (
     <textarea
       ref={textareaRef}
+      id={id}
+      aria-label={ariaLabel}
       className={`input-premium auto-growing-textarea ${className}`}
       value={value}
       onChange={onChange}

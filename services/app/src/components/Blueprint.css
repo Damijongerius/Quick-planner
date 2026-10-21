@@ -1,324 +1,35 @@
-.icon-picker-grid {
-  display: grid; 
-  grid-template-columns: repeat(8, 1fr); 
-  gap: 4px; 
-  max-height: 180px; 
-  overflow-y: auto; 
-  padding-right: 4px;
-}
-
-.icon-picker-button {
-  aspect-ratio: 1; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  border-radius: 8px; 
-  border: 1px solid rgba(255,255,255,0.05); 
-  background-color: rgba(255,255,255,0.02); 
-  color: var(--on-surface-variant); 
-  cursor: pointer; 
-  transition: all 0.2s;
-}
-
-.icon-picker-button:hover {
-  background-color: var(--surface-container); 
-  border-color: var(--outline-variant);
-}
-
-.icon-picker-button.active {
-  border-color: var(--node-color); 
-  background-color: color-mix(in srgb, var(--node-color), transparent 85%); 
-  color: var(--node-color);
-}
-
-.attribute-row {
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  padding: 16px 24px; 
-  background-color: var(--surface-container-low); 
-  border-radius: 16px; 
-  border: 1px solid var(--outline-variant);
-  transition: all 0.2s;
-}
-
-.attribute-row:hover {
-  background-color: var(--surface-container);
-  border-color: var(--primary);
-}
-
-.attribute-type-badge {
-  font-size: 10px; 
-  font-weight: 800; 
-  color: var(--on-surface-variant); 
-  margin-left: 12px; 
-  text-transform: uppercase; 
-  opacity: 0.6;
-}
-
-.node-type-create-placeholder {
-  padding: 40px; 
-  display: flex; 
-  flex-direction: column; 
-  align-items: center; 
-  justify-content: center; 
-  gap: 16px; 
-  border: 2px dashed var(--outline-variant); 
-  background: transparent; 
-  cursor: pointer; 
-  opacity: 0.7; 
-  transition: all 0.3s; 
-  border-radius: 24px;
-}
-
-.node-type-create-placeholder:hover {
-  opacity: 1; 
-  box-shadow: var(--ambient-shadow); 
-  border-color: var(--primary);
-}
-
-.color-swatch {
-  width: 32px; 
-  height: 32px; 
-  border-radius: 50%; 
-  border: 2px solid transparent; 
-  cursor: pointer; 
-  transition: all 0.2s; 
-  transform: scale(1);
-}
-
-.color-swatch.active {
-  border-color: white; 
-  box-shadow: 0 0 10px var(--node-color); 
-  transform: scale(1.1);
-}
-
-.custom-color-trigger {
-  width: 32px; 
-  height: 32px; 
-  border-radius: 50%; 
-  overflow: hidden; 
-  position: relative; 
-  border: 2px solid rgba(255,255,255,0.2); 
-  cursor: pointer; 
-  transition: all 0.2s; 
-  transform: scale(1);
-}
-
-.custom-color-trigger.active {
-  border-color: white; 
-  box-shadow: 0 0 10px var(--node-color); 
-  transform: scale(1.1);
-}
-
-.custom-color-preview {
-  position: absolute; 
-  inset: 0; 
-  background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); 
-  pointer-events: none;
-}
+@layer components {
+/* Canvas node cards */
 .blueprint-flow-node {
-  background: var(--surface-container-lowest);
-  border: 1px solid var(--outline-variant);
-  border-radius: 20px;
-  min-width: 200px;
-  padding: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-left: 6px solid var(--node-color);
+  position: relative; width: 220px; padding: 12px; background: var(--panel); border: 1px solid var(--border-strong);
+  border-left: 4px solid var(--node-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm);
+  transition: border-color 0.12s, box-shadow 0.12s;
 }
+.blueprint-flow-node:hover { box-shadow: var(--shadow-md); border-color: var(--node-color); }
 
-.blueprint-flow-node.selected {
-  border-color: var(--primary);
-  box-shadow: var(--primary-shadow);
-}
+.flow-handle { width: 12px !important; height: 12px !important; border: 2px solid var(--panel) !important; }
+.flow-handle-target { background: var(--faint) !important; }
+.flow-handle-source { background: var(--accent) !important; }
 
-.blueprint-node-main-action {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  z-index: 1;
-  border-radius: inherit;
-}
-
-.blueprint-node-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.blueprint-node-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.blueprint-node-fields {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--outline-variant);
-}
-
-.blueprint-field-tag {
-  font-size: 9px;
-  font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background: var(--surface-container);
-  color: var(--on-surface-variant);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.blueprint-node-settings {
-  padding: 4px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.blueprint-node-settings:hover {
-  background: var(--surface-container);
-}
-
-/* Blueprint Layer Boxes */
+/* Level bands */
 .blueprint-layer-box {
-  width: 1700px;
-  height: 220px;
-  border: 1px solid var(--outline-variant);
-  border-radius: 24px;
-  background: var(--surface-container-low);
-  pointer-events: none; /* Let clicks pass through background to canvas */
-  position: relative;
-  box-sizing: border-box;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 176px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--sidebar);
+  pointer-events: none; position: relative;
 }
-
-.blueprint-layer-box-header {
-  position: absolute;
-  top: 14px;
-  left: 20px;
-  right: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  pointer-events: auto; /* Enable clicking controls */
-}
-
-.blueprint-layer-box-title {
-  font-family: var(--font-sans, sans-serif);
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 10%, transparent);
-  padding: 4px 10px;
-  border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--primary) 15%, transparent);
-  user-select: none;
-}
-
-.blueprint-layer-box-toggles {
-  display: flex;
-  gap: 8px;
-}
-
+.blueprint-layer-box-header { position: absolute; top: 10px; left: 14px; right: 14px; display: flex; justify-content: space-between; align-items: center; pointer-events: auto; }
+.blueprint-layer-box-title { font-size: 13px; font-weight: 600; color: var(--muted); user-select: none; }
+.blueprint-layer-box-toggles { display: flex; gap: 6px; }
 .blueprint-layer-pill {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--outline-variant);
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  background: var(--surface-container-low);
-  color: var(--on-surface-variant);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  user-select: none;
+  display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border-radius: 9999px;
+  border: 1px solid var(--border-strong); background: var(--panel); color: var(--faint); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: background-color 0.12s, color 0.12s, border-color 0.12s;
 }
+.blueprint-layer-pill:hover:not(:disabled) { background: var(--hover); color: var(--fg); }
+.blueprint-layer-pill.active { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 40%, transparent); color: var(--accent); }
+.blueprint-layer-pill:disabled { cursor: not-allowed; opacity: 0.5; }
 
-.blueprint-layer-pill:hover:not(:disabled) {
-  background: var(--surface-container);
-  border-color: var(--outline);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+/* Keep bands behind edges, edges behind cards */
+.react-flow__node-layerBox { z-index: 1 !important; }
+.react-flow__edges { z-index: 2 !important; }
+.react-flow__node-nodeType { z-index: 3 !important; }
 }
-
-.blueprint-layer-pill:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.blueprint-layer-pill:disabled {
-  cursor: not-allowed;
-  opacity: 0.4;
-}
-
-/* Active States */
-.blueprint-layer-pill.active-kanban {
-  background: color-mix(in srgb, var(--tertiary) 12%, transparent);
-  border-color: var(--tertiary);
-  color: var(--tertiary);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--tertiary) 20%, transparent);
-}
-.blueprint-layer-pill.active-kanban:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--tertiary) 18%, transparent);
-  border-color: var(--tertiary);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--tertiary) 30%, transparent);
-}
-
-.blueprint-layer-pill.active-gantt {
-  background: color-mix(in srgb, var(--primary) 12%, transparent);
-  border-color: var(--primary);
-  color: var(--primary);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--primary) 20%, transparent);
-}
-.blueprint-layer-pill.active-gantt:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--primary) 18%, transparent);
-  border-color: var(--primary);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--primary) 30%, transparent);
-}
-
-.blueprint-layer-pill.active-sprint {
-  background: color-mix(in srgb, #d97706 12%, transparent);
-  border-color: #d97706;
-  color: #b45309;
-  box-shadow: 0 0 8px color-mix(in srgb, #d97706 20%, transparent);
-}
-.blueprint-layer-pill.active-sprint:hover:not(:disabled) {
-  background: color-mix(in srgb, #d97706 18%, transparent);
-  border-color: #d97706;
-  box-shadow: 0 0 12px color-mix(in srgb, #d97706 30%, transparent);
-}
-
-/* Ensure correct layering in ReactFlow:
-   1. Background layer boxes (.react-flow__node-layerBox) are at the bottom.
-   2. Connected edge lines (.react-flow__edges) are in the middle (on top of layer boxes but behind node cards).
-   3. Blueprint node cards (.react-flow__node-nodeType) are on top.
-*/
-.react-flow__node-layerBox {
-  z-index: 1 !important;
-}
-
-.react-flow__edges {
-  z-index: 2 !important;
-}
-
-.react-flow__node-nodeType {
-  z-index: 3 !important;
-}
-

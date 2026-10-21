@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
-    "generate:prisma": "mkdir -p prisma && cp ../app/prisma/schema.prisma prisma/ && prisma generate"
+    "generate:prisma": "mkdir -p prisma && cp ../app/prisma/schema.prisma prisma/ && prisma generate",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.0",

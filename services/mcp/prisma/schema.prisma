@@ -49,9 +49,26 @@ model User {
   // Custom Data
   projects      Project[]
   nodeTypes     NodeType[]
-  nodes         Node[]
+  nodes         Node[]          @relation("NodeCreator")
   sprints       Sprint[]
   historyEvents HistoryEvent[]
+
+  // Collaboration
+  memberships   ProjectMember[]
+  invitesSent   ProjectInvite[]
+  assignedNodes Node[]          @relation("NodeAssignee")
+  comments      Comment[]
+
+  // Notifications, watching, saved views, integrations
+  emailNotifications Boolean        @default(true)
+  notifications      Notification[] @relation("NotificationRecipient")
+  actedNotifications Notification[] @relation("NotificationActor")
+  watching           NodeWatcher[]
+  savedViews         SavedView[]
+  apiTokens          ApiToken[]
+  webhooksCreated    Webhook[]
+  templates          ProjectTemplate[]
+  undoEntries        UndoEntry[]
 }
 
 model VerificationToken {
@@ -75,6 +92,46 @@ model Project {
   sprints       Sprint[]
   nodeTypes     NodeType[]
   historyEvents HistoryEvent[]
+  members       ProjectMember[]
+  invites       ProjectInvite[]
+  milestones    Milestone[]
+  savedViews    SavedView[]
+  webhooks      Webhook[]
+  notifications Notification[]
+  undoEntries   UndoEntry[]
+
+  @@index([userId])
+}
+
+// The project owner is Project.userId. Everyone else who can open the project is a member.
+model ProjectMember {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  role      String   @default("EDITOR") // EDITOR, VIEWER
+  createdAt DateTime @default(now())
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([userId])
+}
+
+model ProjectInvite {
+  id          String   @id @default(cuid())
+  projectId   String
+  email       String   // stored lower-case
+  role        String   @default("EDITOR")
+  token       String   @unique @default(cuid())
+  invitedById String
+  createdAt   DateTime @default(now())
+
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  invitedBy   User     @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, email])
+  @@index([email])
 }
 
 // Planner Configuration Models
@@ -99,6 +156,7 @@ model NodeType {
   allowedParents   AllowedRelation[] @relation("ChildType")
   
   nodes            Node[]
+  @@index([projectId, userId])
 }
 
 model FieldDefinition {
@@ -110,6 +168,7 @@ model FieldDefinition {
   options     Json?    // For SELECT fields: ["Minutes", "Hours", "Days", "Weeks"]
   
   nodeType    NodeType @relation(fields: [nodeTypeId], references: [id], onDelete: Cascade)
+  @@index([nodeTypeId])
 }
 
 model AllowedRelation {
@@ -121,6 +180,7 @@ model AllowedRelation {
   childNodeTypeType  NodeType @relation("ChildType", fields: [childNodeTypeId], references: [id], onDelete: Cascade)
 
   @@unique([parentNodeTypeId, childNodeTypeId])
+  @@index([childNodeTypeId])
 }
 
 // Sprint Tracking
@@ -130,6 +190,7 @@ model Sprint {
   startDate   DateTime?
   endDate     DateTime?
   status      String   @default("PLANNED") // PLANNED, ACTIVE, COMPLETED
+  capacity    Float?   // planned story points / effort for the sprint
   userId      String
   projectId   String
   createdAt   DateTime @default(now())
@@ -138,6 +199,7 @@ model Sprint {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   nodes       Node[]
+  @@index([projectId, userId])
 }
 
 // Planner Instance Models
@@ -152,12 +214,16 @@ model Node {
   status        String   @default("TODO") // TODO, IN_PROGRESS, DONE
   isArchived    Boolean  @default(false)
   sprintId      String?
+  assigneeId    String?
+  position      Float    @default(0) // manual order; lower comes first, ties fall back to createdAt
+  completedAt   DateTime? // when it last became DONE (drives burndown / velocity)
   startDate     DateTime?
   endDate       DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User     @relation("NodeCreator", fields: [userId], references: [id], onDelete: Cascade)
+  assignee      User?    @relation("NodeAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
   project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   type          NodeType @relation(fields: [nodeTypeId], references: [id])
   sprint        Sprint?  @relation(fields: [sprintId], references: [id], onDelete: SetNull)
@@ -169,6 +235,14 @@ model Node {
   blockedBy     NodeDependency[] @relation("BlockedNode")
   blocking      NodeDependency[] @relation("BlockingNode")
   historyEvents HistoryEvent[]
+  comments      Comment[]
+  watchers      NodeWatcher[]
+  notifications Notification[]
+
+  @@index([projectId, userId, isArchived])
+  @@index([assigneeId])
+  @@index([sprintId])
+  @@index([nodeTypeId])
 }
 
 model NodeLink {
@@ -180,6 +254,7 @@ model NodeLink {
   childNode    Node     @relation("ChildNode", fields: [childNodeId], references: [id], onDelete: Cascade)
 
   @@unique([parentNodeId, childNodeId])
+  @@index([childNodeId])
 }
 
 model NodeDependency {
@@ -191,6 +266,7 @@ model NodeDependency {
   blockingNode     Node   @relation("BlockingNode", fields: [blockingNodeId], references: [id], onDelete: Cascade)
 
   @@unique([blockedNodeId, blockingNodeId])
+  @@index([blockingNodeId])
 }
 
 model HistoryEvent {
@@ -208,4 +284,148 @@ model HistoryEvent {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   node        Node?    @relation(fields: [nodeId], references: [id], onDelete: SetNull)
+  @@index([projectId, createdAt])
+  @@index([nodeId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  nodeId    String
+  userId    String
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+
+  node      Node     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([nodeId, createdAt])
+}
+
+model Milestone {
+  id          String   @id @default(cuid())
+  projectId   String
+  name        String
+  date        DateTime
+  color       String   @default("#f59e0b")
+  description String?
+  createdAt   DateTime @default(now())
+
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, date])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String    // recipient
+  actorId   String?
+  projectId String?
+  nodeId    String?
+  type      String    // ASSIGNED, MENTION, COMMENT, STATUS, INVITE
+  title     String
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+  emailedAt DateTime? // when this was sent as an email, so it is only sent once
+
+  user      User      @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actor     User?     @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  project   Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  node      Node?     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+}
+
+model NodeWatcher {
+  id        String   @id @default(cuid())
+  nodeId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  node      Node     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([nodeId, userId])
+  @@index([userId])
+}
+
+// A named set of filters for a page. `query` is the page's URL query string. Shared views are visible to every member.
+model SavedView {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  name      String
+  page      String   // board, backlog, timeline
+  query     String
+  shared    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, page])
+}
+
+// Personal access token for the REST API. Only a SHA-256 hash is stored; the token itself is shown once.
+model ApiToken {
+  id         String    @id @default(cuid())
+  userId     String
+  name       String
+  tokenHash  String    @unique
+  prefix     String
+  readOnly   Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Webhook {
+  id             String    @id @default(cuid())
+  projectId      String
+  url            String
+  secret         String
+  events         String    // comma separated event names, or "*"
+  active         Boolean   @default(true)
+  createdById    String
+  createdAt      DateTime  @default(now())
+  lastDeliveryAt DateTime?
+  lastStatus     Int?
+  lastError      String?
+  failureCount   Int       @default(0)
+
+  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy      User      @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+// A reusable project setup (item types, fields, relations, sprint cadence) owned by one user.
+model ProjectTemplate {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  config      Json
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Short-lived snapshot that lets a delete be undone.
+model UndoEntry {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  kind      String   // DELETE_NODE
+  payload   Json
+  createdAt DateTime @default(now())
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, userId, createdAt])
 }

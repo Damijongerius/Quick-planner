@@ -1,13 +1,6 @@
 "use client";
-import "./TopAppBar.css";
-import "./ui/Button.css";
 
-import { useState, useRef, useEffect } from "react";
-import { Bell, Settings, Calendar, Trees, ChevronRight, Clock, Menu, ShieldAlert } from "lucide-react";
-import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
-import { archiveProject, unarchiveProject } from "@/lib/actions";
+import { Menu, ShieldAlert } from "lucide-react";
 import { useProject } from "./ProjectContext";
 
 interface TopAppBarProps {
@@ -15,137 +8,27 @@ interface TopAppBarProps {
   readonly onMenuClick?: () => void;
 }
 
-export function TopAppBar({ projectId, onMenuClick }: Readonly<TopAppBarProps>) {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isArchiving, setIsArchiving] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
-  const { isReadOnly } = useProject();
-
-  // Corrected click outside
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsSettingsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const handleArchive = async () => {
-    try {
-      setIsArchiving(true);
-      if (isReadOnly) {
-        await unarchiveProject(projectId);
-        router.refresh();
-      } else {
-        await archiveProject(projectId);
-        router.push("/projects");
-      }
-    } catch (error) {
-      console.error("Failed to archive/unarchive project:", error);
-    } finally {
-      setIsArchiving(false);
-      setIsSettingsOpen(false);
-    }
-  };
-
-  let archiveActionLabel = isReadOnly ? "Restore Project" : "Archive Project";
-  if (isArchiving) {
-    archiveActionLabel = "Processing...";
-  }
-
-  const settingsItems = [
-    { name: "Sprints", href: `/project/${projectId}/sprints`, icon: Calendar, desc: "Manage milestones and dates" },
-    { name: "Audit Log", href: `/project/${projectId}/history`, icon: Clock, desc: "Track all strategic changes" },
-    { name: "Node Architecture", href: `/project/${projectId}/settings/nodes`, icon: Trees, desc: "Design types and connections" },
-  ];
+/** Mobile menu button and the read-only notice. Desktop navigation lives in the sidebar. */
+export function TopAppBar({ onMenuClick }: Readonly<TopAppBarProps>) {
+  const { project, isReadOnly, isArchived } = useProject();
 
   return (
-    <header className="top-bar">
-      <div className="flex items-center lg:hidden">
-        <button 
-          onClick={onMenuClick}
-          className="icon-button"
-        >
-          <Menu size={20} className="text-on-surface" />
+    <>
+      <header className="sticky top-0 z-40 flex h-12 items-center gap-2 border-b border-border bg-bg px-3 lg:hidden">
+        <button onClick={onMenuClick} className="icon-button" aria-label="Open menu">
+          <Menu size={18} />
         </button>
-      </div>
+        <span className="truncate text-sm font-semibold">{project.name}</span>
+      </header>
 
-      <div className="flex-1 flex items-center gap-md">
-        {isReadOnly && (
-          <div className="flex items-center gap-xs px-md py-xs bg-error/10 border border-error/20 rounded-full text-error font-bold text-[10px] tracking-widest uppercase">
-            <ShieldAlert size={12} /> Read-Only Workspace
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-center gap-sm shrink-0" ref={dropdownRef}>
-        <div className="relative">
-          <button className="icon-button">
-            <Bell size={20} className="text-on-surface-variant" />
-          </button>
+      {isReadOnly && (
+        <div role="status" className="flex items-center gap-2 border-b border-border bg-danger-soft px-6 py-2 text-sm text-danger">
+          <ShieldAlert size={14} />
+          {isArchived
+            ? "This project is archived and read-only. The owner can restore it from the project menu."
+            : "You have view-only access to this project. You can still read everything and leave comments."}
         </div>
-        
-        <div className="relative">
-          <button 
-            className={`icon-button ${isSettingsOpen ? 'active' : ''}`}
-            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-          >
-            <Settings size={20} className={isSettingsOpen ? 'text-primary' : 'text-on-surface-variant'} />
-          </button>
-
-          <AnimatePresence>
-            {isSettingsOpen && (
-              <motion.div 
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="glass dropdown-menu settings-dropdown"
-                style={{ right: 0, top: '100%', marginTop: '12px' }}
-              >
-                <div className="dropdown-header">
-                    <p className="text-meta">Workspace Settings</p>
-                </div>
-                
-                <div className="dropdown-body flex flex-col gap-xs">
-                    {settingsItems.map((item) => (
-                        <Link 
-                            key={item.name} 
-                            href={item.href}
-                            onClick={() => setIsSettingsOpen(false)}
-                            className="nav-link"
-                        >
-                            <div className="nav-item flex items-center gap-md">
-                                <div className="text-primary">
-                                    <item.icon size={18} />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="dropdown-item-title">{item.name}</p>
-                                    <p className="dropdown-item-desc">{item.desc}</p>
-                                </div>
-                                <ChevronRight size={14} className="text-meta opacity-30" />
-                            </div>
-                        </Link>
-                    ))}
-                </div>
-                
-                <div className="dropdown-footer" style={{ borderTop: '1px solid var(--outline-variant)', marginTop: '8px', paddingTop: '8px' }}>
-                    <button 
-                      className={`button-ghost w-full justify-center font-bold ${isReadOnly ? 'text-primary' : 'text-error'}`}
-                      style={{ border: 'none', background: 'transparent' }}
-                      onClick={handleArchive}
-                      disabled={isArchiving}
-                    >
-                        {archiveActionLabel}
-                    </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-    </header>
-);
+      )}
+    </>
+  );
 }

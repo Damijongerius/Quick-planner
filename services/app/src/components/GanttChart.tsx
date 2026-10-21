@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { Milestone, Calendar, CalendarDays } from "lucide-react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Calendar, CalendarDays, Diamond, Spline } from "lucide-react";
 import { GanttGridHeader } from "./GanttGridHeader";
 import { GanttSprintSection } from "./GanttSprintSection";
 import { GanttNodeSection } from "./GanttNodeSection";
 import { SegmentedControl } from "./ui/SegmentedControl";
+import { DependencyArrows } from "./timeline/DependencyArrows";
+import { MilestoneDialog, MilestoneMarkers } from "./timeline/MilestoneRow";
+import { useProject } from "./ProjectContext";
+import { dependencyEdges } from "@/lib/timeline";
+import type { MilestoneInfo } from "@/lib/actions/milestones";
 import "./Gantt.css";
 
 import { Node, Sprint } from "@/lib/types";
@@ -18,6 +23,9 @@ interface GanttChartProps {
   boardLevelView?: string;
   rowTypeIds?: string[];
   cardTypeIds?: string[];
+  /** Clicking a bar (without dragging it) opens the item. */
+  onNodeClick?: (nodeId: string) => void;
+  milestones?: MilestoneInfo[];
 }
 
 function getStartOfWeek(date: Date) {
@@ -70,9 +78,17 @@ export function GanttChart({
   currentSprintId,
   boardLevelView = "flat",
   rowTypeIds = [],
-  cardTypeIds = []
+  cardTypeIds = [],
+  onNodeClick,
+  milestones = []
 }: Readonly<GanttChartProps>) {
+  const { isReadOnly } = useProject();
   const [viewScale, setViewScale] = useState<"days" | "weeks">("days");
+  const [showDeps, setShowDeps] = useState(true);
+  const [dialog, setDialog] = useState<{ open: boolean; milestone: MilestoneInfo | null }>({ open: false, milestone: null });
+  const contentRef = useRef<HTMLDivElement>(null);
+  const edges = useMemo(() => dependencyEdges(nodes), [nodes]);
+  const conflicts = edges.filter((e) => e.conflict).length;
   const [tooltip, setTooltip] = useState<{
     x: number;
     y: number;
@@ -125,6 +141,7 @@ export function GanttChart({
         allDates.push(new Date(s.endDate).getTime());
       }
     });
+    milestones.forEach((m) => allDates.push(new Date(m.date).getTime()));
     nodes.forEach((n) => { 
       if (n.startDate) {
         allDates.push(new Date(n.startDate).getTime());
@@ -156,13 +173,15 @@ export function GanttChart({
       days: generateDays(minDate, maxDate),
       weeks: generateWeeks(minDate, maxDate)
     };
-  }, [sprints, nodes]);
+  }, [sprints, nodes, milestones]);
 
   const getDayOffset = (dateValue: string | Date | null | undefined) => {
     if (!dateValue) return null;
     const d = new Date(dateValue); d.setHours(0,0,0,0);
     const diffDays = Math.round((d.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    return (diffDays < 0 || diffDays >= days.length) ? null : diffDays;
+    // The weeks view can span more days than the (capped) daily grid, so bound by the active scale.
+    const visibleDays = viewScale === "days" ? days.length : weeks.length * 7;
+    return (diffDays < 0 || diffDays >= visibleDays) ? null : diffDays;
   };
 
   const todayCol = getDayOffset(new Date());
@@ -174,28 +193,55 @@ export function GanttChart({
   const colWidth = viewScale === "days" ? 40 : 140;
   const totalGridWidth = (viewScale === "days" ? days.length : weeks.length) * colWidth;
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollToToday = (behavior: ScrollBehavior) => {
+    const el = scrollRef.current;
+    if (!el || todayX === null) return;
+    el.scrollTo({ left: Math.max(0, todayX - el.clientWidth / 3), behavior });
+  };
+  // Open on "today" instead of the earliest date, and re-centre when the scale changes.
+  useEffect(() => {
+    scrollToToday("auto");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewScale]);
+
   return (
-    <div className="card-planner gantt-container">
-      <header className="gantt-header flex justify-between items-center">
-        <div className="flex items-center gap-md">
-            <div className="gantt-header-icon"><Milestone size={20} /></div>
-            <div><h3 className="gantt-header-title">Project Strategic Timeline</h3><p className="text-meta gantt-header-subtitle">{startDate.toLocaleDateString()} — {endDate.toLocaleDateString()} • {sprints.length} Cycles Defined</p></div>
-        </div>
-        <div className="flex items-center gap-sm">
+    <div className="gantt-container">
+      <header className="gantt-toolbar">
+        <p className="text-sm text-muted" suppressHydrationWarning>
+          {startDate.toLocaleDateString()} – {endDate.toLocaleDateString()} · {sprints.length} {sprints.length === 1 ? "sprint" : "sprints"}
+        </p>
+        <div className="flex items-center gap-2">
+          {conflicts > 0 && showDeps && (
+            <span role="status" className="rounded-full bg-danger-soft px-2.5 py-0.5 text-xs font-medium text-danger" data-testid="schedule-conflicts">
+              {conflicts} scheduling {conflicts === 1 ? "conflict" : "conflicts"}
+            </span>
+          )}
+          {edges.length > 0 && (
+            <button type="button" className="button-base button-secondary button-sm" aria-pressed={showDeps} onClick={() => setShowDeps((v) => !v)} title="Show arrows between items that depend on each other">
+              <Spline size={14} /> Dependencies
+            </button>
+          )}
+          {!isReadOnly && (
+            <button type="button" className="button-base button-secondary button-sm" onClick={() => setDialog({ open: true, milestone: null })}>
+              <Diamond size={13} /> Milestone
+            </button>
+          )}
+          <button className="button-base button-secondary button-sm" onClick={() => scrollToToday("smooth")} disabled={todayX === null}>Today</button>
           <SegmentedControl 
             layoutId="gantt-time-scale"
             options={[
-              { id: "days", label: "Days", icon: <Calendar size={16} /> },
-              { id: "weeks", label: "Weeks", icon: <CalendarDays size={16} /> }
+              { id: "days", label: "Days", icon: <Calendar size={14} /> },
+              { id: "weeks", label: "Weeks", icon: <CalendarDays size={14} /> }
             ]}
             value={viewScale}
-            onChange={(val) => setViewScale(val as any)}
+            onChange={(val) => setViewScale(val as "days" | "weeks")}
           />
         </div>
       </header>
  
-      <div className="gantt-scroll-area">
-        <div className="gantt-content" style={{ '--gantt-min-width': `${totalGridWidth}px` } as React.CSSProperties}>
+      <div className="gantt-scroll-area" ref={scrollRef}>
+        <div className="gantt-content" ref={contentRef} style={{ '--gantt-min-width': `${totalGridWidth}px` } as React.CSSProperties}>
           <GanttGridHeader 
             days={days} 
             weeks={weeks} 
@@ -210,6 +256,7 @@ export function GanttChart({
             viewScale={viewScale}
             colWidth={colWidth}
           />
+          <MilestoneMarkers milestones={milestones} getDayOffset={getDayOffset} viewScale={viewScale} onOpen={(milestone) => setDialog({ open: true, milestone })} />
           <GanttNodeSection 
             projectId={projectId}
             nodes={nodes} 
@@ -220,9 +267,11 @@ export function GanttChart({
             boardLevelView={boardLevelView}
             rowTypeIds={rowTypeIds}
             cardTypeIds={cardTypeIds}
+            onNodeClick={onNodeClick}
             onHover={handleHover}
             onMouseMove={handleMouseMove}
           />
+          {showDeps && <DependencyArrows edges={edges} containerRef={contentRef} />}
           {todayX !== null && (
             <div className="gantt-today-line" style={{ left: `${todayX}px` }} />
           )}
@@ -237,7 +286,7 @@ export function GanttChart({
               {tooltip.badge && (
                 <span 
                   className="gantt-tooltip-badge" 
-                  style={{ backgroundColor: tooltip.badgeColor || 'var(--primary)' }}
+                  style={{ backgroundColor: tooltip.badgeColor || 'var(--accent)' }}
                 >
                   {tooltip.badge}
                 </span>
@@ -248,6 +297,7 @@ export function GanttChart({
           )}
         </div>
       </div>
+      <MilestoneDialog projectId={projectId} open={dialog.open} milestone={dialog.milestone} canEdit={!isReadOnly} onClose={() => setDialog((d) => ({ ...d, open: false }))} />
     </div>
   );
 }

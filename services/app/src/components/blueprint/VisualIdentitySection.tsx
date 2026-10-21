@@ -14,15 +14,16 @@ interface VisualIdentitySectionProps {
 
 export function VisualIdentitySection({ activeNodeType, onUpdateIcon, onUpdateColor, isReadOnly }: Readonly<VisualIdentitySectionProps>) {
     return (
-        <section className="flex flex-col gap-lg">
-            <span className="text-meta text-10px opacity-60 uppercase">Visual Identity</span>
-            <div className="bg-surface-container-low p-lg rounded-[24px] border border-outline-variant">
-                <p className="text-10px font-bold mb-md opacity-40 uppercase">Icon Representation</p>
-                <IconPicker currentIcon={activeNodeType.icon || ""} onSelect={isReadOnly ? () => {} : onUpdateIcon} color={activeNodeType.color || undefined} />
-                
-                <div className="mt-lg">
-                    <p className="text-10px font-bold mb-sm opacity-40 uppercase">Color Signature</p>
-                    <PlannerColorPicker currentColor={activeNodeType.color || ""} onSelect={isReadOnly ? () => {} : onUpdateColor} />
+        <section className="flex flex-col gap-3">
+            <h3 className="text-sm font-semibold">Appearance</h3>
+            <div className={`flex flex-col gap-4 rounded-lg border border-border bg-bg p-3 ${isReadOnly ? "pointer-events-none opacity-60" : ""}`}>
+                <div>
+                    <p className="mb-2 text-xs font-medium text-muted">Icon</p>
+                    <IconPicker currentIcon={activeNodeType.icon || ""} onSelect={onUpdateIcon} color={activeNodeType.color || undefined} />
+                </div>
+                <div>
+                    <p className="mb-2 text-xs font-medium text-muted">Colour</p>
+                    <PlannerColorPicker currentColor={activeNodeType.color || ""} onSelect={onUpdateColor} />
                 </div>
             </div>
         </section>

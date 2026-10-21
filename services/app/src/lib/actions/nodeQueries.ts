@@ -1,16 +1,19 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { auth } from "@/auth";
+import { requireProjectAccess, getProjectViewerId } from "./helpers";
 import { serializeData } from "@/lib/utils";
+import { byRank } from "@/lib/order";
 import { Node } from "@/lib/types";
 
+const ASSIGNEE = { select: { id: true, name: true, email: true, image: true } } as const;
+
 export async function getNode(projectId: string, id: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  const node = await prisma.node.findUnique({
-    where: { id, userId: session.user.id, projectId },
+  await requireProjectAccess(projectId, { mode: "read" });
+  const node = await prisma.node.findFirst({
+    where: { id, projectId },
     include: {
+      assignee: ASSIGNEE,
       type: { include: { fields: true } },
       parentLinks: { include: { parentNode: { include: { type: true } } } },
       childLinks: { include: { childNode: { include: { type: true } } } },
@@ -23,15 +26,16 @@ export async function getNode(projectId: string, id: string) {
 }
 
 export async function getNodeChildren(projectId: string, nodeId: string) {
-  const session = await auth();
-  if (!session?.user?.id) return [];
-  const node = await prisma.node.findUnique({
+  const userId = await getProjectViewerId(projectId);
+  if (!userId) return [];
+  const node = await prisma.node.findFirst({
     where: { id: nodeId, projectId },
     include: {
       childLinks: {
         include: {
           childNode: {
             include: { 
+              assignee: ASSIGNEE,
               type: { include: { fields: true } },
               childLinks: { include: { childNode: { include: { type: true } } } }
             }
@@ -41,16 +45,15 @@ export async function getNodeChildren(projectId: string, nodeId: string) {
     }
   });
   const children = node?.childLinks.map((l) => l.childNode) || [];
-  children.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  children.sort(byRank);
   return serializeData(children) as Node[];
 }
 
 export async function getRootNodes(projectId: string, showArchived: boolean = false) {
-  const session = await auth();
-  if (!session?.user?.id) return [];
+  const userId = await getProjectViewerId(projectId);
+  if (!userId) return [];
   const nodes = await prisma.node.findMany({
     where: {
-      userId: session.user.id,
       projectId,
       isArchived: showArchived,
       OR: showArchived
@@ -63,10 +66,12 @@ export async function getRootNodes(projectId: string, showArchived: boolean = fa
             { parentLinks: { every: { parentNode: { isArchived: true } } } }
           ]
     },
-    orderBy: { createdAt: 'asc' },
+    orderBy: [{ position: 'asc' }, { createdAt: 'asc' }],
     include: {
       type: { include: { fields: true } },
-      childLinks: { include: { childNode: { include: { type: { include: { fields: true } }, sprint: true } } } },
+      assignee: ASSIGNEE,
+      _count: { select: { comments: true } },
+      childLinks: { include: { childNode: { include: { assignee: ASSIGNEE, _count: { select: { comments: true } }, type: { include: { fields: true } }, sprint: true } } } },
       blockedBy: { include: { blockingNode: { include: { type: true } } } },
       blocking: { include: { blockedNode: { include: { type: true } } } },
       sprint: true
@@ -76,12 +81,15 @@ export async function getRootNodes(projectId: string, showArchived: boolean = fa
 }
 
 export async function getAllNodes(projectId: string): Promise<Node[]> {
-  const session = await auth();
-  if (!session?.user?.id) return [];
+  const userId = await getProjectViewerId(projectId);
+  if (!userId) return [];
   const nodes = await prisma.node.findMany({
-    where: { userId: session.user.id, projectId },
+    where: { projectId },
+    orderBy: [{ position: 'asc' }, { createdAt: 'asc' }],
     include: {
       type: { include: { fields: true } },
+      assignee: ASSIGNEE,
+      _count: { select: { comments: true } },
       parentLinks: { include: { parentNode: { include: { type: true } } } },
       blockedBy: { include: { blockingNode: { include: { type: true } } } },
       sprint: true

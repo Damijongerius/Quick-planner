@@ -1,110 +1,30 @@
-.select-custom-container {
-  position: relative;
-  width: 100%;
-  display: inline-block;
-}
+@layer components {
+.select-custom-container { position: relative; width: 100%; display: inline-block; }
 
 .select-custom-trigger {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  height: 36px;
-  background: var(--surface-container-lowest);
-  border: 1px solid var(--outline-variant);
-  border-radius: 12px;
-  padding: 8px 12px;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--on-surface);
-  transition: all 0.2s ease;
-  cursor: pointer;
-  outline: none;
-  text-align: left;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  width: 100%; height: 34px; padding: 0 10px;
+  background: var(--panel); border: 1px solid var(--border-strong); border-radius: var(--radius-md);
+  font-size: 13px; font-weight: 400; color: var(--fg); cursor: pointer; text-align: left;
+  transition: border-color 0.12s, box-shadow 0.12s, background-color 0.12s;
 }
-
-.select-custom-trigger:hover:not(:disabled) {
-  border-color: rgba(70, 86, 184, 0.4);
-  background-color: var(--surface-container-low);
-}
-
-.select-custom-trigger:focus:not(:disabled),
-.select-custom-trigger.open {
-  border-color: var(--primary);
-  box-shadow: var(--primary-shadow);
-}
-
-.select-custom-trigger:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.select-custom-arrow {
-  color: var(--on-surface-variant);
-  transition: transform 0.2s ease;
-  flex-shrink: 0;
-  opacity: 0.7;
-}
-
-.select-custom-arrow.rotated {
-  transform: rotate(180deg);
-}
-
-.select-option-color-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-  flex-shrink: 0;
-}
+.select-custom-trigger:hover:not(:disabled) { border-color: var(--faint); }
+.select-custom-trigger:focus-visible, .select-custom-trigger.open { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+.select-custom-trigger:disabled { background: var(--hover); color: var(--muted); cursor: not-allowed; }
+.select-custom-arrow { color: var(--faint); flex-shrink: 0; transition: transform 0.15s; }
+.select-custom-arrow.rotated { transform: rotate(180deg); }
+.select-option-color-dot { width: 8px; height: 8px; border-radius: 9999px; flex-shrink: 0; display: inline-block; }
 
 .select-custom-dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  width: 100%;
-  min-width: 160px;
-  max-height: 240px;
-  overflow-y: auto;
-  border: 1px solid var(--outline-variant);
-  border-radius: 12px;
-  box-shadow: var(--planner-shadow);
-  z-index: 1000;
-  padding: 6px;
+  background: var(--panel) !important; border: 1px solid var(--border) !important; border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-lg) !important; padding: 4px; max-height: 280px; overflow-y: auto; min-width: 160px;
 }
-
-.select-custom-options-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
+.select-custom-options-list { display: flex; flex-direction: column; gap: 1px; }
 .select-custom-option {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 8px 12px;
-  border: none;
-  background: transparent;
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--on-surface);
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  outline: none;
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+  padding: 7px 10px; border: none; border-radius: var(--radius-sm); background: transparent;
+  font-size: 13px; color: var(--fg); cursor: pointer;
 }
-
-.select-custom-option:hover {
-  background-color: color-mix(in srgb, var(--primary) 8%, transparent);
-  color: var(--primary);
-}
-
-.select-custom-option.selected {
-  background-color: color-mix(in srgb, var(--primary) 12%, transparent);
-  color: var(--primary);
+.select-custom-option:hover { background: var(--hover); }
+.select-custom-option.selected { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
 }

@@ -1,15 +1,13 @@
 "use client";
 
 import { Trash2, Type, LucideIcon } from 'lucide-react';
-import { Button } from '../ui/Button';
-import { Badge } from '../ui/Badge';
 import { removeFieldDefinition } from '@/lib/actions';
 
 interface FieldDefinition {
     id: string;
     name: string;
     type: string;
-    options?: any[] | null;
+    options?: unknown[] | null;
 }
 
 interface FieldDefinitionItemProps {
@@ -19,60 +17,37 @@ interface FieldDefinitionItemProps {
     fieldTypes: { type: string; icon: LucideIcon }[];
 }
 
-export function FieldDefinitionItem({
-    field,
-    projectId,
-    isReadOnly,
-    fieldTypes,
-}: Readonly<FieldDefinitionItemProps>) {
+const TYPE_LABEL: Record<string, string> = { TEXT: "Text", NUMBER: "Number", DATE: "Date", CHECKBOX: "Checkbox", SELECT: "Select" };
+
+export function FieldDefinitionItem({ field, projectId, isReadOnly, fieldTypes }: Readonly<FieldDefinitionItemProps>) {
     const Icon = fieldTypes.find((t) => t.type === field.type)?.icon || Type;
     return (
-        <div className="flex items-center justify-between group py-sm border-b border-outline-variant/30 last:border-0">
-            <div className="flex items-start gap-md">
-                <div className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary shrink-0 mt-xs">
-                    <Icon size={16} />
-                </div>
-                <div className="flex flex-col">
-                    <div className="flex items-center gap-sm">
-                        <span className="text-sm font-bold text-on-surface">{field.name}</span>
+        <div className="group flex items-start gap-3 border-b border-border px-3 py-2.5 last:border-b-0">
+            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-hover text-muted"><Icon size={14} /></span>
+            <div className="min-w-0 flex-1">
+                <p className="flex items-baseline gap-2 text-sm font-medium">{field.name} <span className="text-xs font-normal text-faint">{TYPE_LABEL[field.type] ?? field.type}</span></p>
+                {field.type === 'SELECT' && field.options && field.options.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                        {field.options.map((opt, i) => {
+                            const val = typeof opt === 'string' ? opt : (opt as { value: string }).value;
+                            const color = typeof opt === 'string' ? undefined : (opt as { color?: string }).color;
+                            return (
+                                <span key={i} className="rounded-full px-2 py-0.5 text-xs" style={color ? { color, background: `color-mix(in srgb, ${color} 14%, transparent)` } : { color: 'var(--muted)', background: 'var(--hover)' }}>
+                                    {val}
+                                </span>
+                            );
+                        })}
                     </div>
-                    {field.type === 'SELECT' && field.options && field.options.length > 0 && (
-                        <div className="flex items-center gap-xs mt-sm flex-wrap">
-                            {field.options.map((opt: any, i) => {
-                                const val = typeof opt === 'string' ? opt : opt.value;
-                                const color = typeof opt === 'string' ? undefined : opt.color;
-                                return (
-                                    <span
-                                        key={i}
-                                        className="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs"
-                                        style={color ? {
-                                            backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`,
-                                            color: color,
-                                            border: `1px solid color-mix(in srgb, ${color} 25%, transparent)`,
-                                            fontWeight: 400
-                                        } : {
-                                            backgroundColor: 'var(--surface-container-high)',
-                                            color: 'var(--on-surface-variant)',
-                                            border: '1px solid var(--outline-variant)',
-                                            fontWeight: 400
-                                        }}
-                                    >
-                                        {val}
-                                    </span>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
+                )}
             </div>
             {!isReadOnly && (
-                <Button
-                    variant="ghost"
-                    onClick={() => removeFieldDefinition(projectId, field.id)}
-                    className="opacity-0 group-hover:opacity-100 p-xs text-error hover:bg-error/10 rounded-md transition-all"
+                <button
+                    onClick={async () => { if (confirm(`Remove the “${field.name}” field? Values already entered on items are kept but hidden.`)) await removeFieldDefinition(projectId, field.id); }}
+                    className="flex h-7 w-7 items-center justify-center rounded-md text-faint opacity-0 transition-opacity hover:bg-danger-soft hover:text-danger group-hover:opacity-100 focus-visible:opacity-100"
+                    aria-label={`Remove field ${field.name}`}
                 >
                     <Trash2 size={14} />
-                </Button>
+                </button>
             )}
         </div>
     );

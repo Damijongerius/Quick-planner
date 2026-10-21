@@ -8,6 +8,7 @@ import { BoardConfig } from '@/lib/types';
 interface LayerBoxNodeProps {
   data: {
     depth: number;
+    width: number;
     label: string;
     projectId: string;
     isReadOnly?: boolean;
@@ -79,40 +80,39 @@ export const LayerBoxNode = ({ data }: Readonly<LayerBoxNodeProps>) => {
   };
 
   return (
-    <div className="blueprint-layer-box">
+    <div className="blueprint-layer-box" style={{ width: data.width }}>
       <div className="blueprint-layer-box-header">
-        <div className="blueprint-layer-box-title">
-          {data.label}
-        </div>
-        <div className="blueprint-layer-box-toggles pointer-events-auto flex items-center gap-sm">
+        <div className="blueprint-layer-box-title">{data.label}</div>
+        <div className="blueprint-layer-box-toggles">
           <button
             onClick={(e) => { e.stopPropagation(); toggleVisibility('showOnKanban'); }}
             disabled={data.isReadOnly}
-            className={`blueprint-layer-pill ${localKanban ? 'active-kanban' : ''}`}
-            title="Toggle Kanban visibility for this layer"
+            className={`blueprint-layer-pill ${localKanban ? 'active' : ''}`}
+            title="Show items of this level on the board"
+            aria-pressed={localKanban}
           >
-            <LayoutGrid size={10} />
-            <span>Kanban</span>
+            <LayoutGrid size={12} />
+            <span>Board</span>
           </button>
-
           <button
             onClick={(e) => { e.stopPropagation(); toggleVisibility('showOnGantt'); }}
             disabled={data.isReadOnly}
-            className={`blueprint-layer-pill ${localGantt ? 'active-gantt' : ''}`}
-            title="Toggle Gantt visibility for this layer"
+            className={`blueprint-layer-pill ${localGantt ? 'active' : ''}`}
+            title="Show items of this level on the timeline"
+            aria-pressed={localGantt}
           >
-            <Calendar size={10} />
-            <span>Gantt</span>
+            <Calendar size={12} />
+            <span>Timeline</span>
           </button>
-
           <button
             onClick={(e) => { e.stopPropagation(); toggleSprint(); }}
             disabled={data.isReadOnly}
-            className={`blueprint-layer-pill ${localSprint ? 'active-sprint' : ''}`}
-            title="Toggle Sprint eligibility for this layer"
+            className={`blueprint-layer-pill ${localSprint ? 'active' : ''}`}
+            title="Allow items of this level to be planned in sprints"
+            aria-pressed={localSprint}
           >
-            <Milestone size={10} />
-            <span>Sprint</span>
+            <Milestone size={12} />
+            <span>Sprints</span>
           </button>
         </div>
       </div>

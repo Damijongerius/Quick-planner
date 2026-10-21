@@ -1,7 +1,7 @@
 "use client";
 
 import React, { FormEvent } from 'react';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, X } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
 
@@ -19,37 +19,29 @@ interface AddFieldDefinitionFormProps {
     setSelectOptions: React.Dispatch<React.SetStateAction<{ value: string; color: string }[]>>;
 }
 
+const TYPE_LABEL: Record<string, string> = { TEXT: "Text", NUMBER: "Number", DATE: "Date", CHECKBOX: "Checkbox", SELECT: "Select" };
+
+const COLORS = [
+    { name: "Green", value: "#10b981" },
+    { name: "Yellow", value: "#eab308" },
+    { name: "Orange", value: "#f97316" },
+    { name: "Red", value: "#ef4444" },
+    { name: "Blue", value: "#3b82f6" },
+    { name: "Pink", value: "#ec4899" },
+    { name: "Purple", value: "#a855f7" },
+    { name: "Slate", value: "#64748b" },
+];
+
 export function AddFieldDefinitionForm({
-    fieldName,
-    fieldType,
-    fieldOptions,
-    setFieldName,
-    setFieldType,
-    setFieldOptions,
-    onAddField,
-    fieldTypes,
-    onDiscard,
-    selectOptions,
-    setSelectOptions
+    fieldName, fieldType, fieldOptions, setFieldName, setFieldType, setFieldOptions,
+    onAddField, fieldTypes, onDiscard, selectOptions, setSelectOptions,
 }: Readonly<AddFieldDefinitionFormProps>) {
-    const options = fieldTypes.map(({ type }) => ({ value: type, label: type }));
-
+    const typeOptions = fieldTypes.map(({ type }) => ({ value: type, label: TYPE_LABEL[type] ?? type }));
     const [newOptionVal, setNewOptionVal] = React.useState("");
-    const [newOptionColor, setNewOptionColor] = React.useState("#10b981");
-
-    const colors = [
-        { name: "Green", value: "#10b981" },
-        { name: "Yellow", value: "#eab308" },
-        { name: "Orange", value: "#f97316" },
-        { name: "Red", value: "#ef4444" },
-        { name: "Blue", value: "#3b82f6" },
-        { name: "Pink", value: "#ec4899" },
-        { name: "Purple", value: "#a855f7" },
-        { name: "Slate", value: "#64748b" }
-    ];
+    const [newOptionColor, setNewOptionColor] = React.useState(COLORS[0].value);
 
     function handleAddOption(e?: React.MouseEvent) {
-        if (e) e.preventDefault();
+        e?.preventDefault();
         const val = newOptionVal.trim();
         if (!val) return;
         if (selectOptions.some(o => o.value.toLowerCase() === val.toLowerCase())) return;
@@ -58,127 +50,68 @@ export function AddFieldDefinitionForm({
     }
 
     return (
-        <form onSubmit={onAddField} className="flex flex-col gap-sm pb-md border-b border-outline-variant mb-sm animate-in fade-in slide-in-from-top-2">
-            <div className="flex gap-sm">
+        <form onSubmit={onAddField} className="flex flex-col gap-3 animate-fade-in">
+            <div className="flex gap-2">
                 <div className="flex-1">
-                    <label htmlFor="field-name" className="sr-only">Attribute name</label>
-                    <input 
-                        id="field-name"
-                        autoFocus 
-                        className="input-planner w-full h-10 text-sm px-md" 
-                        placeholder="Attribute name (e.g. ROI, Priority)" 
-                        value={fieldName} 
-                        onChange={(e) => setFieldName(e.target.value)}
-                        required 
-                    />
+                    <label htmlFor="field-name" className="sr-only">Field name</label>
+                    <input id="field-name" autoFocus className="input-planner" placeholder="Field name, e.g. Priority" value={fieldName} onChange={(e) => setFieldName(e.target.value)} maxLength={120} required />
                 </div>
-                <div style={{ width: '128px' }}>
-                    <label htmlFor="field-type" className="sr-only">Attribute type</label>
-                    <Select 
-                        options={options}
-                        value={fieldType}
-                        onChange={setFieldType}
-                        triggerClassName="h-10 text-[10px] font-bold uppercase"
-                    />
-                </div>
+                <div className="w-32"><Select options={typeOptions} value={fieldType} onChange={setFieldType} /></div>
             </div>
+
             {fieldType === 'SELECT' && (
-                <div className="flex flex-col gap-sm animate-in fade-in slide-in-from-top-1">
-                    <span className="text-[10px] opacity-60 uppercase font-semibold">Select Options</span>
-                    
+                <div className="flex flex-col gap-2 rounded-md border border-border bg-panel p-2.5">
+                    <span className="text-xs font-medium text-muted">Options</span>
+
                     {selectOptions.length > 0 && (
-                        <div className="flex flex-wrap gap-xs p-sm bg-surface-container-high rounded-xl border border-outline-variant">
+                        <div className="flex flex-wrap gap-1.5">
                             {selectOptions.map((opt) => (
-                                <span 
-                                    key={opt.value}
-                                    className="status-pill flex items-center gap-xs"
-                                    style={{
-                                        fontSize: '11px',
-                                        padding: '4px 10px',
-                                        backgroundColor: `color-mix(in srgb, ${opt.color} 12%, transparent)`,
-                                        color: opt.color,
-                                        border: `1px solid color-mix(in srgb, ${opt.color} 25%, transparent)`,
-                                        fontWeight: 600
-                                    }}
-                                >
+                                <span key={opt.value} className="inline-flex items-center gap-1 rounded-full py-0.5 pl-2 pr-1 text-xs font-medium" style={{ color: opt.color, background: `color-mix(in srgb, ${opt.color} 14%, transparent)` }}>
                                     {opt.value}
-                                    <button
-                                        type="button"
-                                        onClick={() => setSelectOptions(selectOptions.filter(o => o.value !== opt.value))}
-                                        className="hover:opacity-100 opacity-60 transition-all border-none bg-transparent p-0 flex items-center justify-center text-xs ml-xs cursor-pointer"
-                                        style={{ color: opt.color }}
-                                    >
-                                        ×
+                                    <button type="button" aria-label={`Remove ${opt.value}`} onClick={() => setSelectOptions(selectOptions.filter(o => o.value !== opt.value))} className="flex h-4 w-4 items-center justify-center rounded-full hover:bg-black/10">
+                                        <X size={11} />
                                     </button>
                                 </span>
                             ))}
                         </div>
                     )}
 
-                    <div className="flex flex-col gap-xs bg-surface-container-low p-sm rounded-xl border border-outline-variant">
-                        <div className="flex gap-sm">
-                            <input 
-                                className="input-planner flex-1 h-9 text-xs px-sm" 
-                                placeholder="Option name (e.g. Minutes, Hours)" 
-                                value={newOptionVal} 
-                                onChange={(e) => setNewOptionVal(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        e.preventDefault();
-                                        handleAddOption();
-                                    }
-                                }}
-                            />
-                            <Button 
-                                type="button" 
-                                onClick={(e) => handleAddOption(e)}
-                                size="sm" 
-                                variant="secondary"
-                                className="h-9 px-md text-xs"
-                            >
-                                Add Option
-                            </Button>
-                        </div>
-
-                        <div className="flex items-center justify-between mt-xs px-xs">
-                            <span className="text-[10px] opacity-50">Choose Chip Color:</span>
-                            <div className="flex gap-xs">
-                                {colors.map((c) => (
-                                    <button
-                                        key={c.value}
-                                        type="button"
-                                        onClick={(e) => { e.preventDefault(); setNewOptionColor(c.value); }}
-                                        className="w-5 h-5 rounded-full border-none transition-all flex items-center justify-center cursor-pointer hover:scale-110 relative"
-                                        style={{ 
-                                            backgroundColor: c.value,
-                                            opacity: newOptionColor === c.value ? 1 : 0.4
-                                        }}
-                                        title={c.name}
-                                    >
-                                        {newOptionColor === c.value && (
-                                            <span style={{ color: 'white', fontSize: '10px', fontWeight: 'bold' }}>✓</span>
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                    <div className="flex gap-2">
+                        <input
+                            className="input-planner flex-1"
+                            placeholder="Add an option…"
+                            value={newOptionVal}
+                            onChange={(e) => setNewOptionVal(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddOption(); } }}
+                        />
+                        <Button type="button" variant="secondary" onClick={(e) => handleAddOption(e)}>Add</Button>
                     </div>
-                    
-                    {selectOptions.length === 0 && (
-                        <div>
-                            <input 
-                                className="input-planner w-full h-9 text-xs px-sm opacity-60" 
-                                placeholder="Or enter as comma-separated (e.g. Low, Medium, High)" 
-                                value={fieldOptions} 
-                                onChange={(e) => setFieldOptions(e.target.value)}
+
+                    <div className="flex items-center gap-1.5">
+                        <span className="mr-1 text-xs text-muted">Colour</span>
+                        {COLORS.map((c) => (
+                            <button
+                                key={c.value}
+                                type="button"
+                                onClick={() => setNewOptionColor(c.value)}
+                                title={c.name}
+                                aria-label={c.name}
+                                aria-pressed={newOptionColor === c.value}
+                                className={`h-5 w-5 rounded-full transition-transform hover:scale-110 ${newOptionColor === c.value ? "ring-2 ring-offset-1 ring-offset-panel" : "opacity-60"}`}
+                                style={{ background: c.value, ["--tw-ring-color" as string]: c.value }}
                             />
-                        </div>
+                        ))}
+                    </div>
+
+                    {selectOptions.length === 0 && (
+                        <input className="input-planner" placeholder="Or paste comma-separated: Low, Medium, High" value={fieldOptions} onChange={(e) => setFieldOptions(e.target.value)} />
                     )}
                 </div>
             )}
-            <div className="flex gap-sm">
-                <Button type="submit" size="sm" className="flex-1 h-9">Initialize Attribute</Button>
-                <Button type="button" variant="ghost" size="sm" onClick={onDiscard} className="h-9">Discard</Button>
+
+            <div className="flex gap-2">
+                <Button type="submit" size="sm">Add field</Button>
+                <Button type="button" variant="ghost" size="sm" onClick={onDiscard}>Cancel</Button>
             </div>
         </form>
     );

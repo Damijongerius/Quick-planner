@@ -57,9 +57,12 @@ export function Select({
       const updatePosition = () => {
         if (!containerRef.current) return;
         const rect = containerRef.current.getBoundingClientRect();
+        // Open upwards when there isn't room below (e.g. a select in a bar docked to the bottom of the screen).
+        const wanted = Math.min(options.length * 34 + 12, 300);
+        const flip = window.innerHeight - rect.bottom < wanted + 8 && rect.top > window.innerHeight - rect.bottom;
         setDropdownStyles({
           position: 'fixed',
-          top: `${rect.bottom + 4}px`,
+          ...(flip ? { bottom: `${window.innerHeight - rect.top + 4}px` } : { top: `${rect.bottom + 4}px` }),
           left: `${rect.left}px`,
           width: `${rect.width}px`,
           zIndex: 9999
@@ -75,7 +78,7 @@ export function Select({
         window.removeEventListener('resize', updatePosition);
       };
     }
-  }, [isOpen]);
+  }, [isOpen, options.length]);
 
   const selectedOption = options.find((opt) => opt.value === value);
 
@@ -103,7 +106,7 @@ export function Select({
         onClick={handleToggle}
         disabled={disabled}
       >
-        <span className="flex items-center gap-md truncate">
+        <span className="flex items-center gap-2 truncate">
           {selectedOption?.color && (
             <span 
               className="select-option-color-dot" 

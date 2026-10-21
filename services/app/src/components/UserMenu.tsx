@@ -1,12 +1,13 @@
 "use client";
-import "./Sidebar.css";
 
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
-import { LogOut } from "lucide-react";
+import Link from "next/link";
+import { LogOut, Power } from "lucide-react";
 import { Avatar } from "./ui/Avatar";
-import { Button } from "./ui/Button";
+import { ThemeToggle } from "./ThemeToggle";
 import { WakePcModal } from "./WakePcModal";
+import { NotificationBell } from "./NotificationBell";
 
 export function UserMenu() {
   const { data: session } = useSession();
@@ -18,47 +19,33 @@ export function UserMenu() {
 
   return (
     <>
-    <div className="user-menu-wrapper px-sm pb-sm">
-      <div className="user-menu-container relative group">
-        <div 
-          className={`flex items-center gap-3 flex-1 ${isDamian ? 'cursor-pointer' : ''}`}
-          onClick={() => isDamian && setIsWakeModalOpen(true)}
-          role={isDamian ? "button" : undefined}
-          tabIndex={isDamian ? 0 : undefined}
-          aria-label={isDamian ? "Open Wake PC Menu" : undefined}
-        >
-          <Avatar 
-            src={session.user.image} 
-            name={session.user.name} 
-            size="md" 
-          />
-          <div className="user-info text-left pr-8">
-            <span className="user-name">
-                {session.user.name}
-            </span>
-            <span className="user-email text-[11px] text-on-surface-variant">
-                {session.user.email}
-            </span>
-          </div>
-        </div>
-        <Button 
-          variant="ghost"
-          onClick={(e) => { e.stopPropagation(); handleUserSignOut(); }}
-          title="Sign Out"
-          className="!p-0 w-8 h-8 min-w-[32px] min-h-[32px] rounded-full flex items-center justify-center shrink-0 !text-on-surface-variant hover:!text-error hover:!bg-error/10 transition-colors"
+      <div className="flex items-center gap-2 rounded-lg p-1.5">
+        <Link href="/profile" className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md p-1 text-left hover:bg-hover" title="Account">
+          <Avatar src={session.user.image} name={session.user.name} size="md" />
+          <span className="flex min-w-0 flex-col leading-tight">
+            <span className="truncate text-sm font-medium text-fg">{session.user.name}</span>
+            <span className="truncate text-xs text-faint">{session.user.email}</span>
+          </span>
+        </Link>
+        {isDamian && (
+          <button type="button" className="icon-button" title="Wake PC" aria-label="Wake PC" onClick={() => setIsWakeModalOpen(true)}>
+            <Power size={16} />
+          </button>
+        )}
+        <NotificationBell />
+        <ThemeToggle />
+        <button
+          type="button"
+          className="icon-button hover:!text-danger"
+          title="Sign out"
+          aria-label="Sign out"
+          onClick={() => signOut({ callbackUrl: "/auth/signin" })}
         >
           <LogOut size={16} />
-        </Button>
+        </button>
       </div>
-    </div>
 
-      {isDamian && (
-        <WakePcModal isOpen={isWakeModalOpen} onClose={() => setIsWakeModalOpen(false)} />
-      )}
+      {isDamian && <WakePcModal isOpen={isWakeModalOpen} onClose={() => setIsWakeModalOpen(false)} />}
     </>
   );
-}
-
-function handleUserSignOut() {
-  signOut({ callbackUrl: '/auth/signin' });
 }

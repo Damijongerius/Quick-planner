@@ -25,67 +25,47 @@ interface FieldDefinitionsSectionProps {
     setSelectOptions: React.Dispatch<React.SetStateAction<{ value: string; color: string }[]>>;
 }
 
-export function FieldDefinitionsSection({ 
-    projectId,
-    activeNodeType,
-    isAddingField,
-    fieldName,
-    fieldType,
-    fieldOptions,
-    setIsAddingField,
-    setFieldName,
-    setFieldType,
-    setFieldOptions,
-    onAddField,
-    fieldTypes,
-    isReadOnly,
-    selectOptions,
-    setSelectOptions
+export function FieldDefinitionsSection({
+    projectId, activeNodeType, isAddingField, fieldName, fieldType, fieldOptions,
+    setIsAddingField, setFieldName, setFieldType, setFieldOptions, onAddField, fieldTypes,
+    isReadOnly, selectOptions, setSelectOptions,
 }: Readonly<FieldDefinitionsSectionProps>) {
+    const fields = activeNodeType.fields ?? [];
     return (
-        <section className="flex flex-col gap-md">
-            <div className="flex justify-between items-center">
-                <span className="text-meta text-10px opacity-60 uppercase">Field Definitions</span>
+        <section className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold">Fields <span className="font-normal text-faint">{fields.length}</span></h3>
                 {!isAddingField && !isReadOnly && (
-                    <Button onClick={() => setIsAddingField(true)} variant="ghost" size="sm" icon={<Plus size={12} />} className="h-6 text-[10px] px-sm">
-                        Add Attribute
-                    </Button>
+                    <Button onClick={() => setIsAddingField(true)} variant="ghost" size="sm" icon={<Plus size={12} />}>Add field</Button>
                 )}
             </div>
-            
-            <div className="bg-surface-container-low p-lg rounded-2xl border border-outline-variant flex flex-col gap-md">
+
+            <div className="flex flex-col rounded-lg border border-border bg-bg">
                 {isAddingField && (
-                    <AddFieldDefinitionForm
-                        fieldName={fieldName}
-                        fieldType={fieldType}
-                        fieldOptions={fieldOptions}
-                        setFieldName={setFieldName}
-                        setFieldType={setFieldType}
-                        setFieldOptions={setFieldOptions}
-                        onAddField={onAddField}
-                        fieldTypes={fieldTypes}
-                        onDiscard={() => setIsAddingField(false)}
-                        selectOptions={selectOptions}
-                        setSelectOptions={setSelectOptions}
-                    />
+                    <div className="border-b border-border p-3">
+                        <AddFieldDefinitionForm
+                            fieldName={fieldName}
+                            fieldType={fieldType}
+                            fieldOptions={fieldOptions}
+                            setFieldName={setFieldName}
+                            setFieldType={setFieldType}
+                            setFieldOptions={setFieldOptions}
+                            onAddField={onAddField}
+                            fieldTypes={fieldTypes}
+                            onDiscard={() => setIsAddingField(false)}
+                            selectOptions={selectOptions}
+                            setSelectOptions={setSelectOptions}
+                        />
+                    </div>
                 )}
 
-                <div className="flex flex-col gap-xs">
-                    {activeNodeType.fields?.map((f) => (
-                        <FieldDefinitionItem
-                            key={f.id}
-                            field={f}
-                            projectId={projectId}
-                            isReadOnly={isReadOnly}
-                            fieldTypes={fieldTypes}
-                        />
-                    ))}
-                    {activeNodeType.fields?.length === 0 && !isAddingField && (
-                        <p className="text-xs italic opacity-40 py-sm">No custom properties defined</p>
-                    )}
-                </div>
+                {fields.map((f) => (
+                    <FieldDefinitionItem key={f.id} field={f} projectId={projectId} isReadOnly={isReadOnly} fieldTypes={fieldTypes} />
+                ))}
+                {fields.length === 0 && !isAddingField && (
+                    <p className="px-3 py-6 text-center text-sm text-faint">No custom fields yet. Fields add extra data like Priority or Points to items of this type.</p>
+                )}
             </div>
         </section>
     );
 }
-

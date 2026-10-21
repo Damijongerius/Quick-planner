@@ -5,6 +5,19 @@ export interface Project {
   isArchived: boolean;
   createdAt: string | Date;
   updatedAt: string | Date;
+  _count?: { nodes: number; sprints: number; members?: number };
+  /** "OWNER" | "EDITOR" | "VIEWER" inside a project; "OWNER" | "MEMBER" in the projects list. */
+  role?: string;
+  currentUserId?: string;
+  /** Set on the projects list for projects shared with you. */
+  ownerName?: string | null;
+}
+
+export interface Person {
+  id: string;
+  name: string | null;
+  email: string | null;
+  image: string | null;
 }
 
 export type DateValue = string | Date | null;
@@ -17,6 +30,8 @@ export interface Sprint {
   startDate?: DateValue;
   endDate?: DateValue;
   status: SprintStatus;
+  /** How many points (or items) the team can take on; optional. */
+  capacity?: number | null;
   userId: string;
   projectId: string;
   createdAt: string | Date;
@@ -66,6 +81,11 @@ export interface Node {
   nodeTypeId: string;
   type: NodeType;
   sprintId?: string | null;
+  assigneeId?: string | null;
+  assignee?: Person | null;
+  position?: number;
+  completedAt?: string | Date | null;
+  _count?: { comments: number };
   startDate?: string | Date | null;
   endDate?: string | Date | null;
   isArchived?: boolean;

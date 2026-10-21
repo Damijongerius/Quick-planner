@@ -9,7 +9,9 @@ services:
       - "3000:3000"
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/quickplanner?schema=public
-      - AUTH_SECRET=secret
+      # Signs session tokens: generate with `openssl rand -base64 32`. Never use a guessable value.
+      - AUTH_SECRET=${AUTH_SECRET:?set AUTH_SECRET in your environment or .env}
+      - MCP_AUTH_TOKEN=${MCP_AUTH_TOKEN:?set MCP_AUTH_TOKEN in your environment or .env}
       - AUTH_URL=http://localhost:3000
       - AUTH_TRUST_HOST=true
     depends_on:
@@ -27,7 +29,7 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=quickplanner
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data_arm64:/var/lib/postgresql/data
 
@@ -37,11 +39,13 @@ services:
       dockerfile: services/mcp/Dockerfile
     platform: linux/arm64
     container_name: planner-mcp-arm64
-    ports:
-      - "3001:3001"
+    # No published port: only the app container needs to reach the MCP server.
+    expose:
+      - "3001"
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/quickplanner?schema=public
       - PORT=3001
+      - MCP_AUTH_TOKEN=${MCP_AUTH_TOKEN:?set MCP_AUTH_TOKEN in your environment or .env}
     depends_on:
       - db
     restart: always

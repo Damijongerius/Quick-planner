@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import "./Modal.css";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
@@ -25,6 +25,13 @@ export function Modal({
   footer,
   maxWidth = "520px" 
 }: Readonly<ModalProps>) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
@@ -48,11 +55,11 @@ export function Modal({
       >
         <header className="modal-header">
           <div>
-            <h3 className="text-editorial text-2xl font-bold">{title}</h3>
-            {subtitle && <p className="text-secondary">{subtitle}</p>}
+            <h3>{title}</h3>
+            {subtitle && <p>{subtitle}</p>}
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface p-0 border-none outline-none shrink-0 bg-transparent cursor-pointer">
-            <X size={20} />
+          <button onClick={onClose} className="icon-button shrink-0" aria-label="Close">
+            <X size={18} />
           </button>
         </header>
 

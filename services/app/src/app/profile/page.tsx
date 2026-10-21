@@ -1,122 +1,65 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import Image from "next/image";
-import { 
-  User, 
-  Calendar, 
-  Verified,
-  Palette,
-  Lock,
-  ChevronRight,
-  Globe
-} from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { Avatar } from "@/components/ui/Avatar";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { EmailPreference } from "@/components/EmailPreference";
+import prisma from "@/lib/db";
+import { getEmailPreference, listApiTokens } from "@/lib/actions";
+import { ApiTokens } from "@/components/ApiTokens";
+import { mailConfig } from "@/lib/mail/config";
 
 export const dynamic = 'force-dynamic';
 
 export default async function ProfilePage() {
   const session = await auth();
-  
-  if (!session?.user) {
-    redirect("/auth/signin");
-  }
+  if (!session?.user) redirect("/auth/signin");
+
+  const { name, email, image } = session.user;
+  const [emailOn, tokens, accounts] = await Promise.all([
+    getEmailPreference(),
+    listApiTokens(),
+    prisma.account.findMany({ where: { userId: session.user.id }, select: { provider: true } }),
+  ]);
+  const providers = accounts.map((a) => ({ google: "Google", github: "GitHub" }[a.provider] ?? a.provider));
+  const signedInWith = providers.length > 0 ? providers.join(" and ") : "email";
 
   return (
-    <div className="canvas-content">
-      {/* Profile Header Section */}
-      <section style={{ marginBottom: '48px', display: 'flex', alignItems: 'flex-end', gap: '32px' }}>
-        <div style={{ position: 'relative' }}>
-          <div style={{ 
-            width: '160px', 
-            height: '160px', 
-            borderRadius: '40px', 
-            overflow: 'hidden', 
-            backgroundColor: 'var(--surface-container)', 
-            padding: '4px',
-            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)'
-          }}>
-            {session.user.image ? (
-              <Image src={session.user.image} alt={session.user.name || "User"} width={160} height={160} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '36px' }} />
-            ) : (
-              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--surface-container-high)', borderRadius: '36px' }}>
-                <User size={64} color="var(--on-surface-variant)" />
-              </div>
-            )}
-          </div>
-          <div style={{ 
-            position: 'absolute', 
-            bottom: '-8px', 
-            right: '-8px', 
-            backgroundColor: 'var(--tertiary)', 
-            color: 'white', 
-            padding: '8px', 
-            borderRadius: '12px', 
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-            border: '4px solid var(--surface)'
-          }}>
-            <Verified size={20} fill="white" />
-          </div>
-        </div>
+    <div className="mx-auto min-h-screen max-w-2xl px-6 py-10">
+      <Link href="/projects" className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg">
+        <ArrowLeft size={14} /> Projects
+      </Link>
 
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <h1 style={{ fontSize: '48px', fontWeight: 800, letterSpacing: '-0.025em', color: 'var(--on-surface)' }}>
-              {session.user.name || "Anonymous User"}
-            </h1>
-          </div>
-          <p style={{ fontSize: '20px', fontWeight: 500, color: 'var(--on-surface-variant)' }}>
-            Strategic Planner
-          </p>
-          <div style={{ display: 'flex', gap: '24px', paddingTop: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--on-surface-variant)', fontSize: '14px' }}>
-              <Calendar size={16} />
-              <span>Joined October 2023</span>
-            </div>
-          </div>
+      <h1 className="text-2xl font-semibold tracking-tight">Account</h1>
+
+      <section className="mt-6 flex items-center gap-4 rounded-lg border border-border bg-panel p-5 shadow-sm">
+        <Avatar src={image} name={name} size="lg" />
+        <div className="min-w-0">
+          <p className="truncate text-base font-semibold">{name || "Unnamed user"}</p>
+          <p className="truncate text-sm text-muted">{email}</p>
+          <p className="mt-1 text-xs text-faint">Signed in with {signedInWith}</p>
+          
         </div>
       </section>
 
-      {/* Main Sections */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '24px' }}>
-        <div style={{ gridColumn: 'span 8', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {/* Manifesto */}
-            <div className="card-planner" style={{ padding: '40px', borderRadius: '40px' }}>
-                <h3 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--on-surface)', marginBottom: '24px' }}>Manifesto</h3>
-                <p style={{ fontSize: '18px', color: 'var(--on-surface-variant)', fontStyle: 'italic', lineHeight: 1.6 }}>
-                    &quot;Architecting clarity from complexity. In the Planner, we don&apos;t just manage time; we master attention.&quot;
-                </p>
-            </div>
+      <section className="mt-4 divide-y divide-border rounded-lg border border-border bg-panel shadow-sm">
+        <div className="flex items-center justify-between p-4">
+          <div>
+            <p className="text-sm font-medium">Appearance</p>
+            <p className="text-xs text-muted">Click to cycle between system, light and dark.</p>
+          </div>
+          <ThemeToggle />
         </div>
-
-        {/* Sidebar Sections */}
-        <div style={{ gridColumn: 'span 4', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div className="card-planner" style={{ backgroundColor: 'var(--surface-container-low)', borderRadius: '40px', padding: '32px' }}>
-                <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '24px' }}>Preferences</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {[
-                        { label: 'Interface Theme', value: 'Default', icon: Palette },
-                        { label: 'Privacy & Security', icon: Lock, arrow: true },
-                        { label: 'Cloud Syncing', icon: Globe, toggle: true }
-                    ].map((pref) => (
-                        <div key={pref.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--surface-container-lowest)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--on-surface-variant)' }}>
-                                    <pref.icon size={20} />
-                                </div>
-                                <span style={{ fontSize: '14px', fontWeight: 700 }}>{pref.label}</span>
-                            </div>
-                            {pref.value && <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--primary)' }}>{pref.value}</span>}
-                            {pref.arrow && <ChevronRight size={16} color="var(--on-surface-variant)" />}
-                            {pref.toggle && (
-                                <div style={{ width: '32px', height: '16px', backgroundColor: 'var(--tertiary)', borderRadius: '9999px', position: 'relative' }}>
-                                    <div style={{ position: 'absolute', right: '2px', top: '2px', width: '12px', height: '12px', backgroundColor: 'white', borderRadius: '50%' }}></div>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </div>
+        <div className="flex items-center justify-between gap-4 p-4">
+          <div>
+            <p className="text-sm font-medium">Email notifications</p>
+            <p className="text-xs text-muted">{mailConfig() ? "Get an email when you're mentioned or assigned something while you're away from the app." : "Email isn't set up on this server, so there is nothing to send. In-app notifications still work."}</p>
+          </div>
+          <EmailPreference initial={emailOn} disabled={!mailConfig()} />
         </div>
-      </div>
+        <ApiTokens tokens={tokens} />
+      </section>
     </div>
   );
 }

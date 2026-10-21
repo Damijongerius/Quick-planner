@@ -35,7 +35,7 @@ export function GanttSprintSection({
 
               return (
                   <div key={sprint.id} className={`gantt-sprint-bar ${sprint.id === currentSprintId ? 'active' : ''}`} style={{ '--left': `${left}px`, '--width': `${width}px` } as React.CSSProperties}>
-                      {sprint.name.toUpperCase()}
+                      {sprint.name}
                   </div>
               );
           })}

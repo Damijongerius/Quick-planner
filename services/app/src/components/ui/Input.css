@@ -1,147 +1,45 @@
-.input-planner {
+@layer components {
+.input-planner, .input-premium {
   width: 100%;
-  padding: 16px 20px;
-  border-radius: 18px;
-  border: 1.5px solid var(--outline-variant);
-  background: white;
-  color: var(--on-surface);
-  font-family: var(--font-main);
-  font-size: 15px;
-  font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  outline: none;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  height: 34px;
+  padding: 0 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  background: var(--panel);
+  color: var(--fg);
+  font-size: 13px;
+  transition: border-color 0.12s, box-shadow 0.12s;
 }
-
-.input-planner:focus {
-  background: white;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 5px rgba(70, 86, 184, 0.1), 0 8px 20px rgba(0, 0, 0, 0.05);
-  transform: translateY(-1px);
-}
-
-.input-planner:hover:not(:focus) {
-  border-color: rgba(70, 86, 184, 0.3);
-  background: var(--surface-container-lowest);
-}
-
-.input-planner::placeholder {
-  color: var(--on-surface-variant);
-  opacity: 0.4;
-  font-weight: 500;
-}
+.input-planner::placeholder, .input-premium::placeholder { color: var(--faint); }
+.input-planner:hover:not(:focus):not(:disabled), .input-premium:hover:not(:focus):not(:disabled) { border-color: var(--faint); }
+.input-planner:focus, .input-premium:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+.input-planner:disabled, .input-premium:disabled { background: var(--hover); color: var(--muted); cursor: not-allowed; }
 
 .input-seamless {
-  background: transparent;
-  border: none;
-  outline: none;
-  font-family: var(--font-display);
+  background: transparent; border: none; outline: none; color: var(--fg); width: 100%;
+  padding: 0; font-weight: 600; letter-spacing: -0.01em;
 }
+.input-seamless::placeholder { color: var(--faint); }
+.input-seamless:disabled { color: var(--fg); opacity: 1; }
 
-.input-premium {
-  background: var(--surface-container-lowest);
-  border: 1px solid var(--outline-variant);
-  border-radius: 12px;
-  padding: 8px 12px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--on-surface);
-  transition: all 0.2s;
-  width: 100%;
-}
+textarea.input-premium, .auto-growing-textarea { height: auto; min-height: 34px; padding: 7px 10px; line-height: 1.5; }
+input[type="date"].input-planner, input[type="date"].input-premium { color-scheme: inherit; }
 
-.input-premium:focus {
-  border-color: var(--primary);
-  box-shadow: var(--primary-shadow);
-  outline: none;
-}
-
-.auto-growing-textarea {
-  min-height: 36px;
-  resize: none;
-  overflow: hidden;
-  line-height: 1.6;
-}
-
-input[type="date"].input-planner {
-  text-transform: uppercase;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  color: var(--on-surface-variant);
-}
-
-select.input-planner, select.button-secondary {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
-  padding-right: 40px;
-}
-
-select.input-premium, .select-premium {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='var(--on-surface-variant)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
-  padding-right: 36px !important;
-  cursor: pointer;
-}
-
-select.input-premium:hover, .select-premium:hover {
-  background-color: var(--surface-container-high);
-}
-
-input[type="date"].input-premium {
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='var(--on-surface-variant)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='4' rx='2' ry='2'/%3E%3Cline x1='16' x2='16' y1='2' y2='6'/%3E%3Cline x1='8' x2='8' y1='2' y2='6'/%3E%3Cline x1='3' x2='21' y1='10' y2='10'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
-  padding-right: 36px;
+select.input-planner, select.input-premium, .select-premium, select.button-secondary {
+  appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 28px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238d8d99' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
 }
 
 input[type="checkbox"].checkbox-premium {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid var(--outline-variant);
-  border-radius: 6px;
-  outline: none;
-  background-color: var(--surface-container-lowest);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  vertical-align: middle;
+  appearance: none; -webkit-appearance: none; width: 16px; height: 16px; margin: 0;
+  border: 1px solid var(--border-strong); border-radius: 4px; background: var(--panel);
+  cursor: pointer; position: relative; transition: background-color 0.12s, border-color 0.12s;
 }
-
-input[type="checkbox"].checkbox-premium:checked {
-  background-color: var(--tertiary);
-  border-color: var(--tertiary);
-}
-
+input[type="checkbox"].checkbox-premium:checked { background: var(--accent); border-color: var(--accent); }
 input[type="checkbox"].checkbox-premium:checked::after {
-  content: "";
-  position: absolute;
-  width: 10px;
-  height: 5px;
-  border-left: 2px solid white;
-  border-bottom: 2px solid white;
-  transform: rotate(-45deg);
-  top: 4px;
+  content: ""; position: absolute; left: 4.5px; top: 1.5px; width: 4px; height: 8px;
+  border: solid var(--accent-fg); border-width: 0 2px 2px 0; transform: rotate(45deg);
 }
-
-input[type="checkbox"].checkbox-premium:focus {
-  box-shadow: 0 0 0 3px rgba(70, 86, 184, 0.15);
-  border-color: var(--primary);
+input[type="checkbox"].checkbox-premium:focus-visible { box-shadow: var(--ring); outline: none; }
 }
-

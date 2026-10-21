@@ -21,7 +21,7 @@ export function CustomFieldRenderer({ fields, content, onChange, disabled }: Rea
   if (!fields || fields.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-lg">
+    <div className="flex flex-col gap-4">
       {fields.map((field) => (
         <FormField 
           key={field.id} 
@@ -39,8 +39,7 @@ export function CustomFieldRenderer({ fields, content, onChange, disabled }: Rea
           {field.type === 'NUMBER' && (
             <Input 
               type="number"
-              variant="premium"
-              value={(content[field.name] as number) || ""}
+              value={(content[field.name] as number | string | undefined) ?? ""}
               onChange={(e) => onChange(field.name, e.target.value)}
               disabled={disabled}
             />
@@ -49,7 +48,6 @@ export function CustomFieldRenderer({ fields, content, onChange, disabled }: Rea
           {field.type === 'DATE' && (
             <Input 
               type="date"
-              variant="premium"
               value={(content[field.name] as string) || ""}
               onChange={(e) => onChange(field.name, e.target.value)}
               disabled={disabled}
@@ -67,8 +65,9 @@ export function CustomFieldRenderer({ fields, content, onChange, disabled }: Rea
 
           {field.type?.toUpperCase() === 'SELECT' && (
             <Select
-              options={Array.isArray(field.options) ? field.options.map((opt: any) => {
-                const isObj = typeof opt !== 'string' && opt !== null && typeof opt === 'object';
+              options={Array.isArray(field.options) ? (field.options as unknown[]).map((raw) => {
+                const opt = raw as string | { value: string; color?: string } | null;
+                const isObj = typeof opt === 'object' && opt !== null;
                 const val = isObj ? opt.value : String(opt);
                 const color = isObj && opt.color ? opt.color : getOptionColor(val);
                 return { value: val, label: val, color };

@@ -1,34 +1,39 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { auth } from "@/auth";
+import { publishChange } from "@/lib/realtime/hub";
 import { revalidatePath } from "next/cache";
-import { ensureProjectNotArchived } from "./helpers";
+import { requireProjectAccess, getProjectViewerId, wouldCreateDependencyCycle, toResult, UserError, type ActionResult } from "./helpers";
 import { AllowedRelation } from "@/lib/types";
 
 export async function createRelation(projectId: string, parentNodeTypeId: string, childNodeTypeId: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  await ensureProjectNotArchived(projectId);
-  await prisma.allowedRelation.create({ data: { parentNodeTypeId, childNodeTypeId } });
+  const userId = await requireProjectAccess(projectId);
+
+  const types = await prisma.nodeType.count({
+    where: { id: { in: [parentNodeTypeId, childNodeTypeId] }, projectId }
+  });
+  const expected = parentNodeTypeId === childNodeTypeId ? 1 : 2;
+  if (types !== expected) throw new Error("Node type not found");
+
+  const existing = await prisma.allowedRelation.findFirst({ where: { parentNodeTypeId, childNodeTypeId }, select: { id: true } });
+  if (!existing) {
+    await prisma.allowedRelation.create({ data: { parentNodeTypeId, childNodeTypeId } });
+  }
   revalidatePath(`/project/${projectId}/settings/relations`);
+  publishChange(projectId, "types", userId);
 }
 
 export async function deleteRelation(projectId: string, id: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  await ensureProjectNotArchived(projectId);
-  try {
-    await prisma.allowedRelation.delete({ where: { id } });
-  } catch (error: unknown) {
-    if (error && typeof error === 'object' && 'code' in error && error.code !== 'P2025') throw error;
-  }
+  const userId = await requireProjectAccess(projectId);
+  await prisma.allowedRelation.deleteMany({
+    where: { id, parentNodeType: { projectId } }
+  });
   revalidatePath(`/project/${projectId}/settings/relations`);
+  publishChange(projectId, "types", userId);
 }
 
 export async function getRelations(projectId: string): Promise<AllowedRelation[]> {
-  const session = await auth();
-  if (!session?.user?.id) return [];
+  if (!(await getProjectViewerId(projectId))) return [];
   const relations = await prisma.allowedRelation.findMany({
     where: { parentNodeType: { projectId } },
     include: { parentNodeType: true, childNodeTypeType: true },
@@ -36,25 +41,37 @@ export async function getRelations(projectId: string): Promise<AllowedRelation[]
   return relations as AllowedRelation[];
 }
 
-export async function addDependency(projectId: string, blockedNodeId: string, blockingNodeId: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  await ensureProjectNotArchived(projectId);
-  if (blockedNodeId === blockingNodeId) throw new Error("A node cannot depend on itself");
-  await prisma.nodeDependency.create({ data: { blockedNodeId, blockingNodeId }, });
-  revalidatePath(`/project/${projectId}/backlog`);
-  revalidatePath(`/project/${projectId}/board`);
+export async function addDependency(projectId: string, blockedNodeId: string, blockingNodeId: string): Promise<ActionResult> {
+  const userId = await requireProjectAccess(projectId);
+  if (blockedNodeId === blockingNodeId) return { error: "A node cannot depend on itself" };
+
+  const result = await toResult(() => prisma.$transaction(async (tx) => {
+    const nodes = await tx.node.count({ where: { id: { in: [blockedNodeId, blockingNodeId] }, projectId } });
+    if (nodes !== 2) throw new Error("Node not found");
+
+    const existing = await tx.nodeDependency.findFirst({ where: { blockedNodeId, blockingNodeId }, select: { id: true } });
+    if (existing) return;
+
+    if (await wouldCreateDependencyCycle(tx, blockedNodeId, blockingNodeId)) {
+      throw new UserError("This dependency would create a circular chain");
+    }
+    await tx.nodeDependency.create({ data: { blockedNodeId, blockingNodeId } });
+  }));
+
+  if (!result.error) {
+    revalidatePath(`/project/${projectId}/backlog`);
+    revalidatePath(`/project/${projectId}/board`);
+    publishChange(projectId, "nodes", userId, blockedNodeId);
+  }
+  return result;
 }
 
 export async function removeDependency(projectId: string, id: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  await ensureProjectNotArchived(projectId);
-  try {
-    await prisma.nodeDependency.delete({ where: { id }, });
-  } catch (error: unknown) {
-    if (error && typeof error === 'object' && 'code' in error && error.code !== 'P2025') throw error;
-  }
+  const userId = await requireProjectAccess(projectId);
+  await prisma.nodeDependency.deleteMany({
+    where: { id, blockedNode: { projectId } }
+  });
   revalidatePath(`/project/${projectId}/backlog`);
   revalidatePath(`/project/${projectId}/board`);
+  publishChange(projectId, "nodes", userId);
 }

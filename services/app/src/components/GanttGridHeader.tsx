@@ -37,11 +37,9 @@ export function GanttGridHeader({
                 onMouseMove={onMouseMove}
                 onMouseLeave={() => onHover(null, null)}
               >
-                {showMonthLabel && (
-                  <div className="gantt-month-label">
-                    {item.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
-                  </div>
-                )}
+                <div className="gantt-month-label">
+                  {showMonthLabel ? item.toLocaleDateString('en-US', { month: 'short' }) : '\u00a0'}
+                </div>
                 {item.getDate()}
               </div>
             );
@@ -65,11 +63,9 @@ export function GanttGridHeader({
                 onMouseMove={onMouseMove}
                 onMouseLeave={() => onHover(null, null)}
               >
-                {showMonthLabel && (
-                  <div className="gantt-month-label">
-                    {item.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
-                  </div>
-                )}
+                <div className="gantt-month-label">
+                  {showMonthLabel ? item.toLocaleDateString('en-US', { month: 'short' }) : '\u00a0'}
+                </div>
                 {item.getDate()}
               </div>
             );

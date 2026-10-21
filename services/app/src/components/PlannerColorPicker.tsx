@@ -1,18 +1,8 @@
 "use client";
 
 const PLANNER_PALETTE = [
-  "#3b82f6", // Blue
-  "#8b5cf6", // Violet
-  "#ec4899", // Pink
-  "#ef4444", // Red
-  "#f59e0b", // Amber
-  "#10b981", // Emerald
-  "#06b6d4", // Cyan
-  "#6366f1", // Indigo
-  "#f43f5e", // Rose
-  "#84cc16", // Lime
-  "#a855f7", // Purple
-  "#64748b"  // Slate
+  "#3b82f6", "#8b5cf6", "#ec4899", "#ef4444", "#f59e0b", "#10b981",
+  "#06b6d4", "#6366f1", "#f43f5e", "#84cc16", "#a855f7", "#64748b",
 ];
 
 interface PlannerColorPickerProps {
@@ -21,41 +11,32 @@ interface PlannerColorPickerProps {
 }
 
 export function PlannerColorPicker({ currentColor, onSelect }: Readonly<PlannerColorPickerProps>) {
-  const isCustomColor = !PLANNER_PALETTE.includes(currentColor);
+  const isCustomColor = !!currentColor && !PLANNER_PALETTE.includes(currentColor);
 
   return (
-    <div className="flex items-center gap-md flex-wrap">
-      <div className="grid grid-cols-6 gap-sm">
-        {PLANNER_PALETTE.map((color: string) => {
-          const isActive = currentColor === color;
-          return (
-            <button
-              key={color}
-              type="button"
-              onClick={() => onSelect(color)}
-              className={`color-swatch ${isActive ? 'active' : ''}`}
-              style={{ backgroundColor: color, '--node-color': color } as React.CSSProperties}
-            />
-          );
-        })}
-      </div>
+    <div className="flex flex-wrap items-center gap-1.5">
+      {PLANNER_PALETTE.map((color) => {
+        const isActive = currentColor === color;
+        return (
+          <button
+            key={color}
+            type="button"
+            onClick={() => onSelect(color)}
+            aria-label={`Use colour ${color}`}
+            aria-pressed={isActive}
+            className={`h-6 w-6 rounded-full transition-transform hover:scale-110 ${isActive ? "ring-2 ring-offset-2 ring-offset-panel" : ""}`}
+            style={{ background: color, ["--tw-ring-color" as string]: color }}
+          />
+        );
+      })}
 
-      <div
-        className={`custom-color-trigger ${isCustomColor ? 'active' : ''}`}
-        style={{ '--node-color': currentColor } as React.CSSProperties}
-        title="Custom Color"
+      <label
+        className={`relative h-6 w-6 cursor-pointer overflow-hidden rounded-full transition-transform hover:scale-110 ${isCustomColor ? "ring-2 ring-offset-2 ring-offset-panel" : ""}`}
+        style={{ background: isCustomColor ? currentColor : "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)", ["--tw-ring-color" as string]: currentColor }}
+        title="Custom colour"
       >
-        <div
-          className="custom-color-preview"
-          style={isCustomColor ? { backgroundColor: currentColor } : {}}
-        />
-        <input
-          type="color"
-          value={currentColor}
-          onChange={(e) => onSelect(e.target.value)}
-          className="custom-color-input"
-        />
-      </div>
+        <input type="color" value={currentColor || "#3b82f6"} onChange={(e) => onSelect(e.target.value)} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" aria-label="Custom colour" />
+      </label>
     </div>
   );
 }

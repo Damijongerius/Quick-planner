@@ -1,16 +1,4 @@
-.auto-growing-textarea {
-  resize: none !important;
-  overflow: hidden !important;
-  min-height: 36px !important;
-  line-height: 1.4 !important;
-  padding: 8px 12px !important;
-  width: 100%;
-  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
-  display: block;
-  font-family: inherit;
-}
-
-.auto-growing-textarea:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+@layer components {
+.auto-growing-textarea { min-height: 34px; resize: none; }
+.auto-growing-textarea:disabled { opacity: 1; }
 }
